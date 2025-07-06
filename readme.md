@@ -3,9 +3,11 @@
 ## Repositories
 - [MyEmulator](https://github.com/Keyhole-Koro/MyEmulator)
 - [MyAssembler](https://github.com/Keyhole-Koro/MyAssembler)
-- [MyCompiler](https://github.com/Keyhole-Koro/MyCompiler)
+- [MyCompiler](https://github.com/Keyhole-Koro/MyCC)
+- [MyTester](https://github.com/Keyhole-Koro/MyTester)
 
 ## Achievement Levels
 - **Emulator**: 25%
-- **Assembler**: 50%
-- **Compiler**: 8%
+- **Assembler**: 70%
+- **Compiler**: 40%
+
