@@ -19,7 +19,15 @@ if [[ -z "$msg" ]]; then
   exit 1
 fi
 
-repo_root="$(git rev-parse --show-toplevel)"
+# Always operate from the repo that contains this script (superproject)
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$script_dir"
+
+if [[ ! -f "$repo_root/.gitmodules" ]]; then
+  echo "No .gitmodules in $repo_root; are you running in the superproject?" >&2
+  exit 1
+fi
+
 mapfile -t subs < <(git -C "$repo_root" config --file .gitmodules --get-regexp path | awk '{print $2}')
 
 if [[ ${#subs[@]} -eq 0 ]]; then
