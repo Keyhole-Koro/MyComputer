@@ -1,0 +1,78 @@
+
+__START__:
+; prologue
+  push bp
+  mov bp, sp
+  addis sp, -12
+  
+; load constant 2 into r1
+  movi  r1, 2
+  
+; store r1 to var 'x'
+  mov   r3, bp
+  addis r3, -4
+  store r3, r1
+  
+; load constant 3 into r1
+  movi  r1, 3
+  
+; store r1 to var 'y'
+  mov   r3, bp
+  addis r3, -8
+  store r3, r1
+  
+; load local 'x' into r5
+  mov   r3, bp
+  addis r3, -4
+  load  r5, r3
+  
+; load local 'y' into r6
+  mov   r3, bp
+  addis r3, -8
+  load  r6, r3
+  
+; call function add
+  jmp add_f
+  
+; store r1 to var 'z'
+  mov   r3, bp
+  addis r3, -12
+  store r3, r1
+  
+; load local 'z' into r1
+  mov   r3, bp
+  addis r3, -12
+  load  r1, r3
+  
+; return
+  halt
+add_f:
+; prologue
+  push bp
+  mov bp, sp
+  addis sp, -8
+  ; store parameter 'a' from register r5
+  mov   r3, bp
+  addis r3, -4
+  store r3, r5
+  ; store parameter 'b' from register r6
+  mov   r3, bp
+  addis r3, -8
+  store r3, r6
+  
+; load param 'a' (arg1, reg) into r2
+  mov   r3, bp
+  addis r3, -4
+  load  r2, r3
+  
+; load param 'b' (arg2, reg) into r1
+  mov   r3, bp
+  addis r3, -8
+  load  r1, r3
+  add  r1, r2
+  
+; return
+  addis sp, 8
+; epilogue
+  pop  bp
+  mov  pc, lr
