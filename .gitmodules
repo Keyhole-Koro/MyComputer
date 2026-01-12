@@ -4,9 +4,9 @@
 [submodule "MyAssembler"]
 	path = MyAssembler
 	url = https://github.com/Keyhole-Koro/MyAssembler.git
-[submodule "MyCC"]
-	path = MyCC
-	url = https://github.com/Keyhole-Koro/MyCC.git
 [submodule "MyTester"]
 	path = MyTester
 	url = https://github.com/Keyhole-Koro/MyTester.git
+[submodule "MyLinker"]
+	path = MyLinker
+	url = https://github.com/Keyhole-Koro/MyLinker.git
