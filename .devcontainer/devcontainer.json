@@ -1,5 +1,5 @@
 {
-  "name": "mycomputer",
+  "name": "mycomputer dev",
   "build": {
     "dockerfile": "Dockerfile"
   },
@@ -11,5 +11,6 @@
       ]
     }
   },
-  "postCreateCommand": "git submodule update --init --recursive"
+  "postCreateCommand": "git submodule update --init --recursive",
+  "updateRemoteUserUID": false
 }

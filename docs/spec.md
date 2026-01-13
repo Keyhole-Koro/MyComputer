@@ -90,7 +90,7 @@ Notes:
 ## Project modules
 - `MyEmulator`: CPU, bus, RAM, and runtime implementation (C++)
 - `MyAssembler`: assembler for the ISA (C)
-- `MyCC`: compiler front-end to assembler (C)
+- `MyLangCompiler`: compiler front-end to assembler (C)
 - `MyTester`: test runners (Python)
 
 ## Sources
