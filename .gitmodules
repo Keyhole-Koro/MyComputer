@@ -10,3 +10,6 @@
 [submodule "MyLinker"]
 	path = MyLinker
 	url = https://github.com/Keyhole-Koro/MyLinker.git
+[submodule "MyLangCompiler"]
+	path = MyLangCompiler
+	url = https://github.com/Keyhole-Koro/MyLangCompiler.git
