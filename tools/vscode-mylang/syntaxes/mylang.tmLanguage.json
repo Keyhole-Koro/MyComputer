@@ -1,0 +1,93 @@
+{
+  "scopeName": "source.mylang",
+  "name": "MyLang",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#chars" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.mylang",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.mylang",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.mylang",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.mylang",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "chars": {
+      "patterns": [
+        {
+          "name": "string.quoted.single.mylang",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.mylang",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.mylang",
+          "match": "\\b(if|else|while|do|for|switch|case|default|break|continue|return|yield|of)\\b"
+        },
+        {
+          "name": "keyword.other.import.mylang",
+          "match": "\\b(import|from|export|package)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.mylang",
+          "match": "\\b(bool|int|char|float|double|void|long|short)\\b"
+        },
+        {
+          "name": "storage.modifier.mylang",
+          "match": "\\b(unsigned|signed|const|static|extern|auto|register|typedef|struct|union|enum)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.mylang",
+          "match": "\\b0x[0-9A-Fa-f]+\\b"
+        },
+        {
+          "name": "constant.numeric.decimal.mylang",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    }
+  }
+}

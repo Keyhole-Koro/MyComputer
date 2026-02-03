@@ -1,0 +1,17 @@
+import f_kernel_main
+
+; Minimal RAM-resident stub.
+; Calls into high-level f_kernel_main and leaves the return value visible.
+
+__START__:
+  push bp
+  mov  bp, sp
+
+  call f_kernel_main
+
+  mov  r0, r1
+  movi r4, 0x100
+  store r4, r1
+
+  pop  bp
+  halt

@@ -1,0 +1,34 @@
+{
+  "name": "mylang-syntax",
+  "displayName": "MyLang Syntax",
+  "description": "Syntax highlighting for the MyLang sources in this repo.",
+  "version": "0.0.1",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "mylang",
+        "aliases": [
+          "MyLang"
+        ],
+        "extensions": [
+          ".ml",
+          ".mylang"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "mylang",
+        "scopeName": "source.mylang",
+        "path": "./syntaxes/mylang.tmLanguage.json"
+      }
+    ]
+  }
+}
