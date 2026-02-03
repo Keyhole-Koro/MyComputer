@@ -13,3 +13,6 @@
 [submodule "MyLangCompiler"]
 	path = MyLangCompiler
 	url = https://github.com/Keyhole-Koro/MyLangCompiler.git
+[submodule "MyKernel"]
+	path = MyKernel
+	url = https://github.com/Keyhole-Koro/MyKernel.git
