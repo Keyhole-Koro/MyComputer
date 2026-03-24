@@ -1,0 +1,45 @@
+name: CI - MyTester
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  mytester-smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential g++
+
+      - name: Verify Python scripts
+        run: |
+          python3 -m py_compile \
+            tools/project_paths.py \
+            qa/MyTester/as-test.py \
+            qa/MyTester/build_toolchain.py \
+            qa/MyTester/linker-test.py \
+            qa/MyTester/mlc-test.py \
+            qa/MyTester/run_kernel.py
+
+      - name: Run MyTester smoke tests
+        run: |
+          python3 qa/MyTester/as-test.py simpleChar
+          python3 qa/MyTester/mlc-test.py simpleFunc
+          python3 qa/MyTester/run_kernel.py --no-run
