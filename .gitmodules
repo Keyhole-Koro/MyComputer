@@ -1,18 +1,24 @@
 [submodule "MyEmulator"]
-	path = MyEmulator
+	path = runtime/MyEmulator
 	url = https://github.com/Keyhole-Koro/MyEmulator.git
+	branch = main
 [submodule "MyAssembler"]
-	path = MyAssembler
+	path = toolchain/MyAssembler
 	url = https://github.com/Keyhole-Koro/MyAssembler.git
+	branch = main
 [submodule "MyTester"]
-	path = MyTester
+	path = qa/MyTester
 	url = https://github.com/Keyhole-Koro/MyTester.git
+	branch = main
 [submodule "MyLinker"]
-	path = MyLinker
+	path = toolchain/MyLinker
 	url = https://github.com/Keyhole-Koro/MyLinker.git
+	branch = main
 [submodule "MyLangCompiler"]
-	path = MyLangCompiler
+	path = toolchain/MyLangCompiler
 	url = https://github.com/Keyhole-Koro/MyLangCompiler.git
+	branch = main
 [submodule "MyKernel"]
-	path = MyKernel
+	path = system/MyKernel
 	url = https://github.com/Keyhole-Koro/MyKernel.git
+	branch = main
