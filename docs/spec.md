@@ -1,7 +1,7 @@
 # Architecture and Project Specification
 
 This document summarizes the current architecture specification and how it maps to the project
-modules. It is based on `MyEmulator/architecture/README.md`.
+modules. It is based on `runtime/MyEmulator/architecture/README.md`.
 
 ## Architecture summary
 - Word size: 16 bits
@@ -88,10 +88,10 @@ Notes:
 - Reset circuit: push-button + capacitor + Schmitt trigger
 
 ## Project modules
-- `MyEmulator`: CPU, bus, RAM, and runtime implementation (C++)
-- `MyAssembler`: assembler for the ISA (C)
-- `MyLangCompiler`: compiler front-end to assembler (C)
-- `MyTester`: test runners (Python)
+- `runtime/MyEmulator`: CPU, bus, RAM, and runtime implementation (C++)
+- `toolchain/MyAssembler`: assembler for the ISA (C)
+- `toolchain/MyLangCompiler`: compiler front-end to assembler (C)
+- `qa/MyTester`: test runners (Python)
 
 ## Sources
-- `MyEmulator/architecture/README.md`
+- `runtime/MyEmulator/architecture/README.md`

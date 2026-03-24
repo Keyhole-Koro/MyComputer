@@ -17,9 +17,9 @@ If you prefer a Dockerfile, install the build toolchain and CMake:
 
 ## Typical build commands
 Run these from the repository root:
-- `make -C MyAssembler`
+- `make -C toolchain/MyAssembler`
 - `make -C MyCC`
-- `make -C MyEmulator`
+- `make -C runtime/MyEmulator`
 
 ## Notes
 - The top-level repo is a thin wrapper around submodules. Keep `git submodule update --init --recursive`
