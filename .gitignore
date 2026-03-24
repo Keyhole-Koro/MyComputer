@@ -1,3 +1,5 @@
 build
 
 memory_dump.txt
+*.pyc
+__pycache__/
