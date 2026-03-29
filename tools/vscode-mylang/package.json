@@ -40,6 +40,11 @@
           "type": "string",
           "default": "python3",
           "description": "Python executable used to start the MyLang LSP server."
+        },
+        "mylang.lsp.semanticTokens": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable semantic tokens from the MyLang LSP. Disabled by default because TextMate highlighting is currently more stable."
         }
       }
     }

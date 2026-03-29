@@ -86,6 +86,7 @@ function toTextDocumentItem(doc) {
 async function activate(context) {
   const config = vscode.workspace.getConfiguration('mylang');
   const pythonPath = config.get('lsp.pythonPath') || 'python3';
+  const semanticTokensEnabled = config.get('lsp.semanticTokens') === true;
   const fs = require('fs');
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   const serverPath = workspaceRoot ? path.join(workspaceRoot, 'tools', 'MyLangServerProtocol', 'server.py') : null;
@@ -129,19 +130,21 @@ async function activate(context) {
     rpc.notify('textDocument/didClose', { textDocument: { uri: doc.uri.toString() } });
   }));
 
-  const legend = new vscode.SemanticTokensLegend(
-    initResult.capabilities.semanticTokensProvider.legend.tokenTypes,
-    initResult.capabilities.semanticTokensProvider.legend.tokenModifiers,
-  );
+  if (semanticTokensEnabled && initResult.capabilities.semanticTokensProvider) {
+    const legend = new vscode.SemanticTokensLegend(
+      initResult.capabilities.semanticTokensProvider.legend.tokenTypes,
+      initResult.capabilities.semanticTokensProvider.legend.tokenModifiers,
+    );
 
-  context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider(documentSelector(), {
-    provideDocumentSemanticTokens: async (doc) => {
-      const result = await rpc.request('textDocument/semanticTokens/full', {
-        textDocument: { uri: doc.uri.toString() }
-      });
-      return new vscode.SemanticTokens(new Uint32Array(result.data));
-    }
-  }, legend));
+    context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider(documentSelector(), {
+      provideDocumentSemanticTokens: async (doc) => {
+        const result = await rpc.request('textDocument/semanticTokens/full', {
+          textDocument: { uri: doc.uri.toString() }
+        });
+        return new vscode.SemanticTokens(new Uint32Array(result.data));
+      }
+    }, legend));
+  }
 
   context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(documentSelector(), {
     provideDocumentSymbols: async (doc) => {

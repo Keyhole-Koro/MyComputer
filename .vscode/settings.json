@@ -1,5 +1,48 @@
 {
   "files.associations": {
     "*.mln": "mylang"
+  },
+  "editor.semanticHighlighting.enabled": true,
+  "editor.semanticTokenColorCustomizations": {
+    "enabled": true,
+    "rules": {
+      "type": "#4A90E2",
+      "struct": "#4A90E2",
+      "namespace": "#4A90E2"
+    }
+  },
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": [
+          "comment",
+          "comment.line",
+          "comment.block",
+          "comment.line.double-slash",
+          "comment.block.mylang",
+          "comment.line.double-slash.mylang"
+        ],
+        "settings": {
+          "foreground": "#7F848E",
+          "fontStyle": "italic"
+        }
+      },
+      {
+        "scope": [
+          "storage.type.mylang",
+          "storage.type.return-type.mylang",
+          "support.type.user.mylang",
+          "support.type.reference.mylang",
+          "entity.name.type.typedef.mylang",
+          "entity.name.type.struct.mylang"
+        ],
+        "settings": {
+          "foreground": "#4A90E2"
+        }
+      }
+    ]
+  },
+  "[mylang]": {
+    "editor.semanticHighlighting.enabled": false
   }
 }
