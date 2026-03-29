@@ -69,11 +69,11 @@
       "patterns": [
         {
           "name": "storage.type.mylang",
-          "match": "\\b(bool|int|char|float|double|void|long|short)\\b"
+          "match": "\\b(bool|i32|u32|char|float|double|void|long|short)\\b"
         },
         {
           "name": "storage.modifier.mylang",
-          "match": "\\b(unsigned|signed|const|static|extern|auto|register|typedef|struct|union|enum)\\b"
+          "match": "\\b(const|static|extern|auto|register|typedef|struct|union|enum)\\b"
         }
       ]
     },

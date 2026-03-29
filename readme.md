@@ -17,3 +17,24 @@
 ## Layout
 - Example ROM/kernel sources: `runtime/MyEmulator/examples/boot_rom.masm`, `runtime/MyEmulator/examples/kernel.masm`
 - Prebuilt demo images and hexdumps: `runtime/MyEmulator/build/os/*.bin` / `*.txt`
+
+## Directory Structure
+```text
+.
+├── architecture/             # Architecture notes and design docs
+├── docs/                     # Project-wide documentation
+├── qa/
+│   └── MyTester/             # Test scripts, test inputs, and expected outputs
+├── runtime/
+│   └── MyEmulator/           # Emulator implementation
+├── system/
+│   └── MyKernel/             # Kernel sources
+├── toolchain/
+│   ├── MyAssembler/          # Assembler
+│   ├── MyLangCompiler/       # Compiler
+│   └── MyLinker/             # Linker
+├── tools/                    # Helper tools and editor integration
+├── .devcontainer/            # Dev container settings
+├── .github/workflows/        # CI configuration
+└── readme.md                 # This file
+```
