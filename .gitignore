@@ -3,3 +3,6 @@ build
 memory_dump.txt
 *.pyc
 __pycache__/
+# VS Code MyLang extension build artifacts
+tools/vscode-mylang/.vsix-build/
+tools/vscode-mylang/*.vsix

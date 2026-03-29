@@ -1,7 +1,7 @@
 {
   "name": "mylang-syntax",
   "displayName": "MyLang Syntax",
-  "description": "Syntax highlighting for the MyLang sources in this repo.",
+  "description": "Syntax highlighting and a lightweight LSP for the MyLang sources in this repo.",
   "version": "0.0.1",
   "publisher": "local",
   "engines": {
@@ -10,6 +10,10 @@
   "categories": [
     "Programming Languages"
   ],
+  "activationEvents": [
+    "onLanguage:mylang"
+  ],
+  "main": "./extension.js",
   "contributes": {
     "languages": [
       {
@@ -28,6 +32,16 @@
         "scopeName": "source.mylang",
         "path": "./syntaxes/mylang.tmLanguage.json"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "MyLang",
+      "properties": {
+        "mylang.lsp.pythonPath": {
+          "type": "string",
+          "default": "python3",
+          "description": "Python executable used to start the MyLang LSP server."
+        }
+      }
+    }
   }
 }
