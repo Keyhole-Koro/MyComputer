@@ -22,3 +22,7 @@
 	path = system/MyKernel
 	url = https://github.com/Keyhole-Koro/MyKernel.git
 	branch = main
+[submodule "tools/MyLangServerProtocol"]
+	path = tools/MyLangServerProtocol
+	url = https://github.com/Keyhole-Koro/MyLangServerProtocol.git
+	branch = main
