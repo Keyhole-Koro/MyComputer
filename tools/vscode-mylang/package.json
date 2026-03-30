@@ -24,13 +24,22 @@
         "extensions": [
           ".mln"
         ]
+      },
+      {
+        "id": "mymasm",
+        "aliases": [
+          "MyMasm"
+        ],
+        "extensions": [
+          ".masm"
+        ]
       }
     ],
     "grammars": [
       {
-        "language": "mylang",
-        "scopeName": "source.mylang",
-        "path": "./syntaxes/mylang.tmLanguage.json"
+        "language": "mymasm",
+        "scopeName": "source.mymasm",
+        "path": "./syntaxes/mymasm.tmLanguage.json"
       }
     ],
     "configuration": {
@@ -43,8 +52,8 @@
         },
         "mylang.lsp.semanticTokens": {
           "type": "boolean",
-          "default": false,
-          "description": "Enable semantic tokens from the MyLang LSP. Disabled by default because TextMate highlighting is currently more stable."
+          "default": true,
+          "description": "Enable semantic tokens from the MyLang LSP."
         }
       }
     }

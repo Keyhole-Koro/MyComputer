@@ -1,48 +1,52 @@
 {
   "files.associations": {
-    "*.mln": "mylang"
+    "*.mln": "mylang",
+    "*.masm": "mymasm"
   },
   "editor.semanticHighlighting.enabled": true,
   "editor.semanticTokenColorCustomizations": {
     "enabled": true,
     "rules": {
-      "type": "#4A90E2",
-      "struct": "#4A90E2",
-      "namespace": "#4A90E2"
+      "comment": {
+        "foreground": "#8B949E",
+        "fontStyle": "italic"
+      },
+      "string": "#A7C080",
+      "keyword": "#C6A0F6",
+      "number": "#E5C890",
+      "operator": "#8BD5CA",
+      "type": "#8AADF4",
+      "struct": "#8AADF4",
+      "namespace": "#91D7E3",
+      "function": "#F5C2A5",
+      "method": "#F5C2A5",
+      "variable": "#D8DEE9",
+      "parameter": "#91D7E3",
+      "property": "#A6DAF8"
     }
   },
   "editor.tokenColorCustomizations": {
     "textMateRules": [
       {
         "scope": [
-          "comment",
-          "comment.line",
-          "comment.block",
-          "comment.line.double-slash",
-          "comment.block.mylang",
-          "comment.line.double-slash.mylang"
+          "variable.language.register.mymasm"
         ],
         "settings": {
-          "foreground": "#7F848E",
-          "fontStyle": "italic"
+          "foreground": "#91D7E3"
         }
       },
       {
         "scope": [
-          "storage.type.mylang",
-          "storage.type.return-type.mylang",
-          "support.type.user.mylang",
-          "support.type.reference.mylang",
-          "entity.name.type.typedef.mylang",
-          "entity.name.type.struct.mylang"
+          "entity.name.label.mymasm"
         ],
         "settings": {
-          "foreground": "#4A90E2"
+          "foreground": "#F5C2A5"
         }
       }
     ]
   },
+  "mylang.lsp.semanticTokens": true,
   "[mylang]": {
-    "editor.semanticHighlighting.enabled": false
+    "editor.semanticHighlighting.enabled": true
   }
 }
