@@ -11,16 +11,16 @@
         "foreground": "#8B949E",
         "fontStyle": "italic"
       },
-      "string": "#A7C080",
+      "string": "#CE9178",
       "keyword": "#C6A0F6",
-      "number": "#E5C890",
+      "number": "#B5CEA8",
       "operator": "#8BD5CA",
       "type": "#8AADF4",
       "struct": "#8AADF4",
       "namespace": "#91D7E3",
       "function": "#F5C2A5",
       "method": "#F5C2A5",
-      "variable": "#D8DEE9",
+      "variable": "#9CDCFE",
       "parameter": "#91D7E3",
       "property": "#A6DAF8"
     }
