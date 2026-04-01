@@ -1,0 +1,5 @@
+outputs
+*.pyc
+__pycache__/
+
+memory_dump.txt

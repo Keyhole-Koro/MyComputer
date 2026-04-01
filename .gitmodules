@@ -6,10 +6,6 @@
 	path = toolchain/MyAssembler
 	url = https://github.com/Keyhole-Koro/MyAssembler.git
 	branch = main
-[submodule "MyTester"]
-	path = qa/MyTester
-	url = https://github.com/Keyhole-Koro/MyTester.git
-	branch = main
 [submodule "MyLinker"]
 	path = toolchain/MyLinker
 	url = https://github.com/Keyhole-Koro/MyLinker.git
