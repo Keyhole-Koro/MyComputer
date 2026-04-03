@@ -2,6 +2,10 @@
 
 Minimal VS Code extension for the MyLang sources in this repo, with highlighting driven by LSP semantic tokens.
 
+Ownership-oriented tokens are exposed through semantic tokens:
+- `ownershipRef` for `ref` and `&`
+- `ownershipMut` for `mut` and `&mut`
+
 ## Install locally (no packaging)
 1. Copy this folder to your user extensions dir (e.g. `~/.vscode/extensions/mylang-syntax`) or run `ln -s /workspaces/MyComputer-1/tools/vscode-mylang ~/.vscode/extensions/mylang-syntax`.
 2. Reload VS Code. Files ending in `.mln` should open as `MyLang` in the status bar.

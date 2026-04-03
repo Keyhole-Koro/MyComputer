@@ -13,6 +13,8 @@
       },
       "string": "#CE9178",
       "keyword": "#C6A0F6",
+      "ownershipRef": "#98C379",
+      "ownershipMut": "#FFB86C",
       "number": "#B5CEA8",
       "operator": "#8BD5CA",
       "type": "#8AADF4",
