@@ -6,6 +6,12 @@ Ownership-oriented tokens are exposed through semantic tokens:
 - `ownershipRef` for `ref` and `&`
 - `ownershipMut` for `mut` and `&mut`
 
+`mymasm` files use a TextMate grammar and highlight:
+- `import ...`
+- `import ... from "..."`
+- imported symbol names
+- import path strings
+
 ## Install locally (no packaging)
 1. Copy this folder to your user extensions dir (e.g. `~/.vscode/extensions/mylang-syntax`) or run `ln -s /workspaces/MyComputer-1/tools/vscode-mylang ~/.vscode/extensions/mylang-syntax`.
 2. Reload VS Code. Files ending in `.mln` should open as `MyLang` in the status bar.

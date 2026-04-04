@@ -6,6 +6,7 @@ Supports recursive source discovery with exclusions.
 
 import argparse
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -15,6 +16,14 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tools.project_paths import MYASSEMBLER_DIR, MYLANGCOMPILER_DIR, MYLINKER_DIR, REPO_ROOT
+
+IMPORT_FROM_RE = re.compile(
+    r'import\s+(?:[A-Za-z_][A-Za-z0-9_]*|\{[^}]*\})\s+from\s+"([^"]+)"\s*;'
+)
+MASM_IMPORT_FROM_RE = re.compile(
+    r'^\s*import\s+[A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*\s+from\s+"([^"]+)"\s*$',
+    re.MULTILINE,
+)
 
 
 def run(cmd, cwd=None):
@@ -46,12 +55,64 @@ def should_exclude(rel: str, excludes) -> bool:
     return False
 
 
+def source_kind_for_path(path: Path):
+    if path.suffix == ".mln":
+        return "ml"
+    if path.suffix == ".masm":
+        return "masm"
+    return None
+
+
+def source_relpath(path: Path) -> Path:
+    try:
+        return path.resolve().relative_to(REPO_ROOT)
+    except ValueError:
+        return Path(path.name)
+
+
+def discover_import_from_paths(src_path: Path):
+    if src_path.suffix not in {".mln", ".masm"}:
+        return []
+
+    try:
+        text = src_path.read_text(encoding="utf-8")
+    except OSError:
+        return []
+
+    discovered = []
+    src_dir = src_path.parent
+    pattern = IMPORT_FROM_RE if src_path.suffix == ".mln" else MASM_IMPORT_FROM_RE
+    for rel in pattern.findall(text):
+        imported = (src_dir / rel).resolve()
+        if imported.exists():
+            discovered.append(imported)
+    return discovered
+
+
+def add_source_with_imports(path: Path, sources, seen_paths):
+    path = path.resolve()
+    if path in seen_paths:
+        return
+
+    stype = source_kind_for_path(path)
+    if not stype:
+        return
+
+    seen_paths.add(path)
+    sources.append((path, source_relpath(path), stype))
+
+    for imported in discover_import_from_paths(path):
+        add_source_with_imports(imported, sources, seen_paths)
+
+
 def collect_sources(paths, excludes, include_masm):
     sources = []
+    seen_paths = set()
 
     for p in paths:
         p = p.resolve()
         if p.is_dir():
+            dir_sources = []
             for root, dirs, files in os.walk(p, topdown=True):
                 root_path = Path(root)
                 rel_root = root_path.relative_to(p)
@@ -71,18 +132,16 @@ def collect_sources(paths, excludes, include_masm):
                         continue
                     fpath = root_path / name
                     if fpath.suffix == ".mln":
-                        sources.append((fpath, Path(rel_file), "ml"))
+                        add_source_with_imports(fpath, dir_sources, seen_paths)
                     elif fpath.suffix == ".masm" and include_masm:
-                        sources.append((fpath, Path(rel_file), "masm"))
+                        add_source_with_imports(fpath, dir_sources, seen_paths)
+            dir_sources.sort(key=lambda item: (0 if item[2] == "ml" else 1, str(item[1]).replace("\\", "/")))
+            sources.extend(dir_sources)
         else:
-            rel_name = p.name
-            if p.suffix == ".mln":
-                sources.append((p, Path(rel_name), "ml"))
-            elif p.suffix == ".masm":
-                sources.append((p, Path(rel_name), "masm"))
+            if p.suffix == ".mln" or p.suffix == ".masm":
+                add_source_with_imports(p, sources, seen_paths)
             else:
                 print(f"[WARN] Skip unsupported file: {p}")
-
     return sources
 
 
