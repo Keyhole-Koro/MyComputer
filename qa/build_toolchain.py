@@ -21,7 +21,7 @@ IMPORT_FROM_RE = re.compile(
     r'import\s+(?:[A-Za-z_][A-Za-z0-9_]*|\{[^}]*\})\s+from\s+"([^"]+)"\s*;'
 )
 MASM_IMPORT_FROM_RE = re.compile(
-    r'^\s*import\s+[A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*\s+from\s+"([^"]+)"\s*$',
+    r'^\s*import\s+(?:\{\s*[A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*\s*\}|[A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*)\s+from\s+"([^"]+)"\s*$',
     re.MULTILINE,
 )
 

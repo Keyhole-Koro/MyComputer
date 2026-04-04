@@ -34,7 +34,7 @@
       "patterns": [
         {
           "name": "meta.import.from.mymasm",
-          "match": "^\\s*(import)\\s+([A-Za-z_][A-Za-z0-9_]*(?:\\s*,\\s*[A-Za-z_][A-Za-z0-9_]*)*)\\s+(from)\\s+(\"[^\"]+\")",
+          "match": "^\\s*(import)\\s+(\\{\\s*[A-Za-z_][A-Za-z0-9_]*(?:\\s*,\\s*[A-Za-z_][A-Za-z0-9_]*)*\\s*\\}|[A-Za-z_][A-Za-z0-9_]*(?:\\s*,\\s*[A-Za-z_][A-Za-z0-9_]*)*)\\s+(from)\\s+(\"[^\"]+\")",
           "captures": {
             "1": { "name": "keyword.control.import.mymasm" },
             "2": { "name": "entity.name.import.mymasm" },
@@ -44,7 +44,7 @@
         },
         {
           "name": "meta.import.mymasm",
-          "match": "^\\s*(import)\\s+([A-Za-z_][A-Za-z0-9_]*(?:\\s*,\\s*[A-Za-z_][A-Za-z0-9_]*)*)",
+          "match": "^\\s*(import)\\s+(\\{\\s*[A-Za-z_][A-Za-z0-9_]*(?:\\s*,\\s*[A-Za-z_][A-Za-z0-9_]*)*\\s*\\}|[A-Za-z_][A-Za-z0-9_]*(?:\\s*,\\s*[A-Za-z_][A-Za-z0-9_]*)*)",
           "captures": {
             "1": { "name": "keyword.control.import.mymasm" },
             "2": { "name": "entity.name.import.mymasm" }
