@@ -23,8 +23,7 @@
 .
 ├── architecture/             # Architecture notes and design docs
 ├── docs/                     # Project-wide documentation
-├── qa/
-│   └── MyTester/             # Test scripts, test inputs, and expected outputs
+├── qa/                       # Test scripts, test inputs, and expected outputs
 ├── runtime/
 │   └── MyEmulator/           # Emulator implementation
 ├── system/

@@ -9,7 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tools.project_paths import (
     MYASSEMBLER_DIR,
@@ -17,7 +17,7 @@ from tools.project_paths import (
     MYKERNEL_DIR,
     MYLANGCOMPILER_DIR,
     MYLINKER_DIR,
-    MYTESTER_DIR,
+    QA_DIR,
     REPO_ROOT,
 )
 
@@ -73,7 +73,7 @@ def main():
 
     linked_bin = build_dir / "kernel_linked.mbin"
 
-    build_toolchain = MYTESTER_DIR / "build_toolchain.py"
+    build_toolchain = QA_DIR / "build_toolchain.py"
 
     # Build kernel using toolchain script (stub must be first for entry point)
     run([
