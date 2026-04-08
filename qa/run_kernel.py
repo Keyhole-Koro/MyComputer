@@ -122,7 +122,7 @@ def main():
         [
             sys.executable,
             build_toolchain,
-            kernel_dir / "asm" / "stub.masm",
+            kernel_dir / "src" / "stub.masm",
             kernel_dir / "src" / "kernel_main.mln",
             "-o",
             linked_bin,
