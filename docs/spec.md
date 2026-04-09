@@ -91,7 +91,7 @@ Notes:
 - `runtime/MyEmulator`: CPU, bus, RAM, and runtime implementation (C++)
 - `toolchain/MyAssembler`: assembler for the ISA (C)
 - `toolchain/MyLangCompiler`: compiler front-end to assembler (C)
-- `qa/MyTester`: test runners (Python)
+- `qa`: test runners (Python)
 
 ## Sources
 - `runtime/MyEmulator/architecture/README.md`

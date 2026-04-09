@@ -12,4 +12,5 @@ MYLANGCOMPILER_DIR = TOOLCHAIN_DIR / "MyLangCompiler"
 MYLINKER_DIR = TOOLCHAIN_DIR / "MyLinker"
 MYEMULATOR_DIR = RUNTIME_DIR / "MyEmulator"
 MYKERNEL_DIR = SYSTEM_DIR / "MyKernel"
-MYTESTER_DIR = QA_DIR / "MyTester"
+# Legacy alias kept for older scripts/docs after qa/ flattening.
+MYTESTER_DIR = QA_DIR

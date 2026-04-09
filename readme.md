@@ -12,7 +12,7 @@
 - Dump of the first 64KB of RAM is saved to `memory_dump.txt` each run
 
 ## Compiler Test
-- Run the compiler test script: `python3 qa/MyTester/mlc-test.py`
+- Run the compiler test script: `python3 qa/mlc-test.py`
 
 ## Layout
 - Example ROM/kernel sources: `runtime/MyEmulator/examples/boot_rom.masm`, `runtime/MyEmulator/examples/kernel.masm`
