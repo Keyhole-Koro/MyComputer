@@ -12,6 +12,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tools.project_paths import MYEMULATOR_DIR, MYKERNEL_DIR, QA_DIR, REPO_ROOT
+from qa.debug_session import DebugSession, copy_artifacts, default_session_dir, run_logged
 
 GREEN = "32"
 RED = "31"
@@ -28,46 +29,28 @@ def status_line(label, message, color=CYAN):
     print(colored(f"[{label}]", color), message)
 
 
-def append_log(log_path: Path, title: str, text: str):
-    with log_path.open("a", encoding="utf-8", errors="replace") as fh:
-        fh.write(f"\n===== {title} =====\n")
-        fh.write(text)
-        if text and not text.endswith("\n"):
-            fh.write("\n")
-
-
-def run_logged(cmd, cwd, description, log_path: Path):
+def run_step(cmd, cwd, description, session: DebugSession, log_name: str, quiet_fail=False):
     if VERBOSE:
         status_line("RUN", " ".join(str(c) for c in cmd), CYAN)
     else:
         status_line("STEP", description, CYAN)
 
-    proc = subprocess.run(
-        [str(c) for c in cmd],
-        cwd=cwd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+    try:
+        output = run_logged(cmd, cwd, description, session, log_name)
+    except subprocess.CalledProcessError as exc:
+        if not quiet_fail:
+            status_line("FAIL", description, RED)
+            status_line("INFO", f"session: {session.session_dir}", YELLOW)
+            tail = "\n".join((exc.output or "").strip().splitlines()[-20:])
+            if tail:
+                print(tail)
+        raise
 
-    command_line = "+ " + " ".join(str(c) for c in cmd) + "\n"
-    append_log(log_path, description, command_line + proc.stdout)
-
-    if proc.returncode != 0:
-        status_line("FAIL", description, RED)
-        status_line("INFO", f"log: {log_path}", YELLOW)
-        tail = "\n".join(proc.stdout.strip().splitlines()[-20:])
-        if tail:
-            print(tail)
-        raise subprocess.CalledProcessError(proc.returncode, cmd)
-
-    if VERBOSE and proc.stdout:
-        print(proc.stdout, end="")
+    if VERBOSE and output:
+        print(output, end="")
         status_line("OK", description, GREEN)
 
-    return proc.stdout
+    return output
 
 
 def extract_serial_output(emulator_output: str) -> str:
@@ -87,14 +70,33 @@ def extract_serial_output(emulator_output: str) -> str:
     return "\n".join(serial_lines).strip()
 
 
+def without_log_dir(cmd):
+    stripped = []
+    skip_next = False
+    for item in cmd:
+        if skip_next:
+            skip_next = False
+            continue
+        if str(item) == "--log-dir":
+            skip_next = True
+            continue
+        stripped.append(item)
+    return stripped
+
+
 def main():
     parser = argparse.ArgumentParser(description="Build and run MyKernel sample.")
     parser.add_argument("--no-run", action="store_true", help="Build only; skip emulator run.")
     parser.add_argument("--verbose", action="store_true", help="Show full command output in the terminal.")
     parser.add_argument(
         "--log-file",
-        help="Path to the combined build/run log file (default: system/MyKernel/build/run_kernel.log).",
+        help="Compatibility alias for --log-dir; parent directory is used as the debug session directory.",
     )
+    parser.add_argument("--log-dir", help="Debug session directory (default: system/MyKernel/build/sessions/<timestamp>-kernel).")
+    parser.add_argument("--trace", action="store_true", help="Pass --trace to emulator.")
+    parser.add_argument("--break", dest="break_addr", help="Pass --break to emulator.")
+    parser.add_argument("--step", help="Pass --step to emulator.")
+    parser.add_argument("--mem", nargs=2, metavar=("ADDR", "LEN"), help="Pass --mem to emulator.")
     args = parser.parse_args()
 
     global VERBOSE
@@ -109,16 +111,19 @@ def main():
     build_toolchain = QA_DIR / "build_toolchain.py"
     myemu = MYEMULATOR_DIR / "build" / "myemu"
 
-    log_path = Path(args.log_file).resolve() if args.log_file else (build_dir / "run_kernel.log")
-    report_path = build_dir / "emulator_report.txt"
+    if args.log_dir:
+        session_dir = Path(args.log_dir).resolve()
+    elif args.log_file:
+        session_dir = Path(args.log_file).resolve().parent
+    else:
+        session_dir = default_session_dir(build_dir / "sessions", "kernel")
+    session = DebugSession(session_dir, "kernel")
+    report_path = session.path("registers.txt")
 
-    log_path.parent.mkdir(parents=True, exist_ok=True)
-    log_path.write_text("", encoding="utf-8")
-
-    status_line("INFO", f"log: {log_path}", YELLOW)
+    status_line("INFO", f"session: {session.session_dir}", YELLOW)
 
     # Build kernel using toolchain script (stub must be first for entry point)
-    run_logged(
+    run_step(
         [
             sys.executable,
             build_toolchain,
@@ -131,23 +136,56 @@ def main():
         ],
         cwd=repo,
         description="build kernel image",
-        log_path=log_path,
+        session=session,
+        log_name="01-build-kernel.log",
     )
 
     status_line("INFO", f"linked image: {linked_bin}", YELLOW)
+    copy_artifacts(build_dir, session)
 
     if args.no_run:
         status_line("DONE", "build complete; skipped emulator run", GREEN)
         return
 
-    emulator_output = run_logged(
-        [myemu, "-i", linked_bin, "-o", report_path],
-        cwd=repo,
-        description="run emulator",
-        log_path=log_path,
-    )
+    emu_cmd = [myemu, "-i", linked_bin, "-o", report_path, "--log-dir", session.session_dir]
+    if args.trace:
+        emu_cmd.append("--trace")
+    if args.break_addr:
+        emu_cmd.extend(["--break", args.break_addr])
+    if args.step:
+        emu_cmd.extend(["--step", args.step])
+    if args.mem:
+        emu_cmd.extend(["--mem", args.mem[0], args.mem[1]])
 
-    serial_output = extract_serial_output(emulator_output)
+    try:
+        emulator_output = run_step(
+            emu_cmd,
+            cwd=repo,
+            description="run emulator",
+            session=session,
+            log_name="02-emulator.log",
+            quiet_fail=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        if "Unknown option: --log-dir" not in (exc.output or ""):
+            raise
+        status_line("INFO", "emulator does not support --log-dir; retrying legacy run", YELLOW)
+        emulator_output = run_step(
+            without_log_dir(emu_cmd),
+            cwd=repo,
+            description="run emulator (legacy)",
+            session=session,
+            log_name="02-emulator-legacy.log",
+        )
+
+    serial_path = session.path("serial.txt")
+    debug_output_requested = args.trace or args.break_addr or args.step or args.mem
+    if serial_path.exists():
+        serial_output = serial_path.read_text(encoding="utf-8", errors="replace").strip()
+    elif debug_output_requested:
+        serial_output = ""
+    else:
+        serial_output = extract_serial_output(emulator_output)
     if serial_output:
         status_line("PRINT", "kernel output", YELLOW)
         print(serial_output)
