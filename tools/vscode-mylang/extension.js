@@ -2,6 +2,8 @@ const vscode = require('vscode');
 const cp = require('child_process');
 const path = require('path');
 
+const DIAGNOSTIC_DEBOUNCE_MS = 250;
+
 class JsonRpcConnection {
   constructor(command, args, cwd) {
     this.proc = cp.spawn(command, args, { cwd, stdio: ['pipe', 'pipe', 'inherit'] });
@@ -137,6 +139,23 @@ function toDiagnostic(item) {
   return diagnostic;
 }
 
+function sendDidChange(rpc, doc) {
+  rpc.notify('textDocument/didChange', {
+    textDocument: { uri: doc.uri.toString(), version: doc.version },
+    contentChanges: [{ text: doc.getText() }],
+  });
+}
+
+function flushPendingChange(rpc, pendingChanges, doc) {
+  const uri = doc.uri.toString();
+  const pending = pendingChanges.get(uri);
+  if (pending) {
+    clearTimeout(pending);
+    pendingChanges.delete(uri);
+  }
+  sendDidChange(rpc, doc);
+}
+
 async function activate(context) {
   const config = vscode.workspace.getConfiguration('mylang');
   const pythonPath = config.get('lsp.pythonPath') || 'python3';
@@ -151,6 +170,15 @@ async function activate(context) {
   const cwd = path.dirname(serverPath);
   const rpc = new JsonRpcConnection(pythonPath, [serverPath], cwd);
   context.subscriptions.push({ dispose: () => rpc.dispose() });
+  const pendingChanges = new Map();
+  context.subscriptions.push({
+    dispose: () => {
+      for (const timer of pendingChanges.values()) {
+        clearTimeout(timer);
+      }
+      pendingChanges.clear();
+    }
+  });
 
   const diagnostics = vscode.languages.createDiagnosticCollection('mylang');
   context.subscriptions.push(diagnostics);
@@ -181,14 +209,28 @@ async function activate(context) {
 
   context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((event) => {
     if (event.document.languageId !== 'mylang') return;
-    rpc.notify('textDocument/didChange', {
-      textDocument: { uri: event.document.uri.toString(), version: event.document.version },
-      contentChanges: [{ text: event.document.getText() }],
-    });
+    const uri = event.document.uri.toString();
+    const previous = pendingChanges.get(uri);
+    if (previous) clearTimeout(previous);
+    pendingChanges.set(uri, setTimeout(() => {
+      pendingChanges.delete(uri);
+      sendDidChange(rpc, event.document);
+    }, DIAGNOSTIC_DEBOUNCE_MS));
+  }));
+
+  context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((doc) => {
+    if (doc.languageId !== 'mylang') return;
+    flushPendingChange(rpc, pendingChanges, doc);
   }));
 
   context.subscriptions.push(vscode.workspace.onDidCloseTextDocument((doc) => {
     if (doc.languageId !== 'mylang') return;
+    const uri = doc.uri.toString();
+    const pending = pendingChanges.get(uri);
+    if (pending) {
+      clearTimeout(pending);
+      pendingChanges.delete(uri);
+    }
     rpc.notify('textDocument/didClose', { textDocument: { uri: doc.uri.toString() } });
   }));
 
