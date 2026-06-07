@@ -3,7 +3,7 @@
   "name": "MyMasm",
   "patterns": [
     { "include": "#comments" },
-    { "include": "#moduleImports" },
+    { "include": "#moduleDirectives" },
     { "include": "#labels" },
     { "include": "#instructions" },
     { "include": "#registers" },
@@ -30,7 +30,7 @@
         }
       ]
     },
-    "moduleImports": {
+    "moduleDirectives": {
       "patterns": [
         {
           "name": "meta.import.from.mymasm",
@@ -40,6 +40,14 @@
             "2": { "name": "entity.name.import.mymasm" },
             "3": { "name": "keyword.control.from.mymasm" },
             "4": { "name": "string.quoted.double.path.mymasm" }
+          }
+        },
+        {
+          "name": "meta.export.mymasm",
+          "match": "^\\s*(export)\\s+(\\{\\s*[A-Za-z_][A-Za-z0-9_]*(?:\\s*,\\s*[A-Za-z_][A-Za-z0-9_]*)*\\s*\\}|[A-Za-z_][A-Za-z0-9_]*(?:\\s*,\\s*[A-Za-z_][A-Za-z0-9_]*)*)",
+          "captures": {
+            "1": { "name": "keyword.control.export.mymasm" },
+            "2": { "name": "entity.name.export.mymasm" }
           }
         },
         {

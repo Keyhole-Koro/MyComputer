@@ -9,7 +9,9 @@ Ownership-oriented tokens are exposed through semantic tokens:
 `mymasm` files use a TextMate grammar and highlight:
 - `import ...`
 - `import ... from "..."`
+- `export ...`
 - imported symbol names
+- exported symbol names
 - import path strings
 
 ## Install locally (no packaging)
