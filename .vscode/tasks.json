@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Install MyLang VSCode extension link",
+      "type": "shell",
+      "command": "mkdir -p \"$HOME/.vscode-server/extensions\" \"$HOME/.vscode/extensions\" && ln -sfn \"${workspaceFolder}/tools/vscode-mylang\" \"$HOME/.vscode-server/extensions/mylang-syntax\" && ln -sfn \"${workspaceFolder}/tools/vscode-mylang\" \"$HOME/.vscode/extensions/mylang-syntax\"",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    }
+  ]
+}
