@@ -7,6 +7,7 @@ class JsonRpcConnection {
     this.proc = cp.spawn(command, args, { cwd, stdio: ['pipe', 'pipe', 'inherit'] });
     this.nextId = 1;
     this.pending = new Map();
+    this.notificationHandlers = new Map();
     this.buffer = Buffer.alloc(0);
     this.proc.stdout.on('data', (chunk) => this.onData(chunk));
     this.proc.on('exit', () => {
@@ -44,6 +45,8 @@ class JsonRpcConnection {
         this.pending.delete(msg.id);
         if (msg.error) pending.reject(new Error(msg.error.message || 'LSP error'));
         else pending.resolve(msg.result);
+      } else if (msg.method && this.notificationHandlers.has(msg.method)) {
+        this.notificationHandlers.get(msg.method)(msg.params || {});
       }
     }
   }
@@ -74,6 +77,10 @@ class JsonRpcConnection {
     this.send({ jsonrpc: '2.0', method, params });
   }
 
+  onNotification(method, handler) {
+    this.notificationHandlers.set(method, handler);
+  }
+
   dispose() {
     try {
       this.notify('exit', {});
@@ -95,6 +102,41 @@ function toTextDocumentItem(doc) {
   };
 }
 
+function toDiagnosticSeverity(severity) {
+  switch (severity) {
+    case 1:
+      return vscode.DiagnosticSeverity.Error;
+    case 2:
+      return vscode.DiagnosticSeverity.Warning;
+    case 3:
+      return vscode.DiagnosticSeverity.Information;
+    case 4:
+      return vscode.DiagnosticSeverity.Hint;
+    default:
+      return vscode.DiagnosticSeverity.Error;
+  }
+}
+
+function toRange(range) {
+  return new vscode.Range(
+    range.start.line,
+    range.start.character,
+    range.end.line,
+    range.end.character,
+  );
+}
+
+function toDiagnostic(item) {
+  const diagnostic = new vscode.Diagnostic(
+    toRange(item.range),
+    item.message || 'MyLang syntax error',
+    toDiagnosticSeverity(item.severity),
+  );
+  if (item.source) diagnostic.source = item.source;
+  if (item.code) diagnostic.code = item.code;
+  return diagnostic;
+}
+
 async function activate(context) {
   const config = vscode.workspace.getConfiguration('mylang');
   const pythonPath = config.get('lsp.pythonPath') || 'python3';
@@ -109,6 +151,14 @@ async function activate(context) {
   const cwd = path.dirname(serverPath);
   const rpc = new JsonRpcConnection(pythonPath, [serverPath], cwd);
   context.subscriptions.push({ dispose: () => rpc.dispose() });
+
+  const diagnostics = vscode.languages.createDiagnosticCollection('mylang');
+  context.subscriptions.push(diagnostics);
+  rpc.onNotification('textDocument/publishDiagnostics', (params) => {
+    if (!params.uri) return;
+    const uri = vscode.Uri.parse(params.uri);
+    diagnostics.set(uri, (params.diagnostics || []).map(toDiagnostic));
+  });
 
   const initResult = await rpc.request('initialize', {
     processId: process.pid,
