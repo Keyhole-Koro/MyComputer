@@ -6,3 +6,7 @@ __pycache__/
 # VS Code MyLang extension build artifacts
 tools/vscode-mylang/.vsix-build/
 tools/vscode-mylang/*.vsix
+
+# Toolchain build artifacts
+*.mobj
+*.mbin
