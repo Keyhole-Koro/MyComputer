@@ -97,6 +97,19 @@ def main():
     parser.add_argument("--break", dest="break_addr", help="Pass --break to emulator.")
     parser.add_argument("--step", help="Pass --step to emulator.")
     parser.add_argument("--mem", nargs=2, metavar=("ADDR", "LEN"), help="Pass --mem to emulator.")
+    parser.add_argument(
+        "--timer-interval",
+        dest="timer_interval",
+        help="Pass --timer-interval to emulator (raise a timer IRQ every N instructions).",
+    )
+    parser.add_argument(
+        "--source",
+        help="Path to the MyLang kernel source file to build and run. Defaults to system/MyKernel/src/kernel_main.mln",
+    )
+    parser.add_argument(
+        "--stub",
+        help="Path to the stub.masm file. Defaults to system/MyKernel/src/stub.masm",
+    )
     args = parser.parse_args()
 
     global VERBOSE
@@ -107,7 +120,9 @@ def main():
     build_dir = kernel_dir / "build"
     build_dir.mkdir(parents=True, exist_ok=True)
 
-    linked_bin = build_dir / "kernel_linked.mbin"
+    kernel_source = Path(args.source).resolve() if args.source else kernel_dir / "src" / "kernel_main.mln"
+    kernel_stub = Path(args.stub).resolve() if args.stub else kernel_dir / "src" / "stub.masm"
+    linked_bin = build_dir / f"{kernel_source.stem}_linked.mbin"
     build_toolchain = QA_DIR / "build_toolchain.py"
     myemu = MYEMULATOR_DIR / "build" / "myemu"
 
@@ -116,8 +131,8 @@ def main():
     elif args.log_file:
         session_dir = Path(args.log_file).resolve().parent
     else:
-        session_dir = default_session_dir(build_dir / "sessions", "kernel")
-    session = DebugSession(session_dir, "kernel")
+        session_dir = default_session_dir(build_dir / "sessions", kernel_source.stem)
+    session = DebugSession(session_dir, kernel_source.stem)
     report_path = session.path("registers.txt")
 
     status_line("INFO", f"session: {session.session_dir}", YELLOW)
@@ -127,8 +142,8 @@ def main():
         [
             sys.executable,
             build_toolchain,
-            kernel_dir / "src" / "stub.masm",
-            kernel_dir / "src" / "kernel_main.mln",
+            kernel_stub,
+            kernel_source,
             "-o",
             linked_bin,
             "--build-dir",
@@ -156,6 +171,8 @@ def main():
         emu_cmd.extend(["--step", args.step])
     if args.mem:
         emu_cmd.extend(["--mem", args.mem[0], args.mem[1]])
+    if args.timer_interval:
+        emu_cmd.extend(["--timer-interval", args.timer_interval])
 
     try:
         emulator_output = run_step(
