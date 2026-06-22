@@ -41,10 +41,12 @@ jobs:
             qa/build_toolchain.py \
             qa/linker-test.py \
             qa/mlc-test.py \
-            qa/run_kernel.py
+            qa/run_kernel.py \
+            qa/serial-rx-test.py
 
       - name: Run MyTester smoke tests
         run: |
           python3 qa/as-test.py simpleChar
           python3 qa/mlc-test.py simpleFunc
           python3 qa/run_kernel.py --no-run
+          python3 qa/serial-rx-test.py
