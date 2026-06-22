@@ -22,7 +22,7 @@
 	path = tools/MyLangServerProtocol
 	url = https://github.com/Keyhole-Koro/MyLangServerProtocol.git
 	branch = main
-[submodule "MyLangSyntaxEngine"]
-	path = toolchain/MyLangSyntaxEngine
-	url = https://github.com/Keyhole-Koro/MyLangSyntaxEngine.git
+[submodule "MySyntaxEngine"]
+	path = toolchain/MySyntaxEngine
+	url = https://github.com/Keyhole-Koro/MySyntaxEngine.git
 	branch = master
