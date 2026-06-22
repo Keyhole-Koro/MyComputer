@@ -17,7 +17,7 @@ The LR(1)-based VSCode syntax diagnostics pipeline is now usable. Remaining work
 - Add more invalid syntax fixtures for expression, declaration, block, and control-flow errors.
 - Periodically check conflict count with:
   ```sh
-  cd toolchain/MyLangSyntaxEngine
+  cd toolchain/MySyntaxEngine
   ./build/bin/output --conflicts tests/fixtures/grammars/mylang_lsp.grammar
   ```
 

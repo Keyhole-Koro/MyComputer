@@ -1,5 +1,11 @@
 # 共有フロントエンド化（SyntaxEngine をツールチェーン唯一のフロントエンドに）
 
+> **更新（一部上書き）**: 第2の利用者 mlnx の登場により、エンジンは MyLang 専用に
+> 寄せず**汎用のまま独立**を維持する方針に変更した。「エンジン＝MyLang 唯一の
+> フロントエンド」「コンパイラのパーサ削除」「エンジンが直接 LSP を喋る」は
+> `improvements/syntax-engine-generic.md` の整理で上書きされる。フェーズ1-2 で実装
+> 済みの lexer/token/role/symbol 出力はそのまま有効。
+
 現状、字句・構文の知識がツールチェーン内で**3箇所に分散**している：
 
 - `tools/MyLangServerProtocol/server.py` … semantic tokens 用に **正規表現でレキシング
@@ -8,7 +14,7 @@
   value, line, col, next}` を生成。診断（`tools/syntax_check.c`）とコンパイルで使用。
 - `toolchain/MyLangCompiler/src/frontend/parser/*` … 再帰下降パーサ。AST を構築
   （`new_fundef`/`new_param`/`new_member_access` 等）。
-- `toolchain/MyLangSyntaxEngine` … LR1 テーブル。**トークンid列を受理判定するだけ**
+- `toolchain/MySyntaxEngine` … LR1 テーブル。**トークンid列を受理判定するだけ**
   （`syntax_parse_token_ids`）。レキサ・AST・名前・位置を持たない。診断のために
   `mylang-syntax-check`（MyLangCompiler 側）経由で使われている。
 
@@ -60,7 +66,7 @@ lifecycle・capabilities・semantic tokens 符号化が実装済み）。C へ�
 
 - **エンジンは純粋な LR1 アクセプタ**。公開APIは grammar ロード／テーブル構築／
   `syntax_parse_token_names`・`syntax_parse_token_ids`（受理判定＋expected集合を返す
-  だけ）。AST も意味アクションも無い（`toolchain/MyLangSyntaxEngine/include/
+  だけ）。AST も意味アクションも無い（`toolchain/MySyntaxEngine/include/
   mylang_syntax_engine/syntax_engine.h`）。
 - **stdio プロトコルは既に存在**: `mylang-syntax-check --stdio <grammar> [cache]` が
   `content <N>\n<bytes>\n` を受け、`{"status":..,"diagnostics":[..]}` を返す
@@ -86,7 +92,7 @@ lifecycle・capabilities・semantic tokens 符号化が実装済み）。C へ�
 ## 段階移行の概要
 
 ### フェーズ1: レキサをエンジンへ移す（土台）
-- `lexer.c`/`lexer.h` を MyLangSyntaxEngine 側へ移設、または共有できる形で公開。
+- `lexer.c`/`lexer.h` を MySyntaxEngine 側へ移設、または共有できる形で公開。
   MyLangCompiler と syntax-check は移設先のレキサを使う。
 - syntax-check の stdio 応答に `tokens` を追加: 既存の Token リストを舐めて
   `[line-1, col-1, len, tokenkind2str(kind)]` を JSON 出力（C 側にマッピングは
@@ -151,7 +157,7 @@ lifecycle・capabilities・semantic tokens 符号化が実装済み）。C へ�
 
 ## 変更ファイル（想定）
 
-- 移設/拡張: `toolchain/MyLangSyntaxEngine/*`（lexer 受け入れ、意味アクション/AST、
+- 移設/拡張: `toolchain/MySyntaxEngine/*`（lexer 受け入れ、意味アクション/AST、
   tokens+symbols 公開、最終的に **LSP/JSON-RPC 層**を実装＝終点 A）。
 - 変更: `toolchain/MyLangCompiler/tools/syntax_check.c`（過渡: tokens 出力。最終的に
   役割を終え廃止候補）、`src/frontend/lexer/*`・`src/frontend/parser/*`・
