@@ -3,7 +3,7 @@
 > **更新（一部上書き）**: 第2の利用者 mlnx の登場により、エンジンは MyLang 専用に
 > 寄せず**汎用のまま独立**を維持する方針に変更した。「エンジン＝MyLang 唯一の
 > フロントエンド」「コンパイラのパーサ削除」「エンジンが直接 LSP を喋る」は
-> `improvements/syntax-engine-generic.md` の整理で上書きされる。フェーズ1-2 で実装
+> `syntax-engine-generic.md` の整理で上書きされる。フェーズ1-2 で実装
 > 済みの lexer/token/role/symbol 出力はそのまま有効。
 
 現状、字句・構文の知識がツールチェーン内で**3箇所に分散**している：
@@ -166,4 +166,4 @@ lifecycle・capabilities・semantic tokens 符号化が実装済み）。C へ�
 - 廃止予定: `tools/MyLangServerProtocol/server.py`（フェーズ1-3 では正規表現削除→
   描画専用化、フェーズ4で **LSP 実装をエンジンへ移植後に廃止**）。VSCode 拡張の起動
   コマンドをエンジン直結へ。
-- 関連メモ: `improvements/mylang-lsp-syntax-diagnostics.md`。
+- 関連メモ: `mylang-lsp-syntax-diagnostics.md`。

@@ -24,7 +24,7 @@ mlnx の非終端は element/attribute 等で MyLang と全く別物なので、
 
 ## アーキテクチャ上の位置づけ（shared-frontend.md の更新）
 
-`improvements/shared-frontend.md` は「エンジンを MyLang 唯一のフロントエンドに育てる
+`shared-frontend.md` は「エンジンを MyLang 唯一のフロントエンドに育てる
 （MyLang 固有に寄せる）」と書いていたが、**この決定で上書きする**。新しい整理：
 
 ```
@@ -139,6 +139,6 @@ submodule なので機械的だが範囲が広い：
 - 不均衡 scope（`}}}}` / `{{{{`）で ASan/UBSan クリーン（既存と同じ）。
 
 ## 関連
-- `improvements/shared-frontend.md`（この決定で「エンジン＝MyLang 専用フロントエンド」
+- `shared-frontend.md`（この決定で「エンジン＝MyLang 専用フロントエンド」
   の方針を上書き。フェーズ1-2 の lexer/token/role/symbol 実装はそのまま有効）。
-- `improvements/mylang-lsp-syntax-diagnostics.md`。
+- `mylang-lsp-syntax-diagnostics.md`。
