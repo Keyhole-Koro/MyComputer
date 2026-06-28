@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -98,18 +99,18 @@ def run_logged(cmd, cwd: Path, description: str, session: DebugSession, log_name
 def copy_artifacts(src_dir: Path, session: DebugSession, suffixes=(".masm", ".mobj", ".mbin", ".bin", ".txt")):
     artifacts_dir = session.path("artifacts")
     src_dir = src_dir.resolve()
-    session_dir = session.session_dir.resolve()
 
-    for src in src_dir.rglob("*"):
-        if not src.is_file() or src.suffix not in suffixes:
-            continue
-        try:
-            src.resolve().relative_to(session_dir)
-            continue
-        except ValueError:
-            pass
-
-        rel = src.resolve().relative_to(src_dir)
-        dst = artifacts_dir / rel
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, dst)
+    # Walk manually so we can prune the "sessions" tree entirely. Recursing into
+    # it would re-copy previous sessions' artifacts on every run, nesting them
+    # deeper each time until the copy explodes (artifacts/sessions/.../sessions/...).
+    for root, dirs, files in os.walk(src_dir):
+        dirs[:] = [d for d in dirs if d != "sessions"]
+        root_path = Path(root)
+        for name in files:
+            src = root_path / name
+            if src.suffix not in suffixes:
+                continue
+            rel = src.relative_to(src_dir)
+            dst = artifacts_dir / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dst)
