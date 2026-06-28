@@ -122,6 +122,10 @@ SUITES = {
         ["python3", str(MYKERNEL_DIR / "tests" / "run_serial_rx_test.py")],
         ["mlc", "myas", "mllinker", "myemu"],
     ),
+    "scheduler": (
+        ["python3", str(MYKERNEL_DIR / "tests" / "run_scheduler_test.py")],
+        ["mlc", "myas", "mllinker", "myemu"],
+    ),
 }
 
 

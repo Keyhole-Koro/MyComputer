@@ -135,6 +135,7 @@ def main():
     parser.add_argument("sources", nargs="+", help="Source files or directories (.mln and optional .masm)")
     parser.add_argument("--entry", default="main", help="Entry function name passed to mlc (default: main)")
     parser.add_argument("--build-dir", help="Directory for intermediate outputs and final linked image")
+    parser.add_argument("--headless", action="store_true", help="Run emulator without display.")
     parser.add_argument("-o", "--out", help="Output linked .mbin path (default: <build-dir>/linked.mbin)")
     parser.add_argument("--exclude", action="append", default=[], help="Exclude relative path or directory name")
     parser.add_argument("--masm", action="store_true", help="Include .masm files when scanning directories")
@@ -207,6 +208,8 @@ def main():
         return
 
     emu_cmd = [myemu, "-i", linked_bin]
+    if args.headless:
+        emu_cmd.append("--headless")
     emu_report = Path(args.emu_out).resolve() if args.emu_out else session.path("registers.txt")
     emu_cmd.extend(["-o", emu_report])
     emu_cmd.extend(["--log-dir", session.session_dir])

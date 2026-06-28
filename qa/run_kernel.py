@@ -87,6 +87,7 @@ def without_log_dir(cmd):
 def main():
     parser = argparse.ArgumentParser(description="Build and run MyKernel sample.")
     parser.add_argument("--no-run", action="store_true", help="Build only; skip emulator run.")
+    parser.add_argument("--headless", action="store_true", help="Run emulator without display.")
     parser.add_argument("--verbose", action="store_true", help="Show full command output in the terminal.")
     parser.add_argument(
         "--log-file",
@@ -163,6 +164,8 @@ def main():
         return
 
     emu_cmd = [myemu, "-i", linked_bin, "-o", report_path, "--log-dir", session.session_dir]
+    if args.headless:
+        emu_cmd.append("--headless")
     if args.trace:
         emu_cmd.append("--trace")
     if args.break_addr:
