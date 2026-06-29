@@ -14,7 +14,7 @@
 | ISSUE-006 | [DOM 的 OS オブジェクトモデル](tickets/dom-like-os.md) | Proposed | OS 状態、UI、プロセス、デバイスをツリーで扱う長期設計。 |
 | ISSUE-007 | [MyLang Compiler Diagnostics And Type Intelligence](tickets/compiler-diagnostics-and-type-intelligence.md) | Proposed | AST 位置情報、診断、型チェックを強化して compiler を賢くする。 |
 | ISSUE-008 | [ファイルシステム（SSD デバイス + ブロックドライバ + SimpleFS）](tickets/filesystem.md) | Proposed | SSD エミュレーション + カーネル FS。永続ストレージの基盤。 |
-| ISSUE-009 | [MyLang Type Mismatch Diagnostics](tickets/compiler-type-mismatch-diagnostics.md) | Proposed | 代入・二項演算・条件式の型不一致を expected / actual 付きで報告する。 |
+| ISSUE-009 | [MyLang Type Mismatch Diagnostics](completed/compiler-type-mismatch-diagnostics.md) | Done | 代入・二項演算・条件式の型不一致を expected / actual 付きで報告する。 |
 | ISSUE-010 | [MyLang Diagnostic Error Codes](tickets/compiler-diagnostic-codes.md) | Proposed | 診断に安定した error code を付け、テスト・docs・LSP 連携を強くする。 |
 | ISSUE-011 | [MyLang Diagnostic Source Ranges](tickets/compiler-diagnostic-ranges.md) | Proposed | 診断を line / col の一点から source range へ拡張する。 |
 | ISSUE-012 | [MyLang Warning Diagnostics](tickets/compiler-warning-diagnostics.md) | Proposed | warning severity、warning fixture、warnings-as-errors の土台を作る。 |
@@ -33,6 +33,6 @@
 2. ISSUE-001: 割り込みとタイマーの土台を作る。
 3. ISSUE-006: Kernel Object Tree の最小実装を始める。
 4. ISSUE-007: compiler の診断と型チェックを強化する。
-5. ISSUE-009 / ISSUE-010 / ISSUE-011 / ISSUE-012: compiler diagnostics を実装可能な単位で進める。
+5. ISSUE-010 / ISSUE-011 / ISSUE-012: compiler diagnostics を実装可能な単位で進める。
 6. ISSUE-005 / ISSUE-003: mylang UI リテラルや LSP 体験に必要な構文基盤を整える。
 7. ISSUE-008: ファイルシステムを実装する（SSD + ブロックドライバ + SimpleFS）。

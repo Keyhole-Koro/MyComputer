@@ -46,6 +46,23 @@ error: condition must be integer-like, got struct Button
 3. `python3 qa/mlc-test.py`
 4. 型不一致の fail fixture で expected / actual が出ること。
 
+## 完了内容
+
+- semantic binding に宣言型を保持するようにした。
+- semantic walker に簡易式型推論を追加した。
+- initializer / assignment / binary op / condition / return の型不一致診断を追加した。
+- expected / actual 付きの型名表示を追加した。
+- 既存の enum 整数利用、配列添字 lowering、文字列 literal、pointer-as-int 用途を壊さない互換ルールを入れた。
+- 型不一致 fail fixture を追加した。
+
+## 完了時の検証
+
+```sh
+make -C toolchain/MyLangCompiler all
+python3 toolchain/MyLangCompiler/tests/run_semantic_tests.py
+python3 qa/mlc-test.py
+```
+
 ## 関連
 
 - `compiler-diagnostics-and-type-intelligence.md`
