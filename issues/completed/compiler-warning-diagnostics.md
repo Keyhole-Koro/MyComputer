@@ -31,6 +31,22 @@ OS や UI のコード量が増える前に、未使用変数や到達不能コ�
 4. `--Werror` または `--warnings-as-errors` を driver option として追加する。
 5. fail ではなく warning fixture のテスト分類を作る。
 
+## 完了内容
+
+- `SEMANTIC_DIAG_WARNING` を追加した。
+- `SemanticContext` に `warning_count` と `warnings_as_errors` を追加した。
+- `semantic_warning_code_at(...)` を追加した。
+- warning 表示を `warning[W0001]: ...` にした。
+- `--Werror` / `--warnings-as-errors` を driver option として追加した。
+- 最初の warning として `return` / `break` / `continue` 後の到達不能 statement を検出するようにした。
+- warning fixture と `--Werror` 検証を semantic test runner に追加した。
+
+## 実装済みコード
+
+| Code | Meaning |
+| --- | --- |
+| W0001 | unreachable statement |
+
 ## 非スコープ
 
 - lint 専用サブコマンド。
@@ -38,13 +54,13 @@ OS や UI のコード量が増える前に、未使用変数や到達不能コ�
 - 全 warning の一括実装。
 - LSP warning 表示への接続。
 
-## 検証
+## 完了時の検証
 
-1. `make -C toolchain/MyLangCompiler all`
-2. `python3 toolchain/MyLangCompiler/tests/run_semantic_tests.py`
-3. warning fixture がコンパイル成功しつつ warning を出すこと。
-4. `--Werror` 指定時に warning が非ゼロ終了になること。
-5. `python3 qa/mlc-test.py`
+```sh
+make -C toolchain/MyLangCompiler all
+python3 toolchain/MyLangCompiler/tests/run_semantic_tests.py
+python3 qa/mlc-test.py
+```
 
 ## 関連
 
