@@ -43,17 +43,41 @@ main.mln:2:13: error[E0001]: undefined identifier 'foo'
 4. 既存 fail fixture の期待値を必要最小限更新する。
 5. code table の重複を避けるため、enum または定数定義に寄せる。
 
+## 完了内容
+
+- `SemanticDiagnostic` に `code` field を追加した。
+- `semantic_error_code_at(ctx, loc, code, ...)` を追加した。
+- 表示形式を `error[E0001]: ...` にした。
+- 既存の主要 semantic diagnostics に初期コードを割り当てた。
+- semantic fail tests の期待値を code 付き表示へ更新した。
+
+## 実装済みコード
+
+| Code | Meaning |
+| --- | --- |
+| E0001 | undefined identifier |
+| E0002 | undefined function |
+| E0101 | function argument count mismatch |
+| E0201 | return type mismatch |
+| E0301 | assignment / initializer type mismatch |
+| E0302 | invalid binary operand types |
+| E0303 | invalid condition type |
+
+`E0102` は予約のみ。関数引数の型検査を追加したタイミングで使う。
+
 ## 非スコープ
 
 - warning code の完全設計。
 - 詳細な help text / explain command。
 - JSON diagnostic output。
 
-## 検証
+## 完了時の検証
 
-1. `make -C toolchain/MyLangCompiler all`
-2. `python3 toolchain/MyLangCompiler/tests/run_semantic_tests.py`
-3. 既存 semantic fail fixture が code 付き表示で通ること。
+```sh
+make -C toolchain/MyLangCompiler all
+python3 toolchain/MyLangCompiler/tests/run_semantic_tests.py
+python3 qa/mlc-test.py
+```
 
 ## 関連
 

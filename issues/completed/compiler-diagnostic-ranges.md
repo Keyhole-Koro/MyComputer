@@ -41,11 +41,22 @@ LSP diagnostics や将来のエラー表示を考えると、開始位置だけ�
 - binary expression
 - member access / arrow access
 
-## 検証
+## 完了内容
 
-1. `make -C toolchain/MyLangCompiler all`
-2. `python3 toolchain/MyLangCompiler/tests/run_semantic_tests.py`
-3. range 付き診断で、少なくとも識別子と call argument の位置が期待通り出ること。
+- AST node に `end_line` / `end_col` を追加した。
+- parser helper に token/child から range を設定する関数を追加した。
+- identifier / call / literal / binary / unary / assignment / return などの主要 node に range を伝播した。
+- semantic location に end 位置を持たせた。
+- diagnostic 出力に既存形式を保ったまま `[range line:col-line:col]` suffix を追加した。
+- semantic test で undefined identifier の range を確認するようにした。
+
+## 完了時の検証
+
+```sh
+make -C toolchain/MyLangCompiler all
+python3 toolchain/MyLangCompiler/tests/run_semantic_tests.py
+python3 qa/mlc-test.py
+```
 
 ## 関連
 
