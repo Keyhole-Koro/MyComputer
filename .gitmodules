@@ -26,3 +26,7 @@
 	path = toolchain/MySyntaxEngine
 	url = https://github.com/Keyhole-Koro/MySyntaxEngine.git
 	branch = master
+[submodule "toolchain/MyLangTester"]
+	path = toolchain/MyLangTester
+	url = git@github.com:Keyhole-Koro/MyLangTester.git
+	branch = main
