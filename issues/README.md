@@ -18,6 +18,7 @@
 | ISSUE-010 | [MyLang Diagnostic Error Codes](completed/compiler-diagnostic-codes.md) | Done | 診断に安定した error code を付け、テスト・docs・LSP 連携を強くする。 |
 | ISSUE-011 | [MyLang Diagnostic Source Ranges](completed/compiler-diagnostic-ranges.md) | Done | 診断を line / col の一点から source range へ拡張する。 |
 | ISSUE-012 | [MyLang Warning Diagnostics](completed/compiler-warning-diagnostics.md) | Done | warning severity、warning fixture、warnings-as-errors の土台を作る。 |
+| ISSUE-013 | [MyLang Test Framework（mytest + test declaration）](tickets/mylang-test-framework.md) | Proposed | *.test.mln、Jest 風 test declaration、mytest runner、emulator test options を設計・実装する。 |
 
 ## Status
 
@@ -35,3 +36,4 @@
 4. ISSUE-007: compiler の診断と型チェックを強化する。
 5. ISSUE-005 / ISSUE-003: mylang UI リテラルや LSP 体験に必要な構文基盤を整える。
 6. ISSUE-008: ファイルシステムを実装する（SSD + ブロックドライバ + SimpleFS）。
+7. ISSUE-013: Python runner を置き換える MyLang test framework を整備する。
