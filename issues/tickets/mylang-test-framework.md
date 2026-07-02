@@ -100,44 +100,38 @@ MyLang の kernel/emulator テストでは `stdin` や `step` を emulator 起�
 
 ## 段階移行
 
-> 現状（暫定実装）: lambda を使わない暫定形式が既に入っている。
-> `test("name", {...}, () => {})` ではなく `test { name; stdin; expect; step; }` ブロック +
-> 通常の `i32 kernel_main()` で記述する（`system/MyKernel/tests/serial_rx.test.mln`）。
-> `mytest`（`toolchain/MyLangTester`）はこの `test { }` を読んでビルド → `myemu` 実行 →
-> `expect` の serial 出力照合まで動作し、assertion library
-> `system/MyKernel/tests/libs/test.mln` も存在する。
-> したがってフェーズ1・3は暫定形式で概ね実装済みで、本チケットの主眼は
-> **フェーズ2（lambda 構文）** と、暫定 `test { }` 形式から
-> 決定済みの `test(...)` + lambda 形式への移行である。options のキー名は暫定実装に合わせ
-> `expect` を正とする（旧案の `output` は使わない）。
+> 現状: lambda 構文と `test("name", options, () => { ... })` declaration は実装済み。
+> `mytest`（`toolchain/MyLangTester`）は test declaration を読んで callback body を
+> `kernel_main()` へ lowering し、ビルド → `myemu` 実行 → `expect` の serial 出力照合まで
+> 動作する。assertion library `system/MyKernel/tests/libs/test.mln` も存在する。
+> `*.test.mln` は top-level `test(...)` declaration を必須とする。
 
-### フェーズ1: 仕様固定と最小 mytest（暫定 `test { }` 形式で実装済み）
+### フェーズ1: 仕様固定と最小 mytest（実装済み）
 
 - `toolchain/MyLangTester` を submodule として導入する。
 - コマンド名は `mytest`。
 - `--list` で `*.test.mln` を発見する。
-- 暫定 `test { }` metadata block を読めるようにする。
+- `test(...)` declaration を読めるようにする。
 - `serial_rx.test.mln` を最初の縦通しケースにする。
 
-### フェーズ2: MyLang lambda syntax
+### フェーズ2: MyLang lambda syntax（実装済み）
 
 - lexer に `=>` token を追加する。
 - parser で `(params) => block` と `() => block` を function literal として扱う。
 - MySyntaxEngine の grammar と syntax-check も更新する。
 - 既存 `(params) block` は互換のため残す。
 
-### フェーズ3: assertion library（暫定形式で実装済み・lambda 移行時に再確認）
+### フェーズ3: assertion library（実装済み）
 
 - `tests/libs/test.mln` を用意する。
 - `pass`, `fail`, `assert_eq_i32`, `wait_serial_rx`, `expect_serial_byte` などを提供する。
 - 失敗時は `TEST_FAIL:<reason>`、成功時は `TEST_PASS` を serial 出力して halt する。
 
-### フェーズ3.5: `test(...)` declaration への移行
+### フェーズ3.5: `test(...)` declaration への移行（実装済み）
 
 - `mytest` で `test("name", options, () => { ... })` を静的に読めるようにする。
 - `body` を `kernel_main()` へ lowering する。
-- 暫定 `test { }` + 手書き `kernel_main()` のテストを新形式へ移す。
-- 移行完了後に暫定 `test { }` support を削除する。
+- 手書き `kernel_main()` のテストを `test(...)` declaration へ移す。
 
 ### フェーズ4: Python runner の置き換え
 
