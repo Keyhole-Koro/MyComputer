@@ -62,7 +62,7 @@ COMPONENTS = {
     "mytest": (MYLANGTESTER_DIR, "all", MYLANGTESTER_DIR / "build" / "mytest"),
     "myas":  (MYASSEMBLER_DIR, "all", MYASSEMBLER_DIR / "build" / "myas"),
     "mllinker": (MYLINKER_DIR, "all", MYLINKER_DIR / "mllinker"),
-    "myemu": (MYEMULATOR_DIR, "all", MYEMULATOR_DIR / "build" / "myemu"),
+    "myemu": (MYEMULATOR_DIR, "all", MYEMULATOR_DIR / "target" / "release" / "myemu"),
 }
 
 

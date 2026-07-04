@@ -80,7 +80,7 @@ def ensure_tools(session=None):
             quiet_fail=True,
         )
     except subprocess.CalledProcessError as exc:
-        myemu = MYEMULATOR_DIR / "build" / "myemu"
+        myemu = MYEMULATOR_DIR / "target" / "release" / "myemu"
         if "cargo: not found" not in (exc.output or "") or not myemu.exists():
             status_line("FAIL", "build MyEmulator", RED)
             if session is not None:
@@ -174,7 +174,7 @@ def main():
     status_line("INFO", f"session: {session.session_dir}", YELLOW)
 
     build_toolchain = QA_DIR / "build_toolchain.py"
-    myemu = MYEMULATOR_DIR / "build" / "myemu"
+    myemu = MYEMULATOR_DIR / "target" / "release" / "myemu"
 
     if not args.skip_build_tools:
         ensure_tools(session)

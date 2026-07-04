@@ -125,7 +125,7 @@ def main():
     kernel_stub = Path(args.stub).resolve() if args.stub else kernel_dir / "src" / "boot" / "stub.masm"
     linked_bin = build_dir / f"{kernel_source.stem}_linked.mbin"
     build_toolchain = QA_DIR / "build_toolchain.py"
-    myemu = MYEMULATOR_DIR / "build" / "myemu"
+    myemu = MYEMULATOR_DIR / "target" / "release" / "myemu"
 
     if args.log_dir:
         session_dir = Path(args.log_dir).resolve()
@@ -137,6 +137,21 @@ def main():
     report_path = session.path("registers.txt")
 
     status_line("INFO", f"session: {session.session_dir}", YELLOW)
+
+    # Rebuild emulator so we always run the latest source.
+    try:
+        run_step(
+            ["make", "-C", MYEMULATOR_DIR, "all"],
+            cwd=repo,
+            description="build emulator",
+            session=session,
+            log_name="00-build-myemu.log",
+            quiet_fail=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        if "cargo: not found" not in (exc.output or "") or not myemu.exists():
+            raise
+        status_line("INFO", f"cargo not found; using existing emulator: {myemu}", YELLOW)
 
     # Build kernel using toolchain script (stub must be first for entry point)
     run_step(
