@@ -154,7 +154,9 @@
 | `0x20000000–0x23FFFFFF` | 64 MB   | ROM                    |
 | `0x24000000–0x240000FF` | 256 B   | I/O Registers          |
 | `0x24000100–0x240001FF` | 256 B   | Interrupt Vector Table |
-| `0x24000200–FFFFFFFF`   | ∼3.5 GB | Reserved / Future use  |
+| `0x24000200–0x2FFFFFFF` | 192 MB  | Reserved / Future use  |
+| `0x30000000–0x30FFFFFF` | 16 MB   | VRAM (Framebuffer)     |
+| `0x31000000–FFFFFFFF`   | ∼3.2 GB | Reserved / Future use  |
 
 ---
 

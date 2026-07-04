@@ -230,7 +230,18 @@ def main():
             unique_mobj.append(p)
             seen.add(p)
     
-    run([mllinker, out_path] + unique_mobj, cwd=repo)
+    # Make sure heap_sym is last so the heap is at the end of the binary
+    final_mobj = []
+    heap_sym_mobj = None
+    for m in unique_mobj:
+        if m.name == "heap_sym.mobj":
+            heap_sym_mobj = m
+        else:
+            final_mobj.append(m)
+    if heap_sym_mobj:
+        final_mobj.append(heap_sym_mobj)
+    
+    run([mllinker, out_path] + final_mobj, cwd=repo)
     print(f"Linked output: {out_path}")
     return 0
 

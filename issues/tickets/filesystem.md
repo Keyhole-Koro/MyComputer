@@ -1,20 +1,21 @@
-# ファイルシステム（SSD デバイス + ブロックドライバ + SimpleFS）
+# ファイルシステム（SSD デバイス + ブロックドライバ + MyFileSystem(MFS)）
 
-現状の MyComputer にはストレージが一切無い。アーキテクチャ仕様には SSD デバイスが
-`0x24000010` に定義されているが、エミュレータ・カーネルともに未実装。ファイルの永続化、
-設定の保存、将来のシェルや `init` ファイルの読み込みなどの前提インフラになる。
+現状の MyComputer にはファイルシステムが無い。アーキテクチャ仕様の SSD デバイス
+（`0x24000010`）は **エミュレータ側が実装済み**（`machine/ssd.rs`、`--disk` 結線済み）だが、
+カーネル側のブロックドライバと FS が未実装。ファイルの永続化、設定の保存、将来のシェルや
+`init` ファイルの読み込みなどの前提インフラになる。
 
-ゴール: **エミュレータ側の SSD ブロックデバイス**を作り、カーネルに**ブロックドライバ**と
-**SimpleFS**を実装する。カーネル起動時にマウントし、ファイルの作成・読み書き・削除・
+ゴール: 実装済みの **SSD ブロックデバイス** の上に、カーネルの**ブロックドライバ**と
+**MyFileSystem(MFS)**を実装する。カーネル起動時にマウントし、ファイルの作成・読み書き・削除・
 一覧表示ができることを確認する。
 
 ## 設計判断
 
-- **ブロックサイズ**: 256 bytes。この小さなアーキテクチャに合わせたサイズ。
-- **ディスク容量**: 64 KB（256 ブロック）。`--disk disk.img` CLI引数でホストファイルを
-  ディスクイメージとして使用。
+- **ブロックサイズ**: 65536 bytes（64 KB）。エミュレータ実装の `SSD_BLOCK_SIZE` に一致。
+- **ディスク容量**: 1 GB（16384 ブロック）。`--disk disk.img` CLI引数でホストファイルを
+  ディスクイメージとして使用（ホスト側はスパースファイルなので実消費は書き込んだ分のみ）。
 - **I/O方式**: メモリマップド I/O。CMD レジスタ書き込みで即座に DMA 的ブロック転送。
-- **FS 種類**: SimpleFS。FAT 的なブロックチェインによるシンプルな独自FS。
+- **FS 種類**: MyFileSystem (MFS)。FAT 的なブロックチェインによるシンプルな独自FS。
   ディレクトリ階層無し（フラット）、最大32ファイル。
 - **自動フォーマット**: `init()` 時にスーパーブロックのマジックナンバーが無ければ
   自動的に `format()` する。
@@ -23,8 +24,7 @@
 
 - アーキテクチャ仕様の I/O マップ: SSD は `0x24000010`（`architecture/README.md`）。
 - エミュレータの I/O 範囲: `IO_BASE(0x24000000)` – `IO_END_INCLUSIVE(0x240000FF)`。
-  シリアル (`0x24000000–0x05`) と IRQ ベクタ (`0x24000080`) のみ使用中。
-  `0x24000010–0x2400001F` は空き。
+  シリアル (`0x24000000–0x05`)、SSD (`0x24000010–0x2400001F`)、IRQ ベクタ (`0x24000080`) を使用中。
 - エミュレータの RAM: `HashMap<u32, u8>` でスパース管理。バス経由の読み書き関数あり。
 - カーネルのメモリアクセス: `mem.write_word(addr, val)` / `mem.read_word(addr)` で
   メモリマップド I/O を操作（`libs/serial.mln` と同じパターン）。
@@ -34,7 +34,7 @@
 
 ## 実装の概要
 
-### Layer 1: MyEmulator — SSD デバイスエミュレーション（Rust）
+### Layer 1: MyEmulator — SSD デバイスエミュレーション（Rust）✅ 実装済み
 
 #### I/O レジスタマップ
 
@@ -48,11 +48,11 @@
 #### 動作仕様
 
 - CMD 書き込みで即座にブロック転送を実行（同期 DMA）。
-- READ (CMD=1): `disk[block*256 .. +256]` → `RAM[addr .. +256]`
-- WRITE (CMD=2): `RAM[addr .. +256]` → `disk[block*256 .. +256]`、ホストファイルに flush。
+- READ (CMD=1): `disk[block*65536 .. +65536]` → `RAM[addr .. +65536]`
+- WRITE (CMD=2): `RAM[addr .. +65536]` → `disk[block*65536 .. +65536]`、ホストファイルに flush。
 - 成功時 STATUS=2、エラー時 STATUS=0xFF。
 - `--disk` 未指定時は SSD 無効（STATUS 常に 0xFF）。
-- ディスクイメージファイルが存在しなければ 64KB ゼロ埋めで新規作成。
+- ディスクイメージファイルが存在しなければ 1 GB にサイズ設定して新規作成（スパース）。
 
 #### 変更ファイル
 
@@ -67,7 +67,7 @@
 
 ```
 package ssd;
-export i32 BLOCK_SIZE = 256;
+export i32 BLOCK_SIZE = 65536;
 export i32 read_block(i32 block_num, i32 buf_addr)   — 1ブロック読み出し（0=成功, -1=エラー）
 export i32 write_block(i32 block_num, i32 buf_addr)   — 1ブロック書き込み（0=成功, -1=エラー）
 ```
@@ -75,16 +75,16 @@ export i32 write_block(i32 block_num, i32 buf_addr)   — 1ブロック書き込
 I/O レジスタに BLOCK, ADDR, CMD を順に書き込み、STATUS を読んで結果を返す。
 `libs/serial.mln` と同じメモリマップド I/O パターン。
 
-### Layer 3: MyKernel — SimpleFS（`libs/fs.mln`）
+### Layer 3: MyKernel — MyFileSystem / MFS（`libs/fs.mln`）
 
 #### ディスクレイアウト
 
 | ブロック # | 用途 |
 |------------|------|
-| 0 | Superblock (マジック `0x53464653` = 'SFFS', version=1, max_files=32) |
-| 1–4 | File Entry Table (32 エントリ × 32 bytes = 1024 bytes = 4 ブロック) |
-| 5 | Block Allocation Bitmap (256 ビット = 32 bytes) |
-| 6–255 | Data blocks |
+| 0 | Superblock (マジック `0x4D465331` = 'MFS1', version=1, block_size=65536, total_blocks=16384, max_files=32) |
+| 1 | File Entry Table (32 エントリ × 32 bytes = 1024 bytes → 1 ブロックに収まる) |
+| 2 | Block Allocation Bitmap (16384 ビット = 2048 bytes → 1 ブロックに収まる) |
+| 3–16383 | Data blocks (16381 ブロック) |
 
 #### File Entry（32 bytes）
 
@@ -100,7 +100,7 @@ I/O レジスタに BLOCK, ADDR, CMD を順に書き込み、STATUS を読んで
 
 各データブロック:
 - `bytes[0..4]` = next_block ポインタ (0 = チェイン終端)
-- `bytes[4..256]` = データペイロード (252 bytes/block)
+- `bytes[4..65536]` = データペイロード (65532 bytes/block)
 
 #### API
 
@@ -143,8 +143,8 @@ i32 fd_file_size[8];     // file size in bytes
 
 - write 操作のセマンティクス: 純粋な append か、offset ベースのランダムライトか。
   最小版は append のみで十分。
-- ファイルサイズ上限: ブロックチェインなので理論上は全データブロック分 (250 blocks ×
-  252 bytes ≈ 63KB)。実用上は問題ない。
+- ファイルサイズ上限: ブロックチェインなので理論上は全データブロック分 (16381 blocks ×
+  65532 bytes ≈ 1 GB、ディスク容量が実上限)。実用上は問題ない。
 - 同名ファイルの create 時の挙動: エラーを返すか上書きか。最小版はエラーを返す。
 - ディスクイメージの永続化タイミング: WRITE コマンド実行時に即座にホストファイルへ flush。
 
@@ -169,8 +169,8 @@ i32 fd_file_size[8];     // file size in bytes
 
 ## 変更ファイル
 
-- 新規: `runtime/MyEmulator/src/machine/ssd.rs`、
+- 新規: `runtime/MyEmulator/src/machine/ssd.rs`（実装済み）、
   `system/MyKernel/src/libs/ssd.mln`、`system/MyKernel/src/libs/fs.mln`。
-- 変更: `runtime/MyEmulator/src/{constants.rs,machine/mod.rs,machine/memory_bus.rs,cli.rs,app.rs}`、
+- 変更: `runtime/MyEmulator/src/{constants.rs,machine/mod.rs,machine/memory_bus.rs,cli.rs,app.rs}`（実装済み）、
   `system/MyKernel/src/kernel_main.mln`、`system/MyKernel/src/libs/dom.mln`。
 - 不変: MyAssembler、MyLangCompiler、MyLinker（新命令不要、全て既存の仕組みで実装可能）。

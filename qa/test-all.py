@@ -117,15 +117,15 @@ SUITES = {
         ["mllinker"],
     ),
     "heap": (
-        ["python3", str(MYKERNEL_DIR / "tests" / "run_heap_tests.py")],
+        ["python3", str(MYKERNEL_DIR / "tests" / "heap" / "run_heap_tests.py")],
         ["mlc", "myas", "mllinker", "myemu"],
     ),
     "serial-rx": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "serial_rx.test.mln")],
+        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "serial" / "serial_rx.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
     "scheduler": (
-        ["python3", str(MYKERNEL_DIR / "tests" / "run_scheduler_test.py")],
+        ["python3", str(MYKERNEL_DIR / "tests" / "scheduler" / "run_scheduler_test.py")],
         ["mlc", "myas", "mllinker", "myemu"],
     ),
 }

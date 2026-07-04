@@ -82,7 +82,7 @@ typedef struct Node {
 } Node;
 ```
 
-64KB 制約のある MyComputer では、最初から汎用 map や可変長文字列を多用しすぎない。
+MyComputer では、最初から汎用 map や可変長文字列を多用しすぎない。
 初期実装は固定長配列・小さい props テーブル・短い文字列でよい。
 
 ## Props

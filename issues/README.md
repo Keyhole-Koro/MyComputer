@@ -13,7 +13,7 @@
 | ISSUE-005 | [汎用構文エンジン化](tickets/syntax-engine-generic.md) | Proposed | MySyntaxEngine を多言語向け汎用エンジンとして整理。 |
 | ISSUE-006 | [DOM 的 OS オブジェクトモデル](tickets/dom-like-os.md) | Proposed | OS 状態、UI、プロセス、デバイスをツリーで扱う長期設計。 |
 | ISSUE-007 | [MyLang Compiler Diagnostics And Type Intelligence](tickets/compiler-diagnostics-and-type-intelligence.md) | Proposed | AST 位置情報、診断、型チェックを強化して compiler を賢くする。 |
-| ISSUE-008 | [ファイルシステム（SSD デバイス + ブロックドライバ + SimpleFS）](tickets/filesystem.md) | Proposed | SSD エミュレーション + カーネル FS。永続ストレージの基盤。 |
+| ISSUE-008 | [ファイルシステム（SSD デバイス + ブロックドライバ + MyFileSystem(MFS)）](tickets/filesystem.md) | Proposed | SSD エミュレーション + カーネル FS。永続ストレージの基盤。 |
 | ISSUE-009 | [MyLang Type Mismatch Diagnostics](completed/compiler-type-mismatch-diagnostics.md) | Done | 代入・二項演算・条件式の型不一致を expected / actual 付きで報告する。 |
 | ISSUE-010 | [MyLang Diagnostic Error Codes](completed/compiler-diagnostic-codes.md) | Done | 診断に安定した error code を付け、テスト・docs・LSP 連携を強くする。 |
 | ISSUE-011 | [MyLang Diagnostic Source Ranges](completed/compiler-diagnostic-ranges.md) | Done | 診断を line / col の一点から source range へ拡張する。 |
@@ -36,6 +36,6 @@
 3. ISSUE-006: Kernel Object Tree の最小実装を始める。
 4. ISSUE-007: compiler の診断と型チェックを強化する。
 5. ISSUE-005 / ISSUE-003: mylang UI リテラルや LSP 体験に必要な構文基盤を整える。
-6. ISSUE-008: ファイルシステムを実装する（SSD + ブロックドライバ + SimpleFS）。
+6. ISSUE-008: ファイルシステムを実装する（SSD + ブロックドライバ + MyFileSystem(MFS)）。
 7. ISSUE-013: Python runner を置き換える MyLang test framework を整備する。
 8. ISSUE-014: `mytest` の診断性と、`.test.mln` 化する範囲を整理する。

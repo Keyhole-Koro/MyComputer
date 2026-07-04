@@ -16,7 +16,7 @@ def main() -> int:
         return build.returncode
 
     runner = MYLANGTESTER_DIR / "build" / "mytest"
-    test = MYKERNEL_DIR / "tests" / "serial_rx.test.mln"
+    test = MYKERNEL_DIR / "tests" / "serial" / "serial_rx.test.mln"
     return subprocess.run([str(runner), str(test), *args]).returncode
 
 
