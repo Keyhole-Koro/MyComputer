@@ -36,6 +36,7 @@ from tools.project_paths import (
     MYEMULATOR_DIR,
     MYKERNEL_DIR,
     MYLANGCOMPILER_DIR,
+    MYLANGTESTER_DIR,
     MYLINKER_DIR,
     REPO_ROOT,
 )
@@ -58,6 +59,7 @@ def status(label, msg, code=CYAN):
 # name -> (directory, make target, produced artifact)
 COMPONENTS = {
     "mlc":   (MYLANGCOMPILER_DIR, "mlc", MYLANGCOMPILER_DIR / "mlc"),
+    "mytest": (MYLANGTESTER_DIR, "all", MYLANGTESTER_DIR / "build" / "mytest"),
     "myas":  (MYASSEMBLER_DIR, "all", MYASSEMBLER_DIR / "build" / "myas"),
     "mllinker": (MYLINKER_DIR, "all", MYLINKER_DIR / "mllinker"),
     "myemu": (MYEMULATOR_DIR, "all", MYEMULATOR_DIR / "build" / "myemu"),
@@ -119,8 +121,8 @@ SUITES = {
         ["mlc", "myas", "mllinker", "myemu"],
     ),
     "serial-rx": (
-        ["python3", str(MYKERNEL_DIR / "tests" / "run_serial_rx_test.py")],
-        ["mlc", "myas", "mllinker", "myemu"],
+        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "serial_rx.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
     "scheduler": (
         ["python3", str(MYKERNEL_DIR / "tests" / "run_scheduler_test.py")],

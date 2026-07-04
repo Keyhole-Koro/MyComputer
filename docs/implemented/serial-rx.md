@@ -64,10 +64,10 @@
   - IE 有効＋ベクタ登録＋入力で `service_timer_interrupt` が PC をハンドラへ向け、
     IE をマスクする。
   - `bus_read`（フェッチ経路）は RX を消費しない。
-- **エンドツーエンド（`system/MyKernel/tests/run_serial_rx_test.py`）**: カーネルと
-  エミュをビルドし、`"PINGq"` を流し込み、`PING` がエコーされ `'q'` でクリーン停止
-  （exit 0）、かつ `kernel: heap ready` まで起動することを確認。`qa/serial-rx-test.py`
-  はこれへ委譲する薄いラッパー（`qa/as-test.py` 等と同型）。CI（mytester）で実行。
+- **エンドツーエンド（`system/MyKernel/tests/serial_rx.test.mln` + `mytest`）**:
+  テスト用 kernel をビルドし、`"PINGq"` を流し込み、IRQ ハンドラ経由で `PING` が
+  エコーされ `'q'` でクリーン停止（exit 0）、かつ `kernel: heap ready` まで起動する
+  ことを確認。`qa/serial-rx-test.py` は `mytest` を呼ぶ薄いラッパー。CI（mytester）で実行。
 
 ## 既知の留保・次段
 
@@ -83,6 +83,6 @@
 - 変更: `runtime/MyEmulator/src/{constants.rs,machine/mod.rs,machine/interrupts.rs,
   machine/memory_bus.rs,machine/cpu_exec.rs,machine/run_loop.rs}`、
   `system/MyKernel/src/libs/irq.mln`、`system/MyKernel/src/kernel_main.mln`。
-- 新規: `system/MyKernel/tests/run_serial_rx_test.py`（本体）、`qa/serial-rx-test.py`
-  （委譲ラッパー）、`runtime/MyEmulator/src/machine/interrupts.rs` のテストモジュール。
+- 新規: `system/MyKernel/tests/serial_rx.test.mln`、`qa/serial-rx-test.py`
+  （`mytest` ラッパー）、`runtime/MyEmulator/src/machine/interrupts.rs` のテストモジュール。
 - CI: `.github/workflows/mytester.yml` に `qa/serial-rx-test.py` を追加。

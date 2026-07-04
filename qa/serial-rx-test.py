@@ -5,13 +5,19 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from tools.project_paths import MYKERNEL_DIR
+from tools.project_paths import MYKERNEL_DIR, MYLANGTESTER_DIR
 
 
 def main() -> int:
-    runner = MYKERNEL_DIR / "tests" / "run_serial_rx_test.py"
-    cmd = ["python3", str(runner), *sys.argv[1:]]
-    return subprocess.run(cmd).returncode
+    args = [arg for arg in sys.argv[1:] if arg != "--verbose"]
+
+    build = subprocess.run(["make"], cwd=MYLANGTESTER_DIR)
+    if build.returncode != 0:
+        return build.returncode
+
+    runner = MYLANGTESTER_DIR / "build" / "mytest"
+    test = MYKERNEL_DIR / "tests" / "serial_rx.test.mln"
+    return subprocess.run([str(runner), str(test), *args]).returncode
 
 
 if __name__ == "__main__":

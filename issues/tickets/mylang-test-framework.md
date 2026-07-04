@@ -133,9 +133,9 @@ MyLang の kernel/emulator テストでは `stdin` や `step` を emulator 起�
 - `body` を `kernel_main()` へ lowering する。
 - 手書き `kernel_main()` のテストを `test(...)` declaration へ移す。
 
-### フェーズ4: Python runner の置き換え
+### フェーズ4: Python runner の置き換え（一部実装済み）
 
-- `run_serial_rx_test.py` を `serial_rx.test.mln` + `mytest` に置き換える。
+- `run_serial_rx_test.py` を `serial_rx.test.mln` + `mytest` に置き換える。（実装済み）
 - heap / scheduler / filesystem も `*.test.mln` 化する。
 - `qa/test-all.py` から MyKernel の Python runner を段階的に外す。
 
@@ -156,7 +156,7 @@ MyLang の kernel/emulator テストでは `stdin` や `step` を emulator 起�
 
 ## 関連
 
-- `system/MyKernel/tests/run_serial_rx_test.py`
+- `system/MyKernel/tests/serial_rx.test.mln`
 - `toolchain/MyLangTester`
 - `toolchain/MyLangCompiler` function literal lowering
 - `runtime/MyEmulator` stdin / serial / step handling
