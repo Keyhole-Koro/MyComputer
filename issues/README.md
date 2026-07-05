@@ -28,7 +28,7 @@
 | ISSUE-020 | [MyLang Typed Intermediate Representation](tickets/mylang-typed-ir.md) | Proposed | AST 直結 codegen から段階移行できる typed IR の設計と最小実装を進める。 |
 | ISSUE-021 | [MyLang LSP Semantic Diagnostics Integration](tickets/mylang-lsp-semantic-diagnostics-integration.md) | Proposed | compiler の semantic diagnostics を JSON / LSP へ接続し、editor でも同じ診断を出す。 |
 | ISSUE-022 | [MyLang Standard Library Foundation](tickets/mylang-standard-library-foundation.md) | Proposed | std / kernel / test library の境界と最小 API を整理する。 |
-| ISSUE-023 | [MyLang Diagnostic Code Registry](tickets/mylang-diagnostic-code-registry.md) | Done | diagnostic code のカテゴリ採番規則を明文化し、`E04xx`=package 等の予約帯を記録する。 |
+| ISSUE-023 | [MyLang Diagnostic Code Registry](completed/mylang-diagnostic-code-registry.md) | Done | diagnostic code のカテゴリ採番規則を明文化し、`E04xx`=package 等の予約帯を記録する。 |
 
 ## Status
 
