@@ -38,6 +38,10 @@
 - `Done`: 実装・検証済み。
 - `Superseded/Partial`: 後続チケットで一部方針が上書き済み。
 
+`Done` になったチケットのファイルは [`tickets/`](tickets/) から [`completed/`](completed/) へ
+`git mv` で移動し、上の索引リンクも `completed/...` に更新する。運用詳細は
+[`tickets/README.md`](tickets/README.md) を参照。
+
 ## Suggested Order
 
 1. ISSUE-002: Kernel heap を安定させる。
