@@ -21,7 +21,7 @@
 | ISSUE-013 | [MyLang Test Framework（mytest + test declaration）](tickets/mylang-test-framework.md) | Proposed | `*.test.mln`、Jest 風 test declaration、mytest runner、emulator test options を設計・実装する。 |
 | ISSUE-014 | [MyLang Test Diagnostics Strategy](tickets/mylang-test-diagnostics-strategy.md) | Proposed | `.test.mln` E2E とホスト側テストの役割分担、失敗時の切り分け方針を整理する。 |
 | ISSUE-015 | [エミュレータのデバイス挙動をリアル化（非同期DMA / 実時間タイマー / VBlank同期）](tickets/emulator-realistic-devices.md) | Proposed | DMA を BUSY→DONE→完了割込に、タイマーを実時間ベースに、SWAP を VBlank 同期に。 |
-| ISSUE-016 | [MyLang Function Signature Type Checking](tickets/mylang-function-signature-type-checking.md) | Proposed | 関数 signature に引数型・戻り値型を持たせ、call site の型不一致を semantic で検出する。 |
+| ISSUE-016 | [MyLang Function Signature Type Checking](completed/mylang-function-signature-type-checking.md) | Done | 関数 signature に引数型・戻り値型を持たせ、call site の型不一致を semantic で検出する。 |
 | ISSUE-017 | [MyLang Flow-Sensitive Borrow And Move Analysis](tickets/mylang-flow-sensitive-borrow-analysis.md) | Proposed | 分岐、field、関数呼び出し越しの move / borrow 解析を強化する。 |
 | ISSUE-018 | [MyLang Aggregate Initializers And Data Layout](tickets/mylang-aggregate-initializers.md) | Proposed | struct / nested array などの aggregate initializer と data layout を型情報に基づいて扱う。 |
 | ISSUE-019 | [MyLang Package Symbol Resolution](tickets/mylang-package-symbol-resolution.md) | Proposed | package / import / export の symbol table を整備し、import 先の型・signature を semantic に渡す。 |
@@ -53,8 +53,7 @@
 7. ISSUE-013: Python runner を置き換える MyLang test framework を整備する。
 8. ISSUE-014: `mytest` の診断性と、`.test.mln` 化する範囲を整理する。
 9. ISSUE-023: diagnostic code の採番規則を明文化する（ISSUE-016 / ISSUE-019 が新 code を足す前の土台）。
-10. ISSUE-016: 関数 signature の型情報を semantic に持たせ、API 呼び出しの型不一致を早く落とす。
-11. ISSUE-017: move / borrow 解析を分岐・field・関数呼び出しへ広げる（ISSUE-016 の signature 拡張に依存）。
-12. ISSUE-018 / ISSUE-019: aggregate data layout と package symbol 解決を固める。
-13. ISSUE-020: typed IR の導入可否を設計し、段階移行を始める。
-14. ISSUE-021 / ISSUE-022: LSP 診断と標準 library の開発体験を整える。
+10. ISSUE-017: move / borrow 解析を分岐・field・関数呼び出しへ広げる（ISSUE-016 の signature 拡張に依存）。
+11. ISSUE-018 / ISSUE-019: aggregate data layout と package symbol 解決を固める。
+12. ISSUE-020: typed IR の導入可否を設計し、段階移行を始める。
+13. ISSUE-021 / ISSUE-022: LSP 診断と標準 library の開発体験を整える。

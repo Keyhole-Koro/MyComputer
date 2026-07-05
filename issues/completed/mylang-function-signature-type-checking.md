@@ -151,3 +151,21 @@ base が異なる点に注意する。
 - 診断に parameter index、関数名、expected type、actual type が含まれる。
 - 既存の variadic / import / package fixture が壊れない。
 - call expression の戻り値型を後続の型検査に使える。
+
+## 完了内容
+
+- `SemanticFunctionSig` に return type / fixed parameter type / parameter name / borrow kind を追加した。
+- 関数定義の収集時に signature 型情報を保存するようにした。
+- call site で fixed parameter の引数型を検査し、`E0102` を出すようにした。
+- call expression の戻り値型を signature から推論し、assignment / return などの後続検査へ渡すようにした。
+- `char[]` string literal から `char*` parameter への既存互換は維持しつつ、`i32` parameter に `char*` を渡すケースを拒否する call argument 専用互換判定を追加した。
+- `E0102` を diagnostic code registry の実装済み code に移した。
+- enum parser の既存 regression（`enum ...;` の semicolon 未消費）を補正し、既存 semantic enum fixture を復旧した。
+
+## 完了時の検証
+
+```sh
+make -C toolchain/MyLangCompiler clean all
+python3 toolchain/MyLangCompiler/tests/run_semantic_tests.py
+python3 qa/mlc-test.py
+```

@@ -58,12 +58,13 @@ main.mln:2:13: error[E0001]: undefined identifier 'foo'
 | E0001 | undefined identifier |
 | E0002 | undefined function |
 | E0101 | function argument count mismatch |
+| E0102 | function argument type mismatch |
 | E0201 | return type mismatch |
 | E0301 | assignment / initializer type mismatch |
 | E0302 | invalid binary operand types |
 | E0303 | invalid condition type |
 
-`E0102` は予約のみ。関数引数の型検査を追加したタイミングで使う。
+`E0102` は ISSUE-016 で実装済み。
 
 ## 非スコープ
 
