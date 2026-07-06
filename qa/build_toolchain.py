@@ -241,8 +241,12 @@ def main():
     if heap_sym_mobj:
         final_mobj.append(heap_sym_mobj)
     
-    run([mllinker, out_path] + final_mobj, cwd=repo)
+    # Emit a symbol map alongside the linked image so the profiler can attribute
+    # program counters to function names. Named <output>.map next to the binary.
+    map_path = out_path.with_suffix(out_path.suffix + ".map")
+    run([mllinker, "--map", map_path, out_path] + final_mobj, cwd=repo)
     print(f"Linked output: {out_path}")
+    print(f"Symbol map: {map_path}")
     return 0
 
 

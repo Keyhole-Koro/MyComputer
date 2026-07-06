@@ -104,6 +104,13 @@ def main():
         help="Pass --timer-interval to emulator (raise a timer IRQ every N instructions).",
     )
     parser.add_argument(
+        "--profile",
+        nargs="?",
+        const="profile.json",
+        help="Collect an instruction-level profile into the session directory. "
+        "The kernel UI loop never halts, so pair with --step <n> to bound the run.",
+    )
+    parser.add_argument(
         "--source",
         help="Path to the MyLang kernel source file to build and run. Defaults to system/MyKernel/src/kernel/main.mln",
     )
@@ -191,6 +198,10 @@ def main():
         emu_cmd.extend(["--mem", args.mem[0], args.mem[1]])
     if args.timer_interval:
         emu_cmd.extend(["--timer-interval", args.timer_interval])
+    profile_path = None
+    if args.profile:
+        profile_path = session.path(args.profile)
+        emu_cmd.extend(["--profile", profile_path])
 
     try:
         emulator_output = run_step(
@@ -226,6 +237,14 @@ def main():
         print(serial_output)
 
     status_line("INFO", f"report: {report_path}", YELLOW)
+    if profile_path and Path(profile_path).exists():
+        map_path = linked_bin.with_suffix(linked_bin.suffix + ".map")
+        status_line("INFO", f"profile: {profile_path}", YELLOW)
+        status_line(
+            "NEXT",
+            f"python3 qa/profile_report.py {profile_path} --map {map_path}",
+            CYAN,
+        )
     status_line("DONE", "kernel run complete", GREEN)
 
 
