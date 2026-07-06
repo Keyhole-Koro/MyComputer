@@ -33,3 +33,6 @@
 	path = toolchain/MyLangTester
 	url = git@github.com:Keyhole-Koro/MyLangTester.git
 	branch = main
+[submodule "system/MyOS"]
+	path = system/MyOS
+	url = git@github.com:Keyhole-Koro/MyOS.git
