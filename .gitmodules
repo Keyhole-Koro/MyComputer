@@ -36,3 +36,6 @@
 [submodule "system/MyOS"]
 	path = system/MyOS
 	url = git@github.com:Keyhole-Koro/MyOS.git
+[submodule "system/MyFirmware"]
+	path = system/MyFirmware
+	url = git@github.com:Keyhole-Koro/MyFirmware.git
