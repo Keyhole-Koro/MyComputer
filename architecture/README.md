@@ -211,6 +211,9 @@
 | SSD      | `0x24000010` | Command/data interface             |
 | Display  | `0x24000020` | Optional text buffer or pixel port |
 | Serial   | `0x24000030` | Optional RS232-style UART          |
+| Timer    | `0x24000040` | Programmable interval timer        |
+| Mouse    | `0x24000050` | PS/2 style mouse port              |
+| PIC      | `0x24000080` | Programmable Interrupt Controller (0x24000084 = IRQ Cause) |
 
 Text I/O Notes (Characters)
 - Character size is 8 bits (1 byte).
