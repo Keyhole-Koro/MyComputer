@@ -5,22 +5,22 @@
 Build the full system (MyFirmware + MyKernel/MyOS) and run it in the emulator:
 
 ```bash
-python3 qa/run_system.py
+make run
 ```
 
 Build the system without opening a display window:
 
 ```bash
-python3 qa/run_system.py --headless --step 300000
+make run ARGS="--headless --step 300000"
 ```
 
 Build the system images without running them:
 
 ```bash
-python3 qa/run_system.py --no-run
+make build
 ```
 
-(Note: `python3 qa/run_kernel.py` can still be used for testing the kernel directly in ROM)
+(Note: `make kernel` can still be used for testing the kernel directly in ROM)
 
 Build the emulator:
 
@@ -39,20 +39,20 @@ runtime/MyEmulator/target/release/myemu -i system/MyKernel/build/main_linked.mbi
 Full QA runner:
 
 ```bash
-python3 qa/test-all.py
+make qa
 ```
 
 Compiler integration tests:
 
 ```bash
-python3 qa/mlc-test.py
+make mlc-test
 ```
 
 Assembler / linker:
 
 ```bash
-python3 qa/as-test.py
-python3 qa/linker-test.py
+make as-test
+make linker-test
 ```
 
 MyKernel subsystem tests:
@@ -72,15 +72,15 @@ dumps, and related debug artifacts there.
 Common options:
 
 ```bash
-python3 qa/run_kernel.py --trace --step 10000
-python3 qa/run_kernel.py --headless --profile profile.json --step 300000
-python3 qa/run_kernel.py --mem 0x00000000 0x100
+make kernel ARGS="--trace --step 10000"
+make kernel ARGS="--headless --profile profile.json --step 300000"
+make kernel ARGS="--mem 0x00000000 0x100"
 ```
 
 Profile report:
 
 ```bash
-python3 qa/profile_report.py system/MyKernel/build/sessions/<session>/profile.json
+make profile ARGS="system/MyKernel/build/sessions/<session>/profile.json"
 ```
 
 ## Tickets

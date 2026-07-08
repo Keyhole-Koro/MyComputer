@@ -52,7 +52,7 @@ jobs:
 
       - name: Run MyTester smoke tests
         run: |
-          python3 qa/as-test.py simpleChar
-          python3 qa/mlc-test.py simpleFunc
-          python3 qa/run_kernel.py --no-run
-          python3 qa/serial-rx-test.py
+          make as-test ARGS="simpleChar"
+          make mlc-test ARGS="simpleFunc"
+          make kernel-build
+          make serial-rx-test
