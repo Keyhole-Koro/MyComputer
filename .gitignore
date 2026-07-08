@@ -10,3 +10,5 @@ tools/vscode-mylang/*.vsix
 # Toolchain build artifacts
 *.mobj
 *.mbin
+/out.*
+/out_*.txt

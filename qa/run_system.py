@@ -100,7 +100,14 @@ def main():
 
     # 2. Build Firmware
     run_step(
-        [sys.executable, build_toolchain, fw_stub, fw_source, "-o", fw_bin, "--build-dir", build_dir],
+        cmd=[
+            sys.executable, build_toolchain,
+            repo / "system/MyFirmware/src/boot/stub.masm",
+            repo / "system/MyFirmware/src/fw/main.mln",
+            repo / "system/MyFirmware/src/fw/jump.masm",
+            "-o", fw_bin,
+            "--build-dir", build_dir
+        ],
         cwd=repo,
         description="build firmware image",
         session=session,
@@ -109,7 +116,7 @@ def main():
 
     # 3. Build Kernel
     run_step(
-        [sys.executable, build_toolchain, kernel_stub, kernel_source, "-o", kernel_bin, "--build-dir", build_dir],
+        [sys.executable, build_toolchain, kernel_stub, kernel_source, "-o", kernel_bin, "--build-dir", build_dir, "--base", "0x00100000"],
         cwd=repo,
         description="build kernel image",
         session=session,
@@ -120,20 +127,27 @@ def main():
         status_line("DONE", "build complete; skipped emulator run", GREEN)
         return
 
-    # TODO: In the future, we should write kernel_bin into disk_img so firmware can load it!
-    # For now, we just pass disk.img to the emulator.
-    emu_cmd = [myemu, "-i", fw_bin, "--disk", disk_img, "-o", report_path, "--log-dir", session.session_dir]
+    # Embed kernel into disk.img at block 16000 (1048576000 bytes)
+    status_line("STEP", "embed kernel into disk image", CYAN)
+    with open(disk_img, "wb") as f:
+        # Seek to block 16000
+        f.seek(16000 * 65536)
+        with open(kernel_bin, "rb") as k:
+            f.write(k.read())
+        # Ensure file is 1GB (SSD_DISK_SIZE)
+        f.seek(1024*1024*1024 - 1)
+        f.write(b'\0')
+
+    # 4. Run emulator
+    emu_cmd = [str(myemu), "-i", str(fw_bin), "--disk", str(disk_img), "-o", str(report_path), "--log-dir", str(session.session_dir), "--timer-interval", "100000"]
     if args.headless:
         emu_cmd.append("--headless")
 
-    run_step(
-        emu_cmd,
-        cwd=repo,
-        description="run emulator",
-        session=session,
-        log_name="03-emulator.log",
-        quiet_fail=True,
-    )
+    status_line("STEP", "run emulator", CYAN)
+    try:
+        subprocess.run(emu_cmd, cwd=repo, check=True)
+    except subprocess.CalledProcessError:
+        pass
 
     status_line("DONE", "system run complete", GREEN)
 

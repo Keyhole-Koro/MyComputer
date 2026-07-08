@@ -155,6 +155,7 @@ def main():
     parser.add_argument("--entry", help="Entry function name mapped to __START__ (mlc)")
     parser.add_argument("--masm", action="store_true", help="Include .masm when scanning directories")
     parser.add_argument("--clean", action="store_true", help="Clean build directory before build")
+    parser.add_argument("--base", type=str, help="Base address for linking in hex (default: 0)")
     args = parser.parse_args()
 
     repo = REPO_ROOT
@@ -244,7 +245,14 @@ def main():
     # Emit a symbol map alongside the linked image so the profiler can attribute
     # program counters to function names. Named <output>.map next to the binary.
     map_path = out_path.with_suffix(out_path.suffix + ".map")
-    run([mllinker, "--map", map_path, out_path] + final_mobj, cwd=repo)
+    
+    linker_cmd = [mllinker, "--map", map_path]
+    if args.base:
+        linker_cmd.extend(["--base", args.base])
+    linker_cmd.append(out_path)
+    linker_cmd.extend(final_mobj)
+
+    run(linker_cmd, cwd=repo)
     print(f"Linked output: {out_path}")
     print(f"Symbol map: {map_path}")
     return 0
