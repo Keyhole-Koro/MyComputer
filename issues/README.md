@@ -29,6 +29,7 @@
 | ISSUE-021 | [MyLang LSP Semantic Diagnostics Integration](tickets/mylang-lsp-semantic-diagnostics-integration.md) | Proposed | compiler の semantic diagnostics を JSON / LSP へ接続し、editor でも同じ診断を出す。 |
 | ISSUE-022 | [MyLang Standard Library Foundation](tickets/mylang-standard-library-foundation.md) | Proposed | std / kernel / test library の境界と最小 API を整理する。 |
 | ISSUE-023 | [MyLang Diagnostic Code Registry](completed/mylang-diagnostic-code-registry.md) | Done | diagnostic code のカテゴリ採番規則を明文化し、`E04xx`=package 等の予約帯を記録する。 |
+| ISSUE-024 | [MyKernel DOM UI Automation（Playwright 風テスト基盤）](tickets/mykernel-ui-automation.md) | Proposed | MyKernel DOM を locator で操作・検証するヘッドレス UI automation 基盤を作る。 |
 
 ## Status
 
@@ -57,3 +58,4 @@
 11. ISSUE-018 / ISSUE-019: aggregate data layout と package symbol 解決を固める。
 12. ISSUE-020: typed IR の導入可否を設計し、段階移行を始める。
 13. ISSUE-021 / ISSUE-022: LSP 診断と標準 library の開発体験を整える。
+14. ISSUE-024: DOM-like UI と headless emulator をつなぎ、Playwright 風 E2E テストを可能にする。
