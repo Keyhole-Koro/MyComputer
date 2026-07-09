@@ -39,3 +39,6 @@
 [submodule "system/MyFirmware"]
 	path = system/MyFirmware
 	url = git@github.com:Keyhole-Koro/MyFirmware.git
+[submodule "toolchain/MyDOMTranspiler"]
+	path = toolchain/MyDOMTranspiler
+	url = https://github.com/Keyhole-Koro/MyDOMTranspiler.git
