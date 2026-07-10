@@ -297,9 +297,15 @@ mlx 統合のために dom.mln へ追加が要るもの（DOM_SPEC.md で未実�
 - ✅ **最小 sample** `system/MyOS/src/apps/counter.mlx`：`<Window><Button onClick><Text>` が
   dom ツリーに落ち、`dispatch_click` が間接呼び出しで handler を 2 回叩き **R1=2**。
   dump に `Counter [role=3 ...]` / `CLICK ME [role=4 ...]` / `clicks: 0 [role=5 ...]` が出る。
-- ⬜ **未了（次フェーズ）**：renderer を DOM 駆動へ（`graphics.*` で実描画）、find_at hit-test、
-  snapshot()、`.mlx` の LSP 対応。cross-package で `dom.STATE_*` 定数を読むには
-  `import dom_STATE_VISIBLE` が要る制約は別途（今回は sample 側で回避）。
+- ✅ **renderer を DOM 駆動へ**：`render`/`draw_node`/`render_desktop` を dom.mln に追加。
+  UI subtree を DFS で走査し `graphics.fill_rect/draw_rect/draw_text` で window/button/text を
+  実描画（sibling z-order、STATE_VISIBLE skip）。`graphics.mln` は不変。counter.mlx が VRAM に
+  window（白+灰枠+title）/button（灰面+枠+label）/text を描くのを emulator で確認。
+  ⚠️ codegen gotcha: `kind == NODE_WINDOW`（i32 vs export u16 global）は常に false に
+  miscompile する。i32 ローカルへコピーしてから比較する（`i32 kw = NODE_WINDOW;`）。
+- ⬜ **未了（次フェーズ）**：find_at hit-test（mouse 配送）、snapshot()（ISSUE-024）、
+  `.mlx` の LSP 対応。cross-package で `dom.STATE_*` 定数を読むには `import dom_STATE_VISIBLE`
+  が要る制約は別途（今回は render_desktop で display size を inline して回避）。
 
 **既知の注意点**: `SourceTranspiler` は comment/string 内を無視せず `return <` を JSX として
 拾う。`.mlx` の comment に `return <...>` と書くと `unterminated JSX return element` になる。
