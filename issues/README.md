@@ -12,8 +12,8 @@
 | ISSUE-004 | [共有フロントエンド化](tickets/shared-frontend.md) | Superseded/Partial | `tickets/syntax-engine-generic.md` の方針で一部上書き。 |
 | ISSUE-005 | [汎用構文エンジン化](tickets/syntax-engine-generic.md) | Proposed | MySyntaxEngine を多言語向け汎用エンジンとして整理。 |
 | ISSUE-006 | [DOM 的 OS オブジェクトモデル](tickets/dom-like-os.md) | Proposed | OS 状態、UI、プロセス、デバイスをツリーで扱う長期設計。 |
-| ISSUE-007 | [MyLang Compiler Diagnostics And Type Intelligence](tickets/compiler-diagnostics-and-type-intelligence.md) | Proposed | AST 位置情報、診断、型チェックを強化して compiler を賢くする。 |
-| ISSUE-008 | [ファイルシステム（SSD デバイス + ブロックドライバ + MyFileSystem(MFS)）](tickets/filesystem.md) | Proposed | SSD エミュレーション + カーネル FS。永続ストレージの基盤。 |
+| ISSUE-007 | [MyLang Compiler Diagnostics And Type Intelligence](completed/compiler-diagnostics-and-type-intelligence.md) | Done | AST 位置情報、診断、型チェックを強化して compiler を賢くする。 |
+| ISSUE-008 | [ファイルシステム（SSD デバイス + ブロックドライバ + MyFileSystem(MFS)）](completed/filesystem.md) | Done | SSD エミュレーション + カーネル FS。永続ストレージの基盤。 |
 | ISSUE-009 | [MyLang Type Mismatch Diagnostics](completed/compiler-type-mismatch-diagnostics.md) | Done | 代入・二項演算・条件式の型不一致を expected / actual 付きで報告する。 |
 | ISSUE-010 | [MyLang Diagnostic Error Codes](completed/compiler-diagnostic-codes.md) | Done | 診断に安定した error code を付け、テスト・docs・LSP 連携を強くする。 |
 | ISSUE-011 | [MyLang Diagnostic Source Ranges](completed/compiler-diagnostic-ranges.md) | Done | 診断を line / col の一点から source range へ拡張する。 |
@@ -22,7 +22,7 @@
 | ISSUE-014 | [MyLang Test Diagnostics Strategy](tickets/mylang-test-diagnostics-strategy.md) | Proposed | `.test.mln` E2E とホスト側テストの役割分担、失敗時の切り分け方針を整理する。 |
 | ISSUE-015 | [エミュレータのデバイス挙動をリアル化（非同期DMA / 実時間タイマー / VBlank同期）](tickets/emulator-realistic-devices.md) | Proposed | DMA を BUSY→DONE→完了割込に、タイマーを実時間ベースに、SWAP を VBlank 同期に。 |
 | ISSUE-016 | [MyLang Function Signature Type Checking](completed/mylang-function-signature-type-checking.md) | Done | 関数 signature に引数型・戻り値型を持たせ、call site の型不一致を semantic で検出する。 |
-| ISSUE-017 | [MyLang Flow-Sensitive Borrow And Move Analysis](tickets/mylang-flow-sensitive-borrow-analysis.md) | Proposed | 分岐、field、関数呼び出し越しの move / borrow 解析を強化する。 |
+| ISSUE-017 | [MyLang Flow-Sensitive Borrow And Move Analysis](tickets/mylang-flow-sensitive-borrow-analysis.md) | In Progress | 分岐、field、関数呼び出し越しの move / borrow 解析を強化する。 |
 | ISSUE-018 | [MyLang Aggregate Initializers And Data Layout](tickets/mylang-aggregate-initializers.md) | Proposed | struct / nested array などの aggregate initializer と data layout を型情報に基づいて扱う。 |
 | ISSUE-019 | [MyLang Package Symbol Resolution](tickets/mylang-package-symbol-resolution.md) | Proposed | package / import / export の symbol table を整備し、import 先の型・signature を semantic に渡す。 |
 | ISSUE-020 | [MyLang Typed Intermediate Representation](tickets/mylang-typed-ir.md) | Proposed | AST 直結 codegen から段階移行できる typed IR の設計と最小実装を進める。 |
@@ -30,6 +30,7 @@
 | ISSUE-022 | [MyLang Standard Library Foundation](tickets/mylang-standard-library-foundation.md) | Proposed | std / kernel / test library の境界と最小 API を整理する。 |
 | ISSUE-023 | [MyLang Diagnostic Code Registry](completed/mylang-diagnostic-code-registry.md) | Done | diagnostic code のカテゴリ採番規則を明文化し、`E04xx`=package 等の予約帯を記録する。 |
 | ISSUE-024 | [MyKernel DOM UI Automation（Playwright 風テスト基盤）](tickets/mykernel-ui-automation.md) | Proposed | MyKernel DOM を locator で操作・検証するヘッドレス UI automation 基盤を作る。 |
+| ISSUE-025 | [MyDOMTranspiler `.mlx` UI DSL Compiler](tickets/mydom-mlx-ui-dsl.md) | In Progress | JSX 風の OS DOM UI 記述を `.mlx` として書き、MyDOMTranspiler で MyLang source へ変換する。 |
 
 ## Status
 
@@ -59,3 +60,4 @@
 12. ISSUE-020: typed IR の導入可否を設計し、段階移行を始める。
 13. ISSUE-021 / ISSUE-022: LSP 診断と標準 library の開発体験を整える。
 14. ISSUE-024: DOM-like UI と headless emulator をつなぎ、Playwright 風 E2E テストを可能にする。
+15. ISSUE-025: MyDOMTranspiler で `.mlx` UI DSL を MyLang source へ変換し、OS DOM UI を宣言的に書けるようにする。

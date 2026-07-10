@@ -33,6 +33,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tools.project_paths import (
     MYASSEMBLER_DIR,
+    MYDOMTRANSPILER_DIR,
     MYEMULATOR_DIR,
     MYKERNEL_DIR,
     MYLANGCOMPILER_DIR,
@@ -58,6 +59,7 @@ def status(label, msg, code=CYAN):
 
 # name -> (directory, make target, produced artifact)
 COMPONENTS = {
+    "mydomc": (MYDOMTRANSPILER_DIR, "all", MYDOMTRANSPILER_DIR / "build" / "mydomc"),
     "mlc":   (MYLANGCOMPILER_DIR, "mlc", MYLANGCOMPILER_DIR / "mlc"),
     "mytest": (MYLANGTESTER_DIR, "all", MYLANGTESTER_DIR / "build" / "mytest"),
     "myas":  (MYASSEMBLER_DIR, "all", MYASSEMBLER_DIR / "build" / "myas"),
@@ -104,6 +106,10 @@ def build_component(name, verbose):
 
 # name -> (runner argv, [required components])
 SUITES = {
+    "mydom": (
+        ["make", "-C", str(MYDOMTRANSPILER_DIR), "test"],
+        ["mydomc"],
+    ),
     "compiler": (
         ["python3", str(MYLANGCOMPILER_DIR / "tests" / "run_integration_tests.py")],
         ["mlc"],

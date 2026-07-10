@@ -16,7 +16,17 @@ Ownership-oriented tokens are exposed through semantic tokens:
 
 ## Install locally (no packaging)
 1. Copy this folder to your user extensions dir (e.g. `~/.vscode/extensions/mylang-syntax`) or run `ln -s /workspaces/MyComputer-1/tools/vscode-mylang ~/.vscode/extensions/mylang-syntax`.
-2. Reload VS Code. Files ending in `.mln` should open as `MyLang` in the status bar.
+2. Reload VS Code. Files ending in `.mln` or `.mlx` should open as `MyLang` in the status bar.
+
+`.mlx` files may contain MyDOMTranspiler JSX-like returns such as:
+
+```mylang
+DomNode* screen() {
+    return <Window title="Settings">
+        <Button text="OK" />
+    </Window>;
+}
+```
 
 ## Optional: package as VSIX
 If you have `vsce`, run:

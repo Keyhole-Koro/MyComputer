@@ -3,7 +3,7 @@
 Build arbitrary MyLang sources into a linked .mbin and optionally run them in MyEmulator.
 
 This is intended as a fast debug loop:
-  .mln -> .masm (mlc) -> .mobj (myas) -> linked .mbin (mllinker) -> run (myemu)
+  .mlx -> .mln (mydomc), .mln -> .masm (mlc) -> .mobj (myas) -> linked .mbin (mllinker) -> run (myemu)
 """
 
 import argparse
@@ -15,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tools.project_paths import (
     MYASSEMBLER_DIR,
+    MYDOMTRANSPILER_DIR,
     MYEMULATOR_DIR,
     MYLANGCOMPILER_DIR,
     MYLINKER_DIR,
@@ -67,6 +68,7 @@ def run(cmd, cwd, description, session=None, log_name=None, quiet_fail=False):
 
 
 def ensure_tools(session=None):
+    run(["make", "-C", MYDOMTRANSPILER_DIR, "all"], cwd=REPO_ROOT, description="build MyDOMTranspiler", session=session, log_name="00-build-mydom.log")
     run(["make", "-C", MYLANGCOMPILER_DIR, "all"], cwd=REPO_ROOT, description="build MyLangCompiler", session=session, log_name="01-build-mlc.log")
     run(["make", "-C", MYASSEMBLER_DIR, "all"], cwd=REPO_ROOT, description="build MyAssembler", session=session, log_name="02-build-myas.log")
     run(["make", "-C", MYLINKER_DIR, "all"], cwd=REPO_ROOT, description="build MyLinker", session=session, log_name="03-build-mllinker.log")
@@ -130,9 +132,9 @@ def extract_serial_output(emulator_output: str) -> str:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Build .mln/.masm sources and run the result in MyEmulator."
+        description="Build .mlx/.mln/.masm sources and run the result in MyEmulator."
     )
-    parser.add_argument("sources", nargs="+", help="Source files or directories (.mln and optional .masm)")
+    parser.add_argument("sources", nargs="+", help="Source files or directories (.mlx/.mln and optional .masm)")
     parser.add_argument("--entry", default="main", help="Entry function name passed to mlc (default: main)")
     parser.add_argument("--build-dir", help="Directory for intermediate outputs and final linked image")
     parser.add_argument("--headless", action="store_true", help="Run emulator without display.")

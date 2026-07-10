@@ -105,6 +105,7 @@ make profile ARGS="system/MyKernel/build/sessions/<session>/profile.json"
 │   └── MyOS/                 # OS services, file system, UI, and apps
 ├── toolchain/
 │   ├── MyAssembler/          # Assembler
+│   ├── MyDOMTranspiler/      # .mlx UI DSL Compiler
 │   ├── MyLangCompiler/       # Compiler
 │   ├── MyLinker/             # Linker
 │   └── MyLangTester/         # MyLang test tooling

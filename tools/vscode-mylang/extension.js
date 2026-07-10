@@ -196,19 +196,23 @@ async function activate(context) {
   });
   rpc.notify('initialized', {});
 
+  function isMyLangDocument(doc) {
+    return doc.languageId === 'mylang';
+  }
+
   for (const doc of vscode.workspace.textDocuments) {
-    if (doc.languageId === 'mylang') {
+    if (isMyLangDocument(doc)) {
       rpc.notify('textDocument/didOpen', { textDocument: toTextDocumentItem(doc) });
     }
   }
 
   context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((doc) => {
-    if (doc.languageId !== 'mylang') return;
+    if (!isMyLangDocument(doc)) return;
     rpc.notify('textDocument/didOpen', { textDocument: toTextDocumentItem(doc) });
   }));
 
   context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((event) => {
-    if (event.document.languageId !== 'mylang') return;
+    if (!isMyLangDocument(event.document)) return;
     const uri = event.document.uri.toString();
     const previous = pendingChanges.get(uri);
     if (previous) clearTimeout(previous);
@@ -219,12 +223,12 @@ async function activate(context) {
   }));
 
   context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((doc) => {
-    if (doc.languageId !== 'mylang') return;
+    if (!isMyLangDocument(doc)) return;
     flushPendingChange(rpc, pendingChanges, doc);
   }));
 
   context.subscriptions.push(vscode.workspace.onDidCloseTextDocument((doc) => {
-    if (doc.languageId !== 'mylang') return;
+    if (!isMyLangDocument(doc)) return;
     const uri = doc.uri.toString();
     const pending = pendingChanges.get(uri);
     if (pending) {

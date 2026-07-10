@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Build pipeline tool: .mln -> .masm (mlc) -> .mobj (myas) -> linked .mbin (mllinker)
+Build pipeline tool: .mlx -> .mln (mydomc), .mln -> .masm (mlc),
+.masm -> .mobj (myas) -> linked .mbin (mllinker)
 Supports recursive source discovery with exclusions.
 """
 
@@ -15,7 +16,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from tools.project_paths import MYASSEMBLER_DIR, MYLANGCOMPILER_DIR, MYLINKER_DIR, REPO_ROOT
+from tools.project_paths import MYASSEMBLER_DIR, MYDOMTRANSPILER_DIR, MYLANGCOMPILER_DIR, MYLINKER_DIR, REPO_ROOT
 
 IMPORT_FROM_RE = re.compile(
     r'import\s+(?:[A-Za-z_][A-Za-z0-9_]*|\{[^}]*\})\s+from\s+"([^"]+)"\s*;'
@@ -56,6 +57,8 @@ def should_exclude(rel: str, excludes) -> bool:
 
 
 def source_kind_for_path(path: Path):
+    if path.suffix == ".mlx":
+        return "mlx"
     if path.suffix == ".mln":
         return "ml"
     if path.suffix == ".masm":
@@ -71,7 +74,7 @@ def source_relpath(path: Path) -> Path:
 
 
 def discover_import_from_paths(src_path: Path):
-    if src_path.suffix not in {".mln", ".masm"}:
+    if src_path.suffix not in {".mlx", ".mln", ".masm"}:
         return []
 
     try:
@@ -81,7 +84,7 @@ def discover_import_from_paths(src_path: Path):
 
     discovered = []
     src_dir = src_path.parent
-    pattern = IMPORT_FROM_RE if src_path.suffix == ".mln" else MASM_IMPORT_FROM_RE
+    pattern = IMPORT_FROM_RE if src_path.suffix in {".mlx", ".mln"} else MASM_IMPORT_FROM_RE
     for rel in pattern.findall(text):
         imported = (src_dir / rel).resolve()
         if imported.exists():
@@ -131,14 +134,14 @@ def collect_sources(paths, excludes, include_masm):
                     if should_exclude(rel_file, excludes):
                         continue
                     fpath = root_path / name
-                    if fpath.suffix == ".mln":
+                    if fpath.suffix in {".mlx", ".mln"}:
                         add_source_with_imports(fpath, dir_sources, seen_paths)
                     elif fpath.suffix == ".masm" and include_masm:
                         add_source_with_imports(fpath, dir_sources, seen_paths)
-            dir_sources.sort(key=lambda item: (0 if item[2] == "ml" else 1, str(item[1]).replace("\\", "/")))
+            dir_sources.sort(key=lambda item: (0 if item[2] in {"mlx", "ml"} else 1, str(item[1]).replace("\\", "/")))
             sources.extend(dir_sources)
         else:
-            if p.suffix == ".mln" or p.suffix == ".masm":
+            if p.suffix in {".mlx", ".mln", ".masm"}:
                 add_source_with_imports(p, sources, seen_paths)
             else:
                 print(f"[WARN] Skip unsupported file: {p}")
@@ -147,7 +150,7 @@ def collect_sources(paths, excludes, include_masm):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Build .mln + .masm sources into a linked .mbin via mlc/myas/mllinker.")
+        description="Build .mlx/.mln + .masm sources into a linked .mbin via mydomc/mlc/myas/mllinker.")
     parser.add_argument("sources", nargs="+", help="Source files or directories")
     parser.add_argument("-o", "--out", required=True, help="Output linked .mbin path")
     parser.add_argument("--build-dir", help="Directory for intermediate outputs")
@@ -159,6 +162,7 @@ def main():
     args = parser.parse_args()
 
     repo = REPO_ROOT
+    mydomc = MYDOMTRANSPILER_DIR / "build" / "mydomc"
     mlc = MYLANGCOMPILER_DIR / "mlc"
     myas = MYASSEMBLER_DIR / "build" / "myas"
     mllinker = MYLINKER_DIR / "mllinker"
@@ -180,7 +184,7 @@ def main():
     # Prevent output collisions
     out_map = {}
     for src, rel, stype in sources:
-        if stype == "ml":
+        if stype in {"mlx", "ml"}:
             out_masm = build_dir / rel.with_suffix(".masm")
         else:
             out_masm = build_dir / rel
@@ -194,13 +198,20 @@ def main():
 
     # Compile/Copy to .masm
     for src, rel, stype in sources:
-        if stype == "ml":
+        if stype in {"mlx", "ml"}:
+            compile_src = src
+            if stype == "mlx":
+                generated_mln = build_dir / rel.with_suffix(".generated.mln")
+                generated_mln.parent.mkdir(parents=True, exist_ok=True)
+                run([mydomc, src, "-o", generated_mln], cwd=repo)
+                compile_src = generated_mln
+
             out_masm = build_dir / rel.with_suffix(".masm")
             out_masm.parent.mkdir(parents=True, exist_ok=True)
             cmd = [mlc]
             if args.entry:
                 cmd += ["-entry", args.entry]
-            cmd += [src, out_masm]
+            cmd += [compile_src, out_masm]
             run(cmd, cwd=repo)
             masm_outputs.append(out_masm)
         elif stype == "masm":

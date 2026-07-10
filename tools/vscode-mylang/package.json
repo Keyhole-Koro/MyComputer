@@ -23,7 +23,8 @@
           "MyLang"
         ],
         "extensions": [
-          ".mln"
+          ".mln",
+          ".mlx"
         ]
       },
       {
