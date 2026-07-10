@@ -197,13 +197,19 @@ def main():
     masm_outputs = []
 
     # Compile/Copy to .masm
+    generated_to_clean = []
     for src, rel, stype in sources:
         if stype in {"mlx", "ml"}:
             compile_src = src
             if stype == "mlx":
-                generated_mln = build_dir / rel.with_suffix(".generated.mln")
-                generated_mln.parent.mkdir(parents=True, exist_ok=True)
+                # Emit the transpiled .mln next to the source .mlx, not in the
+                # build dir. mlc resolves `import ... from "../ui/dom.mln"` and
+                # detects package imports relative to the compiled file's own
+                # directory, so the generated file must sit where the .mlx did
+                # for its relative imports to resolve. Cleaned up after the build.
+                generated_mln = src.with_suffix(".generated.mln")
                 run([mydomc, src, "-o", generated_mln], cwd=repo)
+                generated_to_clean.append(generated_mln)
                 compile_src = generated_mln
 
             out_masm = build_dir / rel.with_suffix(".masm")
@@ -212,7 +218,12 @@ def main():
             if args.entry:
                 cmd += ["-entry", args.entry]
             cmd += [compile_src, out_masm]
-            run(cmd, cwd=repo)
+            try:
+                run(cmd, cwd=repo)
+            finally:
+                for g in generated_to_clean:
+                    g.unlink(missing_ok=True)
+                generated_to_clean.clear()
             masm_outputs.append(out_masm)
         elif stype == "masm":
             out_masm = build_dir / rel
