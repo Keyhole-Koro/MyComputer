@@ -100,8 +100,8 @@ def build_component(name, verbose):
 
 
 # ---------------------------------------------------------------------------
-# Phase 2: test suites. Each maps to a runner command and the components it
-# needs; if a needed component failed to build, the suite is skipped-as-failed.
+# Phase 2: test suites. QA only invokes component-owned public targets or
+# executables; test discovery and assertions remain inside each submodule.
 # ---------------------------------------------------------------------------
 
 # name -> (runner argv, [required components])
@@ -111,15 +111,15 @@ SUITES = {
         ["mydomc"],
     ),
     "compiler": (
-        ["python3", str(MYLANGCOMPILER_DIR / "tests" / "run_integration_tests.py")],
+        ["make", "-C", str(MYLANGCOMPILER_DIR), "test-integration"],
         ["mlc"],
     ),
     "assembler": (
-        ["python3", str(MYASSEMBLER_DIR / "tests" / "run_integration_tests.py")],
+        ["make", "-C", str(MYASSEMBLER_DIR), "test-integration"],
         ["myas"],
     ),
     "linker": (
-        ["python3", str(MYLINKER_DIR / "test" / "run_integration_tests.py")],
+        ["make", "-C", str(MYLINKER_DIR), "test-integration"],
         ["mllinker"],
     ),
     "heap": (
