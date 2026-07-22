@@ -112,19 +112,19 @@ SUITES = {
         ["mydomc"],
     ),
     "compiler": (
-        ["make", "-C", str(MYLANGCOMPILER_DIR), "test-all"],
+        ["make", "-C", str(MYLANGCOMPILER_DIR), "test-component"],
         ["mlc"],
     ),
     "assembler": (
-        ["make", "-C", str(MYASSEMBLER_DIR), "test-all"],
+        ["make", "-C", str(MYASSEMBLER_DIR), "test-component"],
         ["myas"],
     ),
     "linker": (
-        ["make", "-C", str(MYLINKER_DIR), "test-all"],
+        ["make", "-C", str(MYLINKER_DIR), "test-component"],
         ["mllinker"],
     ),
     "emulator": (
-        ["make", "-C", str(MYEMULATOR_DIR), "test-all"],
+        ["make", "-C", str(MYEMULATOR_DIR), "test-component"],
         ["myemu"],
     ),
     "compiler-e2e": (
