@@ -62,16 +62,16 @@ qa-scheduler:
 	$(PYTHON) $(QA_DIR)/test-all.py scheduler $(ARGS)
 
 mlc-test:
-	$(PYTHON) $(QA_DIR)/mlc-test.py $(ARGS)
+	$(PYTHON) $(QA_DIR)/test-all.py compiler $(ARGS)
 
 as-test:
-	$(PYTHON) $(QA_DIR)/as-test.py $(ARGS)
+	$(PYTHON) $(QA_DIR)/test-all.py assembler $(ARGS)
 
 linker-test:
-	$(PYTHON) $(QA_DIR)/linker-test.py $(ARGS)
+	$(PYTHON) $(QA_DIR)/test-all.py linker $(ARGS)
 
 serial-rx-test:
-	$(PYTHON) $(QA_DIR)/serial-rx-test.py $(ARGS)
+	$(PYTHON) $(QA_DIR)/test-all.py serial-rx $(ARGS)
 
 profile:
 	$(PYTHON) $(QA_DIR)/profile_report.py $(ARGS)
