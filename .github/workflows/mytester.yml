@@ -51,8 +51,11 @@ jobs:
             qa/run_system.py \
             qa/test-all.py
 
-      - name: Run component-owned test suites
-        run: make qa ARGS="compiler assembler linker --jobs 1"
+      - name: Run pinned component-owned suites
+        run: make qa ARGS="compiler assembler linker emulator --jobs 1"
+
+      - name: Run pinned toolchain E2E suites
+        run: make qa ARGS="compiler-e2e assembler-e2e --jobs 1"
 
       - name: Build kernel image
         run: make kernel-build
