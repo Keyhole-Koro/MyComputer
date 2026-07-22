@@ -10,16 +10,17 @@ Two phases:
      cleaned and rebuilt once from scratch; a second failure marks every suite
      that depends on it as failed without running it.
 
-  2. Test — each suite runs in its own process, in parallel (suite-level
-     granularity). Results are tallied into a summary; a single failure makes
-     the whole run exit non-zero, so this is safe to call straight from CI.
+  2. Test — component-local suites run in parallel. Cross-component E2E suites
+     run serially because their component-owned runners may perform incremental
+     builds of shared toolchain dependencies. Results are tallied into a
+     summary; a single failure makes the whole run exit non-zero.
 
 Usage:
   python3 qa/test-all.py [--verbose] [--jobs N] [--no-build] [suite ...]
 
   suite     restrict to named suites (default: all). Known suites are listed
             below in SUITES.
-  --jobs    max parallel suites (default: CPU count).
+  --jobs    max parallel component-local suites (default: CPU count).
   --no-build  skip phase 1 and use whatever binaries already exist.
 """
 
@@ -60,9 +61,9 @@ def status(label, msg, code=CYAN):
 # name -> (directory, make target, produced artifact)
 COMPONENTS = {
     "mydomc": (MYDOMTRANSPILER_DIR, "all", MYDOMTRANSPILER_DIR / "build" / "mydomc"),
-    "mlc":   (MYLANGCOMPILER_DIR, "mlc", MYLANGCOMPILER_DIR / "mlc"),
+    "mlc": (MYLANGCOMPILER_DIR, "mlc", MYLANGCOMPILER_DIR / "mlc"),
     "mytest": (MYLANGTESTER_DIR, "all", MYLANGTESTER_DIR / "build" / "mytest"),
-    "myas":  (MYASSEMBLER_DIR, "all", MYASSEMBLER_DIR / "build" / "myas"),
+    "myas": (MYASSEMBLER_DIR, "all", MYASSEMBLER_DIR / "build" / "myas"),
     "mllinker": (MYLINKER_DIR, "all", MYLINKER_DIR / "mllinker"),
     "myemu": (MYEMULATOR_DIR, "all", MYEMULATOR_DIR / "target" / "release" / "myemu"),
 }
@@ -100,8 +101,8 @@ def build_component(name, verbose):
 
 
 # ---------------------------------------------------------------------------
-# Phase 2: test suites. Each maps to a runner command and the components it
-# needs; if a needed component failed to build, the suite is skipped-as-failed.
+# Phase 2: test suites. QA invokes component-owned public targets or
+# executables; test discovery and assertions remain inside each submodule.
 # ---------------------------------------------------------------------------
 
 # name -> (runner argv, [required components])
@@ -111,16 +112,28 @@ SUITES = {
         ["mydomc"],
     ),
     "compiler": (
-        ["python3", str(MYLANGCOMPILER_DIR / "tests" / "run_integration_tests.py")],
+        ["make", "-C", str(MYLANGCOMPILER_DIR), "test-component"],
         ["mlc"],
     ),
     "assembler": (
-        ["python3", str(MYASSEMBLER_DIR / "tests" / "run_integration_tests.py")],
+        ["make", "-C", str(MYASSEMBLER_DIR), "test-component"],
         ["myas"],
     ),
     "linker": (
-        ["python3", str(MYLINKER_DIR / "test" / "run_integration_tests.py")],
+        ["make", "-C", str(MYLINKER_DIR), "test-component"],
         ["mllinker"],
+    ),
+    "emulator": (
+        ["make", "-C", str(MYEMULATOR_DIR), "test-component"],
+        ["myemu"],
+    ),
+    "compiler-e2e": (
+        ["make", "-C", str(MYLANGCOMPILER_DIR), "test-e2e"],
+        ["mlc", "myas", "mllinker", "myemu"],
+    ),
+    "assembler-e2e": (
+        ["make", "-C", str(MYASSEMBLER_DIR), "test-e2e"],
+        ["myas", "mllinker", "myemu"],
     ),
     "heap": (
         ["python3", str(MYKERNEL_DIR / "tests" / "heap" / "run_heap_tests.py")],
@@ -136,6 +149,9 @@ SUITES = {
     ),
 }
 
+# These suites may incrementally build the same sibling repositories internally.
+SERIAL_SUITES = {"compiler-e2e", "assembler-e2e"}
+
 
 def run_suite(name):
     """Run one suite in a child process. Returns (name, ok, output)."""
@@ -147,13 +163,21 @@ def run_suite(name):
     return name, proc.returncode == 0, proc.stdout
 
 
+def record_result(results, name, ok, output, verbose):
+    results[name] = (ok, output)
+    label, code = ("PASS", GREEN) if ok else ("FAIL", RED)
+    status(label, name, code)
+    if verbose and output:
+        print(output, flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser(description="Run all project test suites.")
     ap.add_argument("suites", nargs="*", help="restrict to these suites")
     ap.add_argument("--verbose", action="store_true",
                     help="stream build and suite output")
     ap.add_argument("--jobs", type=int, default=None,
-                    help="max parallel suites (default: CPU count)")
+                    help="max parallel component-local suites (default: CPU count)")
     ap.add_argument("--no-build", action="store_true",
                     help="skip the build phase, use existing binaries")
     args = ap.parse_args()
@@ -196,17 +220,22 @@ def main():
         bad = ", ".join(sorted(set(SUITES[s][1]) & failed_builds))
         results[s] = (False, f"skipped: dependency build failed ({bad})")
 
-    if runnable:
-        status("TEST", f"running {len(runnable)} suite(s) in parallel")
+    parallel_runnable = [s for s in runnable if s not in SERIAL_SUITES]
+    serial_runnable = [s for s in runnable if s in SERIAL_SUITES]
+
+    if parallel_runnable:
+        status("TEST", f"running {len(parallel_runnable)} component/system suite(s) in parallel")
         with ProcessPoolExecutor(max_workers=args.jobs) as pool:
-            futures = {pool.submit(run_suite, s): s for s in runnable}
+            futures = {pool.submit(run_suite, s): s for s in parallel_runnable}
             for fut in as_completed(futures):
                 name, ok, output = fut.result()
-                results[name] = (ok, output)
-                label, code = ("PASS", GREEN) if ok else ("FAIL", RED)
-                status(label, name, code)
-                if args.verbose and output:
-                    print(output, flush=True)
+                record_result(results, name, ok, output, args.verbose)
+
+    if serial_runnable:
+        status("E2E", f"running {len(serial_runnable)} toolchain suite(s) serially")
+        for suite in serial_runnable:
+            name, ok, output = run_suite(suite)
+            record_result(results, name, ok, output, args.verbose)
 
     # Summary, in the declared order for stable reading.
     print()
