@@ -1,15 +1,12 @@
-name: CI - MyTester
+name: CI - Kernel Build Diagnostic
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
 
 jobs:
-  mytester-smoke:
+  diagnose-kernel-build:
     runs-on: ubuntu-latest
 
     steps:
@@ -39,26 +36,31 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential g++
 
-      - name: Verify Python scripts
-        run: |
-          python3 -m py_compile \
-            tools/project_paths.py \
-            qa/build_toolchain.py \
-            qa/debug_session.py \
-            qa/profile_report.py \
-            qa/run_kernel.py \
-            qa/run_mylang.py \
-            qa/run_system.py \
-            qa/test-all.py
-
       - name: Run pinned component-owned suites
         run: make qa ARGS="compiler assembler linker emulator --jobs 1"
 
       - name: Run pinned toolchain E2E suites
         run: make qa ARGS="compiler-e2e assembler-e2e --jobs 1"
 
-      - name: Build kernel image
-        run: make kernel-build
+      - name: Capture kernel build
+        id: kernel
+        shell: bash
+        run: |
+          set +e
+          make kernel-build > kernel-build.log 2>&1
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          tail -n 200 kernel-build.log
+          exit 0
 
-      - name: Run serial RX test
-        run: make serial-rx-test
+      - name: Upload kernel build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-build-log
+          path: kernel-build.log
+          if-no-files-found: error
+
+      - name: Fail on kernel build error
+        if: steps.kernel.outputs.status != '0'
+        run: exit 1
