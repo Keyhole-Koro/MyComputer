@@ -43,16 +43,19 @@ jobs:
         run: |
           python3 -m py_compile \
             tools/project_paths.py \
-            qa/as-test.py \
             qa/build_toolchain.py \
-            qa/linker-test.py \
-            qa/mlc-test.py \
+            qa/debug_session.py \
+            qa/profile_report.py \
             qa/run_kernel.py \
-            qa/serial-rx-test.py
+            qa/run_mylang.py \
+            qa/run_system.py \
+            qa/test-all.py
 
-      - name: Run MyTester smoke tests
-        run: |
-          make as-test ARGS="simpleChar"
-          make mlc-test ARGS="simpleFunc"
-          make kernel-build
-          make serial-rx-test
+      - name: Run component-owned test suites
+        run: make qa ARGS="compiler assembler linker --jobs 1"
+
+      - name: Build kernel image
+        run: make kernel-build
+
+      - name: Run serial RX test
+        run: make serial-rx-test
