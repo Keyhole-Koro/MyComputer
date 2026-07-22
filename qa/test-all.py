@@ -111,15 +111,15 @@ SUITES = {
         ["mydomc"],
     ),
     "compiler": (
-        ["make", "-C", str(MYLANGCOMPILER_DIR), "test-integration"],
+        ["make", "-C", str(MYLANGCOMPILER_DIR), "test-all"],
         ["mlc"],
     ),
     "assembler": (
-        ["make", "-C", str(MYASSEMBLER_DIR), "test-integration"],
+        ["make", "-C", str(MYASSEMBLER_DIR), "test-all"],
         ["myas"],
     ),
     "linker": (
-        ["make", "-C", str(MYLINKER_DIR), "test-integration"],
+        ["make", "-C", str(MYLINKER_DIR), "test-all"],
         ["mllinker"],
     ),
     "heap": (
