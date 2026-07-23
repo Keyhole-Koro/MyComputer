@@ -14,6 +14,7 @@
 | MYOS-001 | [DOM 的 OS オブジェクトモデル](tickets/MYOS-001_dom-like-os.md) | Proposed | OS 状態、UI、プロセス、デバイスをツリーで扱う長期設計。 |
 | MLC-009 | [MyLang Compiler Diagnostics And Type Intelligence](completed/MLC-009_compiler-diagnostics-and-type-intelligence.md) | Done | AST 位置情報、診断、型チェックを強化して compiler を賢くする。 |
 | MYOS-006 | [ファイルシステム（SSD デバイス + ブロックドライバ + MyFileSystem(MFS)）](completed/MYOS-006_filesystem.md) | Done | SSD エミュレーション + カーネル FS。永続ストレージの基盤。 |
+| MYOS-008 | [MyComputer ネットワーク基盤（仮想 NIC + Ethernet / ARP / IPv4 / ICMP / UDP）](tickets/MYOS-008_network-stack.md) | Proposed | 仮想 NIC から ping、UDP までの最小ネットワークスタック。 |
 | MLC-010 | [MyLang Type Mismatch Diagnostics](completed/MLC-010_compiler-type-mismatch-diagnostics.md) | Done | 代入・二項演算・条件式の型不一致を expected / actual 付きで報告する。 |
 | MLC-007 | [MyLang Diagnostic Error Codes](completed/MLC-007_compiler-diagnostic-codes.md) | Done | 診断に安定した error code を付け、テスト・docs・LSP 連携を強くする。 |
 | MLC-008 | [MyLang Diagnostic Source Ranges](completed/MLC-008_compiler-diagnostic-ranges.md) | Done | 診断を line / col の一点から source range へ拡張する。 |
@@ -61,3 +62,4 @@
 13. MLSP-001 / MLC-004: LSP 診断と標準 library の開発体験を整える。
 14. MYOS-004: DOM-like UI と headless emulator をつなぎ、Playwright 風 E2E テストを可能にする。
 15. MDT-001: MyDOMTranspiler で `.mlx` UI DSL を MyLang source へ変換し、OS DOM UI を宣言的に書けるようにする。
+16. MYOS-008: 仮想 NIC と Ethernet / ARP / IPv4 / ICMP / UDP を追加し、headless で通信可能にする。
