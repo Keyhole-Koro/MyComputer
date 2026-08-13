@@ -307,5 +307,124 @@ mlx 統合のために dom.mln へ追加が要るもの（DOM_SPEC.md で未実�
   `.mlx` の LSP 対応。cross-package で `dom.STATE_*` 定数を読むには `import dom_STATE_VISIBLE`
   が要る制約は別途（今回は render_desktop で display size を inline して回避）。
 
-**既知の注意点**: `SourceTranspiler` は comment/string 内を無視せず `return <` を JSX として
-拾う。`.mlx` の comment に `return <...>` と書くと `unterminated JSX return element` になる。
+### 実装状況（2026-08-09）
+
+- ✅ **`SourceTranspiler` の comment / literal 対応**（下記「既知の注意点」を解消）。
+  `//` 行コメント、`/* */` ブロックコメント、string / char literal を読み飛ばしてから
+  `return <` を探す。golden fixture `comments` を追加（mydom 9/9 pass）。
+- ✅ **カーネルの実 UI を `.mlx` 化**。`system/MyKernel/src/kernel/main.mln` →
+  `main.mlx`、手書きの `build_ui()` を JSX return に置換。ツリーは window を返し、
+  `first_child` / `next_sibling` で button と label を取り出す（`counter.mlx` と同じ形）。
+  併せて `src/boot/stub.masm` の import と `qa/run_kernel.py` / `qa/run_system.py` の
+  既定パスを `.mlx` へ更新。run_kernel / run_system どちらでも DOM tree が生成され、
+  ディスク経由の boot でも `MyKernel Window / CLICK ME / clicks: 0` が dump に出る。
+- ⚠️ **`build_toolchain.py` の generated 命名を変更**：`<name>.generated.mln` →
+  `<name>_generated.mln`。mlc が `.mln` 手前の dot segment を source modifier として
+  検証するようになり、`generated` が unknown modifier で reject されるため。
+
+### 方針転換（2026-08-12 決定）：native `.dom.mln` に寄せる
+
+下記の方針衝突を受けて、**MyLangCompiler の native DOM syntax を正**とする。
+`.mlx` + `mydomc` は当面残すが、新規の UI は `.dom.mln` で書く。
+
+**lowering contract（compiler は OS の語彙を一切持たない）**
+
+1. element は同名の関数を呼ぶ。`<Window .../>` → `Window(...)`
+2. prop は同名の**仮引数**へ渡る。順序自由: `<Button x={2} text="OK"/>` でも `Button("OK", 2, ...)`
+3. 子は `append_child(parent, child)` で付ける
+
+3つとも通常の識別子解決に乗るので、element を増やす＝**dom.mln に関数を足す**だけ。
+`onClick` も「`onClick` という仮引数」なので compiler 側の event 特別扱いはゼロ。
+
+```mylang
+return <Window title="S" x={0} y={0} w={320} h={200}>
+    <Button text="OK" x={20} y={40} w={100} h={30} onClick={h} />
+</Window>;
+
+i32 __dom0 = dom.Window("S", 0, 0, 320, 200);
+i32 __dom1 = dom.Button("OK", 20, 40, 100, 30, h);
+dom.append_child(__dom0, __dom1);
+return __dom0;
+```
+
+**実装（MyLangCompiler）**
+
+- `AST_DOM_ELEMENT` 追加（`inc/mylang/ast/AST.h`）、parser は `src/frontend/parser/parser_dom.c`。
+- lowering `src/frontend/parser/parser_lower_dom.c`：生成文を元の文の直前に hoist し、
+  element を root node id の識別子に置換。残った element は位置付きで診断。
+- シグネチャ照合 `src/frontend/parser/parser_dom_sig.c`：ローカル関数 → 各 import の順で
+  tag を解決。import 先の仮引数名は parser が知らない（import は package 名前空間を
+  登録するだけ）ため、`import pkg from` が package 宣言を読むのと同じ方式で import 元を
+  lex して仮引数名を取る。
+- ⚠️ **lexer bug 修正**：`lexer_context_create` が `mlx_tag_depth` を未初期化のまま使って
+  いた。子要素を持つ要素の閉じタグ後に「まだ DOM 内」と誤判定し、続く `;` が `MLX_TEXT`
+  として出ていた（`last_token_kind` も併せて初期化）。
+- テスト：診断（未知 tag / prop・不足 prop・重複 prop・`append_child` 不在）と
+  ローカル関数優先は `tests/run_semantic_tests.py` の `dom_*` ケース
+  （`tests/fail/dom` / `tests/succeed/dom`、語彙は `tests/support/dom`）。
+  prop 順序入れ替えを含む lowering 結果は MyComputer 側の e2e
+  `system/MyKernel/tests/dom/dom_lowering.dom.test.mln`（mytest, suite `dom`）で
+  実際に実行して検証する。compiler component テストは全通過。
+
+**実装（OS / kernel）**
+
+- `system/MyOS/src/ui/dom.mln` に element 関数 `Window` / `Button` / `Text` を追加
+  （既存 `create_*` + `set_on_click` の薄い wrapper）。UI の語彙はここに集約。
+- `system/MyKernel/src/kernel/main.mlx` → **`main.dom.mln`**。`stub.masm` の import と
+  `qa/run_kernel.py` / `qa/run_system.py` の既定パスも更新。
+- 検証：`run_kernel --headless` と `run_system`（ディスク経由 boot）の両方で、mydomc を
+  一切通さずに同じ DOM tree（`MyKernel Window` / `CLICK ME` / `clicks: 0`）が出る。
+
+**未了**
+
+- `system/MyOS/src/apps/counter.mlx` と `build_toolchain.py` の `.mlx` 前処理は残置。
+  native path に一本化するなら別途削除する。
+- `.mlx` / `.dom.mln` の LSP 対応（フェーズ5）。
+
+### ⚠️ 方針衝突：MyLangCompiler の native DOM syntax
+
+MyLangCompiler 側が `.dom.mln` の **native DOM syntax** に向かっている
+（`toolchain/MyLangCompiler/docs/source-modifiers.md`, 2026-07-19 "Add canonical
+.dom/.safe source modifiers"）。同 doc は明示的に:
+
+> There is intentionally no `.mlx` compatibility mode. DOM syntax is a native
+> MyLang frontend feature rather than a source-to-source preprocessing stage.
+
+これは本チケットの非目標「MyLangCompiler 本体への JSX 構文追加」と正面から矛盾する。
+現状の実装度合いは **lexer のみ**：`.dom.mln` は `MLX_TAG_CLOSE` /
+`MLX_CLOSE_TAG_OPEN` 等を吐くが、parser が未対応で `error: expected primary` になる。
+`.mlx` + `mydomc` の経路は動いており、当面の唯一の動作経路。どちらを正とするか要決定。
+
+**既知の注意点**: ~~`SourceTranspiler` は comment/string 内を無視せず `return <` を JSX として
+拾う~~（2026-08-09 修正済み）。
+
+### 完了（2026-08-13）：native 一本化、MyDOMTranspiler 撤去
+
+2026-08-12 の方針転換どおり native `.dom.mln` へ統合し、transpiler を撤去した。
+`Generator.java` の element 白名単・`title`/`text` の第1引数特別扱い・`onClick` の
+別 setter 化は、いずれも transpiler が型情報を持てないことの埋め合わせだったため、
+移植せず破棄。`SourceTranspiler` の役割は lexer の DOM モードが正しく担っている。
+
+- `system/MyOS/src/apps/counter.mlx` → `counter.dom.mln`（参照ゼロ、JSX 本体は無変更で通った）
+- `qa/build_toolchain.py` から `.mlx` 分岐と mydomc 呼び出しを削除
+- `tools/project_paths.py` の `MYDOMTRANSPILER_DIR`、`readme.md`、`.vscode/settings.json`
+  の `*.mlx` 関連付けを削除
+- `toolchain/MyDOMTranspiler` submodule を削除（repo 自体は GitHub に残存）
+- 検証：compiler `make test-component` 87 PASS / `qa/run_kernel.py` で boot し、
+  serial に `MyKernel Window` / `CLICK ME` / `clicks: 0` の DOM tree を確認
+
+**コンパイラ側の整理（同日）**
+
+- DOM の宣言を `parser_internal.h` から `inc/mylang/frontend/parser_dom_internal.h` へ分離。
+  parser 関数一覧の途中に拡張機能が割り込んでいた状態を解消。
+- `parser_lower_dom.c` が借りていた `parser_rewrite_internal.h`（関数リテラル用）への
+  依存を解消し、DOM 3ファイルとも `parser_dom_internal.h` を直接 include。
+- `package_name_of()` の無条件 `break` を修正。先頭が `package` でないファイル
+  （import やコメントが先行）で package 名を取得できず、その import が黙って
+  skip されていた。
+
+**残課題**: `parser_dom_sig.c` の import 走査は、コンパイラに cross-package の
+シンボル解決層が無いことの肩代わり。仮引数「名」しか読まないため型は未検査で、
+「カンマ直前の最後の identifier が引数名」という推測は関数ポインタ引数などで崩れる。
+DOM 固有の問題ではないので、共通のシンボル解決層として切り出すのが本筋（別チケット）。
+ソースに TODO を明記済み。

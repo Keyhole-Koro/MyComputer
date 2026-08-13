@@ -31,7 +31,7 @@
 | MLC-004 | [MyLang Standard Library Foundation](tickets/MLC-004_mylang-standard-library-foundation.md) | Proposed | std / kernel / test library の境界と最小 API を整理する。 |
 | MLC-012 | [MyLang Diagnostic Code Registry](completed/MLC-012_mylang-diagnostic-code-registry.md) | Done | diagnostic code のカテゴリ採番規則を明文化し、`E04xx`=package 等の予約帯を記録する。 |
 | MYOS-004 | [MyKernel DOM UI Automation（Playwright 風テスト基盤）](tickets/MYOS-004_mykernel-ui-automation.md) | Proposed | MyKernel DOM を locator で操作・検証するヘッドレス UI automation 基盤を作る。 |
-| MDT-001 | [MyDOMTranspiler `.mlx` UI DSL Compiler](tickets/MDT-001_mydom-mlx-ui-dsl.md) | In Progress | JSX 風の OS DOM UI 記述を `.mlx` として書き、MyDOMTranspiler で MyLang source へ変換する。 |
+| MDT-001 | [MyDOMTranspiler `.mlx` UI DSL Compiler](tickets/MDT-001_mydom-mlx-ui-dsl.md) | Done | JSX 風の OS DOM UI 記述。native `.dom.mln` へ統合し、MyDOMTranspiler は撤去（2026-08-13）。 |
 
 ## Status
 
@@ -61,5 +61,5 @@
 12. MLC-005: typed IR の導入可否を設計し、段階移行を始める。
 13. MLSP-001 / MLC-004: LSP 診断と標準 library の開発体験を整える。
 14. MYOS-004: DOM-like UI と headless emulator をつなぎ、Playwright 風 E2E テストを可能にする。
-15. MDT-001: MyDOMTranspiler で `.mlx` UI DSL を MyLang source へ変換し、OS DOM UI を宣言的に書けるようにする。
+15. MDT-001: OS DOM UI を宣言的に書けるようにする。MyLangCompiler の native `.dom.mln` 構文で実現し、MyDOMTranspiler は撤去済み。
 16. MYOS-008: 仮想 NIC と Ethernet / ARP / IPv4 / ICMP / UDP を追加し、headless で通信可能にする。

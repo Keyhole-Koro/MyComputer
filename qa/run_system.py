@@ -71,7 +71,7 @@ def main():
     fw_stub = MYFIRMWARE_DIR / "src" / "boot" / "stub.masm"
     fw_bin = build_dir / "firmware_linked.mbin"
 
-    kernel_source = MYKERNEL_DIR / "src" / "kernel" / "main.mln"
+    kernel_source = MYKERNEL_DIR / "src" / "kernel" / "main.dom.mln"
     kernel_stub = MYKERNEL_DIR / "src" / "boot" / "stub.masm"
     kernel_bin = build_dir / "kernel_linked.mbin"
 

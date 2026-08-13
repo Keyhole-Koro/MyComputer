@@ -2,8 +2,8 @@ PYTHON ?= python3
 QA_DIR := qa
 
 .PHONY: help run system build system-build kernel kernel-build emulator qa test qa-no-build \
-	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler \
-	mlc-test as-test linker-test serial-rx-test profile clean-qa
+	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom \
+	mlc-test as-test linker-test serial-rx-test dom-test profile clean-qa
 
 help:
 	@printf '%s\n' \
@@ -18,6 +18,7 @@ help:
 		'  make qa-heap          Run kernel heap QA suite' \
 		'  make qa-serial-rx     Run serial RX QA suite' \
 		'  make qa-scheduler     Run scheduler QA suite' \
+		'  make qa-dom           Run DOM lowering QA suite' \
 		'  make profile ARGS="profile.json --map image.mbin.map"' \
 		'' \
 		'Pass script options with ARGS="...".'
@@ -61,6 +62,9 @@ qa-serial-rx:
 qa-scheduler:
 	$(PYTHON) $(QA_DIR)/test-all.py scheduler $(ARGS)
 
+qa-dom:
+	$(PYTHON) $(QA_DIR)/test-all.py dom $(ARGS)
+
 mlc-test:
 	$(PYTHON) $(QA_DIR)/test-all.py compiler $(ARGS)
 
@@ -72,6 +76,9 @@ linker-test:
 
 serial-rx-test:
 	$(PYTHON) $(QA_DIR)/test-all.py serial-rx $(ARGS)
+
+dom-test:
+	$(PYTHON) $(QA_DIR)/test-all.py dom $(ARGS)
 
 profile:
 	$(PYTHON) $(QA_DIR)/profile_report.py $(ARGS)
