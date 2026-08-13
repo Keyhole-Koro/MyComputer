@@ -62,3 +62,6 @@ jobs:
 
       - name: Run serial RX test
         run: make serial-rx-test
+
+      - name: Run DOM lowering test
+        run: make dom-test

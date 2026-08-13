@@ -34,7 +34,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from tools.project_paths import (
     MYASSEMBLER_DIR,
-    MYDOMTRANSPILER_DIR,
     MYEMULATOR_DIR,
     MYKERNEL_DIR,
     MYLANGCOMPILER_DIR,
@@ -60,7 +59,6 @@ def status(label, msg, code=CYAN):
 
 # name -> (directory, make target, produced artifact)
 COMPONENTS = {
-    "mydomc": (MYDOMTRANSPILER_DIR, "all", MYDOMTRANSPILER_DIR / "build" / "mydomc"),
     "mlc": (MYLANGCOMPILER_DIR, "mlc", MYLANGCOMPILER_DIR / "mlc"),
     "mytest": (MYLANGTESTER_DIR, "all", MYLANGTESTER_DIR / "build" / "mytest"),
     "myas": (MYASSEMBLER_DIR, "all", MYASSEMBLER_DIR / "build" / "myas"),
@@ -107,10 +105,6 @@ def build_component(name, verbose):
 
 # name -> (runner argv, [required components])
 SUITES = {
-    "mydom": (
-        ["make", "-C", str(MYDOMTRANSPILER_DIR), "test"],
-        ["mydomc"],
-    ),
     "compiler": (
         ["make", "-C", str(MYLANGCOMPILER_DIR), "test-component"],
         ["mlc"],
@@ -141,6 +135,10 @@ SUITES = {
     ),
     "serial-rx": (
         [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "serial" / "serial_rx.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
+    "dom": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "dom" / "dom_lowering.dom.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
     "scheduler": (
