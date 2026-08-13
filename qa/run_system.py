@@ -71,7 +71,7 @@ def main():
     fw_stub = MYFIRMWARE_DIR / "src" / "boot" / "stub.masm"
     fw_bin = build_dir / "firmware_linked.mbin"
 
-    kernel_source = MYKERNEL_DIR / "src" / "kernel" / "main.mln"
+    kernel_source = MYKERNEL_DIR / "src" / "kernel" / "main.dom.mln"
     kernel_stub = MYKERNEL_DIR / "src" / "boot" / "stub.masm"
     kernel_bin = build_dir / "kernel_linked.mbin"
 
@@ -138,8 +138,12 @@ def main():
         f.seek(1024*1024*1024 - 1)
         f.write(b'\0')
 
-    # 4. Run emulator
-    emu_cmd = [str(myemu), "-i", str(fw_bin), "--disk", str(disk_img), "-o", str(report_path), "--log-dir", str(session.session_dir), "--timer-interval", "100000"]
+    # 4. Run emulator.
+    # --timer-interval is a real-time tick period in microseconds. 1000 us = 1 ms
+    # = a ~1 kHz scheduler tick, which keeps the UI poll/redraw smooth. (It used to
+    # be an instruction count; the timer is now wall-clock driven so the CPU can
+    # idle on WFI without stalling the timer.)
+    emu_cmd = [str(myemu), "-i", str(fw_bin), "--disk", str(disk_img), "-o", str(report_path), "--log-dir", str(session.session_dir), "--timer-interval", "1000"]
     if args.headless:
         emu_cmd.append("--headless")
 

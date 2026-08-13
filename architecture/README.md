@@ -152,9 +152,8 @@
 | ----------------------- | ------- | ---------------------- |
 | `0x00000000–0x1FFFFFFF` | 512 MB  | RAM                    |
 | `0x20000000–0x23FFFFFF` | 64 MB   | ROM                    |
-| `0x24000000–0x240000FF` | 256 B   | I/O Registers          |
-| `0x24000100–0x240001FF` | 256 B   | Interrupt Vector Table |
-| `0x24000200–0x2FFFFFFF` | 192 MB  | Reserved / Future use  |
+| `0x24000000–0x240000FF` | 256 B   | I/O Registers (incl. IRQ vector at `0x24000080`) |
+| `0x24000100–0x2FFFFFFF` | ~192 MB | Reserved / Future use  |
 | `0x30000000–0x30FFFFFF` | 16 MB   | VRAM (Framebuffer)     |
 | `0x31000000–FFFFFFFF`   | ∼3.2 GB | Reserved / Future use  |
 
@@ -184,18 +183,19 @@
 
 * **Interrupt types:**
 
-  * ☑ Maskable
-  * ☑ Non-maskable (NMI)
-* **Interrupt Vector Table:**
+  * ☑ Maskable (`ei`/`di`, SR bit 0)
+* **Interrupt vector:**
 
-  * Location: `0x24000100–0x240001FF`
-  * Format: 32-bit addresses per interrupt
-* **Trigger types:** ☑ Edge / ☑ Level (configurable)
+  * Single 32-bit handler slot at `0x24000080` (all sources share one vector)
+  * `0x24000084` = IRQ Cause register: bit0=timer, bit1=mouse, bit2=serial, bit3=SSD.
+    Read to dispatch; write 1s to acknowledge (clear) the handled bits.
+* **Dispatch latency:** pending interrupts vector before the next instruction
+  fetch (one-instruction latency, like real hardware)
 * **Context saved on interrupt:**
 
   * ☑ PC
-  * ☑ Flags
-  * ☐ General registers (optional via software)
+  * ☑ SR (flags; interrupts auto-masked until `iret` restores SR)
+  * ☐ General registers (saved in software by the trampoline)
 
 ---
 
@@ -205,20 +205,20 @@
 * **Address range:** `0x24000000–0x240000FF`
 * **Standard Devices:**
 
-| Device   | Address      | Notes                              |
-| -------- | ------------ | ---------------------------------- |
-| Keyboard | `0x24000000` | Read-ready bit + data register     |
-| SSD      | `0x24000010` | Command/data interface             |
-| Display  | `0x24000020` | Optional text buffer or pixel port |
-| Serial   | `0x24000030` | Optional RS232-style UART          |
-| Timer    | `0x24000040` | Programmable interval timer        |
-| Mouse    | `0x24000050` | PS/2 style mouse port              |
-| PIC      | `0x24000080` | Programmable Interrupt Controller (0x24000084 = IRQ Cause) |
+| Device        | Address                 | Notes                              |
+| ------------- | ----------------------- | ---------------------------------- |
+| Serial (UART) | `0x24000000–0x24000005` | TX=`0x00` (W), RX=`0x04` (R, consumes a byte), LSR=`0x05` (bit0=data ready, bit5=TX empty). RX raises IRQ cause bit 2 |
+| SSD           | `0x24000010–0x2400001C` | CMD=`0x10` (W: 1=read, 2=write), BLOCK=`0x14`, ADDR=`0x18`, STATUS=`0x1C` (R: 0=idle, 1=busy, 2=done, 0xFF=error). Asynchronous DMA: STATUS reads busy until the transfer completes, then IRQ cause bit 3 |
+| 2D DMA        | `0x24000020–0x24000034` | DEST=`0x20`, COLOR=`0x24`, WIDTH=`0x28`, HEIGHT=`0x2C`, STRIDE=`0x30`, CMD=`0x34` (W: 1=fill rect) |
+| Display       | `0x24000038`            | SWAP: write 1 to present the back buffer (double buffering) |
+| Mouse         | `0x24000040–0x2400005C` | Live state: X=`0x40`, Y=`0x44`, BUTTONS=`0x48` (bit0=left). Event FIFO (64 deep, oldest dropped on overflow): COUNT=`0x4C`, EVT_X=`0x50`, EVT_Y=`0x54`, EVT_BTN=`0x58`, POP=`0x5C` (W). Each change raises IRQ cause bit 1 |
+| IRQ control   | `0x24000080–0x24000084` | VECTOR=`0x80` (single shared handler address), CAUSE=`0x84` (R to dispatch, write 1s to acknowledge) |
+| Timer         | (internal)              | Wall-clock tick (period from `--timer-interval`, default 1000 µs); raises IRQ cause bit 0. No MMIO registers yet |
 
 Text I/O Notes (Characters)
 - Character size is 8 bits (1 byte).
-- Keyboard data register returns a single byte in the low 8 bits (ASCII 0x00–0x7F recommended).
-- Display text buffer, if present, consumes one byte per character; higher bits of writes are ignored.
+- The serial RX register returns a single byte in the low 8 bits (ASCII 0x00–0x7F recommended); reading it consumes the byte.
+- Serial TX consumes one byte per character; higher bits of writes are ignored.
 - Use `loadb` and `storeb` for character memory access. `loadb` zero-extends the byte to 32 bits; `storeb` writes only the low 8 bits.
 ---
 

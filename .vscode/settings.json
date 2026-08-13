@@ -1,7 +1,6 @@
 {
   "files.associations": {
     "*.mln": "mylang",
-    "*.mlx": "mylang",
     "*.masm": "mymasm"
   },
   "editor.semanticHighlighting.enabled": true,
