@@ -32,6 +32,7 @@
 | MLC-012 | [MyLang Diagnostic Code Registry](completed/MLC-012_mylang-diagnostic-code-registry.md) | Done | diagnostic code のカテゴリ採番規則を明文化し、`E04xx`=package 等の予約帯を記録する。 |
 | MYOS-004 | [MyKernel DOM UI Automation（Playwright 風テスト基盤）](tickets/MYOS-004_mykernel-ui-automation.md) | Proposed | MyKernel DOM を locator で操作・検証するヘッドレス UI automation 基盤を作る。 |
 | MDT-001 | [MyDOMTranspiler `.mlx` UI DSL Compiler](tickets/MDT-001_mydom-mlx-ui-dsl.md) | Done | JSX 風の OS DOM UI 記述。native `.dom.mln` へ統合し、MyDOMTranspiler は撤去（2026-08-13）。 |
+| MYOS-009 | [Kernel UI Separation](tickets/MYOS-009_kernel-ui-separation.md) | In Progress | カーネル main から compositor とデモアプリを分離し、`main.mln` に戻す。MDT-001 の follow-up。 |
 
 ## Status
 

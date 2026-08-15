@@ -141,6 +141,10 @@ SUITES = {
         [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "dom" / "dom_lowering.dom.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
+    "dom-hit": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "dom" / "dom_hit_dispatch.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
     "scheduler": (
         ["python3", str(MYKERNEL_DIR / "tests" / "scheduler" / "run_scheduler_test.py")],
         ["mlc", "myas", "mllinker", "myemu"],
