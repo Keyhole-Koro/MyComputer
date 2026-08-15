@@ -18,7 +18,7 @@ help:
 		'  make qa-heap          Run kernel heap QA suite' \
 		'  make qa-serial-rx     Run serial RX QA suite' \
 		'  make qa-scheduler     Run scheduler QA suite' \
-		'  make qa-dom           Run DOM lowering QA suite' \
+		'  make qa-dom           Run DOM lowering and hit-dispatch QA suites' \
 		'  make profile ARGS="profile.json --map image.mbin.map"' \
 		'' \
 		'Pass script options with ARGS="...".'
@@ -63,7 +63,7 @@ qa-scheduler:
 	$(PYTHON) $(QA_DIR)/test-all.py scheduler $(ARGS)
 
 qa-dom:
-	$(PYTHON) $(QA_DIR)/test-all.py dom $(ARGS)
+	$(PYTHON) $(QA_DIR)/test-all.py dom dom-hit $(ARGS)
 
 mlc-test:
 	$(PYTHON) $(QA_DIR)/test-all.py compiler $(ARGS)
@@ -78,7 +78,7 @@ serial-rx-test:
 	$(PYTHON) $(QA_DIR)/test-all.py serial-rx $(ARGS)
 
 dom-test:
-	$(PYTHON) $(QA_DIR)/test-all.py dom $(ARGS)
+	$(PYTHON) $(QA_DIR)/test-all.py dom dom-hit $(ARGS)
 
 profile:
 	$(PYTHON) $(QA_DIR)/profile_report.py $(ARGS)

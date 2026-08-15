@@ -112,7 +112,7 @@ def main():
     )
     parser.add_argument(
         "--source",
-        help="Path to the MyLang kernel source file to build and run. Defaults to system/MyKernel/src/kernel/main.dom.mln",
+        help="Path to the MyLang kernel source file to build and run. Defaults to system/MyKernel/src/kernel/main.mln",
     )
     parser.add_argument(
         "--stub",
@@ -128,7 +128,7 @@ def main():
     build_dir = kernel_dir / "build"
     build_dir.mkdir(parents=True, exist_ok=True)
 
-    kernel_source = Path(args.source).resolve() if args.source else kernel_dir / "src" / "kernel" / "main.dom.mln"
+    kernel_source = Path(args.source).resolve() if args.source else kernel_dir / "src" / "kernel" / "main.mln"
     kernel_stub = Path(args.stub).resolve() if args.stub else kernel_dir / "src" / "boot" / "stub.masm"
     linked_bin = build_dir / f"{kernel_source.stem}_linked.mbin"
     build_toolchain = QA_DIR / "build_toolchain.py"
