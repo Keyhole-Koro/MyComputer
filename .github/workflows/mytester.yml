@@ -65,3 +65,6 @@ jobs:
 
       - name: Run DOM lowering test
         run: make dom-test
+
+      - name: Run MyDOMTester E2E (headless UI automation, MYOS-004)
+        run: make dom-tester-test
