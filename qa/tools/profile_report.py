@@ -5,7 +5,7 @@ readable report, resolving program counters to function names via a linker
 `.map` file when one is available.
 
 Usage:
-  python3 qa/profile_report.py <profile.json> [--map <image.mbin.map>] [--top N]
+  python3 qa/tools/profile_report.py <profile.json> [--map <image.mbin.map>] [--top N]
 
 If --map is omitted, the script looks for "<profile-stem>.mbin.map" and, failing
 that, prints raw addresses. The four sections mirror what the profiler collects:

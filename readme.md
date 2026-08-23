@@ -65,7 +65,7 @@ python3 system/MyKernel/tests/fs/run_fs_smoke_test.py
 
 ## Debugging
 
-`qa/run_kernel.py` creates a session directory under `system/MyKernel/build/sessions/`
+`qa/runners/run_kernel.py` creates a session directory under `system/MyKernel/build/sessions/`
 by default. It stores build logs, emulator logs, serial output, register dumps, memory
 dumps, and related debug artifacts there.
 

@@ -9,10 +9,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from tools.project_paths import MYEMULATOR_DIR, MYKERNEL_DIR, QA_DIR, REPO_ROOT
-from qa.debug_session import DebugSession, copy_artifacts, default_session_dir, run_logged
+from qa.tools.debug_session import DebugSession, copy_artifacts, default_session_dir, run_logged
 
 GREEN = "32"
 RED = "31"
@@ -131,7 +131,7 @@ def main():
     kernel_source = Path(args.source).resolve() if args.source else kernel_dir / "src" / "kernel" / "main.mln"
     kernel_stub = Path(args.stub).resolve() if args.stub else kernel_dir / "src" / "boot" / "stub.masm"
     linked_bin = build_dir / f"{kernel_source.stem}_linked.mbin"
-    build_toolchain = QA_DIR / "build_toolchain.py"
+    build_toolchain = QA_DIR / "runners" / "build_toolchain.py"
     myemu = MYEMULATOR_DIR / "target" / "release" / "myemu"
 
     if args.log_dir:
@@ -242,7 +242,7 @@ def main():
         status_line("INFO", f"profile: {profile_path}", YELLOW)
         status_line(
             "NEXT",
-            f"python3 qa/profile_report.py {profile_path} --map {map_path}",
+            f"python3 qa/tools/profile_report.py {profile_path} --map {map_path}",
             CYAN,
         )
     status_line("DONE", "kernel run complete", GREEN)
