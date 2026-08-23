@@ -56,7 +56,7 @@ python3 qa/profile_report.py profile.json --map <image>.mbin.map --top 20
 カーネルは1コマンドで通せる（ビルド→実行→レポート案内まで）:
 
 ```bash
-python3 qa/run_kernel.py --headless --step 300000 --profile kernel.json
+python3 qa/runners/run_kernel.py --headless --step 300000 --profile kernel.json
 # 実行後に profile_report.py の render コマンドを表示する
 ```
 
@@ -84,12 +84,12 @@ python3 qa/run_kernel.py --headless --step 300000 --profile kernel.json
 - `Makefile`: `profile-myemu` ターゲット。
 
 ### qa（Python）
-- `qa/build_toolchain.py`: リンク時に `<output>.mbin.map` を自動生成（`mllinker --map …`）。
+- `qa/runners/build_toolchain.py`: リンク時に `<output>.mbin.map` を自動生成（`mllinker --map …`）。
 - `qa/profile_report.py`（新規）: プロファイルJSONと `.map` を突き合わせて4セクションを整形。
   PC は「直前のシンボル＋オフセット」で解決。メモリのページは、イメージ範囲外なら
   スタック/MMIO/VRAM の**領域名**にフォールバックし、遠いコードシンボルへ誤って
   帰属させない。
-- `qa/run_kernel.py`: `--profile [name]` を追加。セッションディレクトリに出力し、
+- `qa/runners/run_kernel.py`: `--profile [name]` を追加。セッションディレクトリに出力し、
   実行後に `profile_report.py` の render コマンドを案内する。
 
 ## 出力例（カーネルを `--step 300000` で計測）
@@ -120,7 +120,7 @@ python3 qa/run_kernel.py --headless --step 300000 --profile kernel.json
 
 - **リンカ**: `make -C toolchain/MyLinker test-integration`（既存の2テストが pass）。
   ビルドしたカーネルに対し `main_linked.mbin.map` が 160 シンボルで生成されることを確認。
-- **エンドツーエンド**: `python3 qa/run_kernel.py --headless --step 300000 --profile kernel.json`
+- **エンドツーエンド**: `python3 qa/runners/run_kernel.py --headless --step 300000 --profile kernel.json`
   でカーネルをビルド・実行し、有効なプロファイルJSON（`total_instructions=300000`）が
   出ること、`profile_report.py` が4セクションすべてを関数名解決つきで描画することを確認。
 

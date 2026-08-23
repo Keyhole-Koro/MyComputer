@@ -11,7 +11,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from tools.project_paths import (
     MYASSEMBLER_DIR,
@@ -22,7 +22,7 @@ from tools.project_paths import (
     QA_DIR,
     REPO_ROOT,
 )
-from qa.debug_session import DebugSession, copy_artifacts, default_session_dir, run_logged
+from qa.tools.debug_session import DebugSession, copy_artifacts, default_session_dir, run_logged
 
 GREEN = "32"
 RED = "31"
@@ -175,7 +175,7 @@ def main():
     )
     status_line("INFO", f"session: {session.session_dir}", YELLOW)
 
-    build_toolchain = QA_DIR / "build_toolchain.py"
+    build_toolchain = QA_DIR / "runners" / "build_toolchain.py"
     myemu = MYEMULATOR_DIR / "target" / "release" / "myemu"
 
     if not args.skip_build_tools:

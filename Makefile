@@ -25,61 +25,61 @@ help:
 		'Pass script options with ARGS="...".'
 
 run system:
-	$(PYTHON) $(QA_DIR)/run_system.py $(ARGS)
+	$(PYTHON) $(QA_DIR)/runners/run_system.py $(ARGS)
 
 build system-build:
-	$(PYTHON) $(QA_DIR)/run_system.py --no-run $(ARGS)
+	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run $(ARGS)
 
 kernel:
-	$(PYTHON) $(QA_DIR)/run_kernel.py $(ARGS)
+	$(PYTHON) $(QA_DIR)/runners/run_kernel.py $(ARGS)
 
 kernel-build:
-	$(PYTHON) $(QA_DIR)/run_kernel.py --no-run $(ARGS)
+	$(PYTHON) $(QA_DIR)/runners/run_kernel.py --no-run $(ARGS)
 
 emulator:
 	$(MAKE) -C runtime/MyEmulator
 
 qa test:
-	$(PYTHON) $(QA_DIR)/test-all.py $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py $(ARGS)
 
 qa-no-build:
-	$(PYTHON) $(QA_DIR)/test-all.py --no-build $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py --no-build $(ARGS)
 
 qa-compiler:
-	$(PYTHON) $(QA_DIR)/test-all.py compiler $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py compiler $(ARGS)
 
 qa-assembler:
-	$(PYTHON) $(QA_DIR)/test-all.py assembler $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py assembler $(ARGS)
 
 qa-linker:
-	$(PYTHON) $(QA_DIR)/test-all.py linker $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py linker $(ARGS)
 
 qa-heap:
-	$(PYTHON) $(QA_DIR)/test-all.py heap $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py heap $(ARGS)
 
 qa-serial-rx:
-	$(PYTHON) $(QA_DIR)/test-all.py serial-rx $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py serial-rx $(ARGS)
 
 qa-scheduler:
-	$(PYTHON) $(QA_DIR)/test-all.py scheduler $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py scheduler $(ARGS)
 
 qa-dom:
-	$(PYTHON) $(QA_DIR)/test-all.py dom dom-hit $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py dom dom-hit $(ARGS)
 
 mlc-test:
-	$(PYTHON) $(QA_DIR)/test-all.py compiler $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py compiler $(ARGS)
 
 as-test:
-	$(PYTHON) $(QA_DIR)/test-all.py assembler $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py assembler $(ARGS)
 
 linker-test:
-	$(PYTHON) $(QA_DIR)/test-all.py linker $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py linker $(ARGS)
 
 serial-rx-test:
-	$(PYTHON) $(QA_DIR)/test-all.py serial-rx $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py serial-rx $(ARGS)
 
 dom-test:
-	$(PYTHON) $(QA_DIR)/test-all.py dom dom-hit $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py dom dom-hit $(ARGS)
 
 # MYOS-004: headless UI automation E2E test (MyDOMTester), distinct from
 # dom-test's compiler-level DOM lowering/hit-dispatch suites above -- this
@@ -89,11 +89,11 @@ dom-test:
 # than reusing `make build`, since ARGS there would otherwise leak into both
 # steps.
 dom-tester-test:
-	$(PYTHON) $(QA_DIR)/run_system.py --no-run --headless
-	$(PYTHON) $(QA_DIR)/dom_click_test.py
+	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run --headless
+	$(PYTHON) system/MyOS/tests/dom_click_test.py
 
 profile:
-	$(PYTHON) $(QA_DIR)/profile_report.py $(ARGS)
+	$(PYTHON) $(QA_DIR)/tools/profile_report.py $(ARGS)
 
 clean-qa:
 	rm -rf $(QA_DIR)/outputs

@@ -16,7 +16,7 @@ Two phases:
      summary; a single failure makes the whole run exit non-zero.
 
 Usage:
-  python3 qa/test-all.py [--verbose] [--jobs N] [--no-build] [suite ...]
+  python3 qa/tests/test-all.py [--verbose] [--jobs N] [--no-build] [suite ...]
 
   suite     restrict to named suites (default: all). Known suites are listed
             below in SUITES.
@@ -30,7 +30,7 @@ import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from tools.project_paths import (
     MYASSEMBLER_DIR,
