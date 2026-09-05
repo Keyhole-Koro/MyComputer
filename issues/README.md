@@ -31,6 +31,7 @@
 | MLC-004 | [MyLang Standard Library Foundation](tickets/MLC-004_mylang-standard-library-foundation.md) | In Progress | フェーズ1〜3 完了（str / bytes / bitset / ringbuf / strbuf）。serial / test の命名は未決。 |
 | MLC-015 | [MyLang Native String (`str` / `String`)](tickets/MLC-015_mylang-native-string.md) | Proposed | 文字列を言語の型にする。struct 値渡しと cross-package 型解決が前提。 |
 | MLC-016 | [Cross-Package Types And Constants](tickets/MLC-016_cross-package-types-and-constants.md) | Proposed | import 側が型・定数を学習しない問題。std library の API 設計を歪めている。 |
+| MLC-017 | [パーサ状態のコンテキスト化とモジュール解決層](tickets/MLC-017_parser-context-and-module-resolution.md) | Proposed | グローバル23個を廃し、import 先を読み直す4つのハックを解決層に統合する。MLC-003/015/016 の前提。 |
 | MYOS-010 | [MyKernel / MyOS 相互依存の解消](completed/MYOS-010_submodule-dependency-cycle.md) | Done | テストと起動処理を MyOS へ移し、MyKernel から MyOS への参照をゼロにした。 |
 | MYOS-011 | [`dom_click_test.py` control-stdio タイムアウト](tickets/MYOS-011_dom-click-test-control-stdio-timeout.md) | Proposed | シリアル出力がタスク間で行分断され、UI automation が通らない。 |
 | MLC-012 | [MyLang Diagnostic Code Registry](completed/MLC-012_mylang-diagnostic-code-registry.md) | Done | diagnostic code のカテゴリ採番規則を明文化し、`E04xx`=package 等の予約帯を記録する。 |
