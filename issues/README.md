@@ -28,7 +28,11 @@
 | MLC-003 | [MyLang Package Symbol Resolution](tickets/MLC-003_mylang-package-symbol-resolution.md) | Proposed | package / import / export の symbol table を整備し、import 先の型・signature を semantic に渡す。 |
 | MLC-005 | [MyLang Typed Intermediate Representation](tickets/MLC-005_mylang-typed-ir.md) | Proposed | AST 直結 codegen から段階移行できる typed IR の設計と最小実装を進める。 |
 | MLSP-001 | [MyLang LSP Semantic Diagnostics Integration](tickets/MLSP-001_mylang-lsp-semantic-diagnostics-integration.md) | Proposed | compiler の semantic diagnostics を JSON / LSP へ接続し、editor でも同じ診断を出す。 |
-| MLC-004 | [MyLang Standard Library Foundation](tickets/MLC-004_mylang-standard-library-foundation.md) | Proposed | std / kernel / test library の境界と最小 API を整理する。 |
+| MLC-004 | [MyLang Standard Library Foundation](tickets/MLC-004_mylang-standard-library-foundation.md) | In Progress | フェーズ1〜3 完了（str / bytes / bitset / ringbuf / strbuf）。serial / test の命名は未決。 |
+| MLC-015 | [MyLang Native String (`str` / `String`)](tickets/MLC-015_mylang-native-string.md) | Proposed | 文字列を言語の型にする。struct 値渡しと cross-package 型解決が前提。 |
+| MLC-016 | [Cross-Package Types And Constants](tickets/MLC-016_cross-package-types-and-constants.md) | Proposed | import 側が型・定数を学習しない問題。std library の API 設計を歪めている。 |
+| MYOS-010 | [MyKernel / MyOS 相互依存の解消](tickets/MYOS-010_submodule-dependency-cycle.md) | Proposed | submodule が相互 import していて単体で build もテストもできない。 |
+| MYOS-011 | [`dom_click_test.py` control-stdio タイムアウト](tickets/MYOS-011_dom-click-test-control-stdio-timeout.md) | Proposed | シリアル出力がタスク間で行分断され、UI automation が通らない。 |
 | MLC-012 | [MyLang Diagnostic Code Registry](completed/MLC-012_mylang-diagnostic-code-registry.md) | Done | diagnostic code のカテゴリ採番規則を明文化し、`E04xx`=package 等の予約帯を記録する。 |
 | MYOS-004 | [MyKernel DOM UI Automation（Playwright 風テスト基盤）](tickets/MYOS-004_mykernel-ui-automation.md) | Proposed | MyKernel DOM を locator で操作・検証するヘッドレス UI automation 基盤を作る。 |
 | MDT-001 | [MyDOMTranspiler `.mlx` UI DSL Compiler](tickets/MDT-001_mydom-mlx-ui-dsl.md) | Done | JSX 風の OS DOM UI 記述。native `.dom.mln` へ統合し、MyDOMTranspiler は撤去（2026-08-13）。 |
