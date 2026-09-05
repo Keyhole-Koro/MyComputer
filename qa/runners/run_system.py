@@ -11,10 +11,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from tools.project_paths import MYEMULATOR_DIR, MYKERNEL_DIR, QA_DIR, REPO_ROOT
-from qa.debug_session import DebugSession, copy_artifacts, default_session_dir, run_logged
+from qa.tools.debug_session import DebugSession, copy_artifacts, default_session_dir, run_logged
 
 GREEN = "32"
 RED = "31"
@@ -75,7 +75,7 @@ def main():
     kernel_stub = MYKERNEL_DIR / "src" / "boot" / "stub.masm"
     kernel_bin = build_dir / "kernel_linked.mbin"
 
-    build_toolchain = QA_DIR / "build_toolchain.py"
+    build_toolchain = QA_DIR / "runners" / "build_toolchain.py"
     myemu = MYEMULATOR_DIR / "target" / "release" / "myemu"
     disk_img = build_dir / "disk.img"
 
@@ -123,11 +123,11 @@ def main():
         log_name="02-build-kernel.log",
     )
 
-    if args.no_run:
-        status_line("DONE", "build complete; skipped emulator run", GREEN)
-        return
-
-    # Embed kernel into disk.img at block 16000 (1048576000 bytes)
+    # Embed kernel into disk.img at block 16000 (1048576000 bytes). Built
+    # even under --no-run: it's pure file I/O (no emulator process), and a
+    # caller that wants a launchable image without running it here -- e.g.
+    # MyDOMTester driving myemu --control-stdio itself -- needs disk.img to
+    # exist, not just the two .mbin files.
     status_line("STEP", "embed kernel into disk image", CYAN)
     with open(disk_img, "wb") as f:
         # Seek to block 16000
@@ -137,6 +137,10 @@ def main():
         # Ensure file is 1GB (SSD_DISK_SIZE)
         f.seek(1024*1024*1024 - 1)
         f.write(b'\0')
+
+    if args.no_run:
+        status_line("DONE", "build complete; skipped emulator run", GREEN)
+        return
 
     # 4. Run emulator.
     # --timer-interval is a real-time tick period in microseconds. 1000 us = 1 ms

@@ -85,7 +85,7 @@ MyLang の kernel/emulator テストでは `stdin` や `step` を emulator 起�
 - `test(...)` declaration parser。
 - `options` の読み取り。
 - `body` を `kernel_main()` へ lowering した一時 `.mln` 生成。
-- `qa/build_toolchain.py` または後続のネイティブ build API 経由で build。
+- `qa/runners/build_toolchain.py` または後続のネイティブ build API 経由で build。
 - `myemu` 起動、stdin 注入、serial output 判定。
 
 ### MyEmulator へ入れる範囲
@@ -137,7 +137,7 @@ MyLang の kernel/emulator テストでは `stdin` や `step` を emulator 起�
 
 - `run_serial_rx_test.py` を `serial_rx.test.mln` + `mytest` に置き換える。（実装済み）
 - heap / scheduler / filesystem も `*.test.mln` 化する。
-- `qa/test-all.py` から MyKernel の Python runner を段階的に外す。
+- `qa/tests/test-all.py` から MyKernel の Python runner を段階的に外す。
 
 ### フェーズ5: emulator test options 強化
 

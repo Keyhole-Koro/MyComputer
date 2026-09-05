@@ -69,7 +69,7 @@
   カウンタを増やして `debug.printf` するだけ。
 
 ### ビルド配線
-- `qa/run_kernel.py`: エミュレータ起動に `--timer-interval` を渡せるようにする
+- `qa/runners/run_kernel.py`: エミュレータ起動に `--timer-interval` を渡せるようにする
   （`--trace` 等と同様）。デフォルトは無効。
 
 ## 実装時に詰める点
@@ -84,7 +84,7 @@
 1. **エミュレータ単体**: EI/DI/IRET を含む小さな .masm を手書きし、`--timer-interval`
    付きで実行。ベクタに置いたハンドラが定期的に呼ばれ、`iret` で元の流れに復帰する
    ことを `--trace` で確認。
-2. **カーネル**: `python3 qa/run_kernel.py --timer-interval <N>` で、ハンドラが
+2. **カーネル**: `python3 qa/runners/run_kernel.py --timer-interval <N>` で、ハンドラが
    カウンタを複数回出力し、起動が `kernel: init complete` まで到達する。
 3. **回帰**: タイマー無効時に既存のカーネル出力が不変であること。コンパイラ/heap/
    linker のテストが緑のまま。
@@ -97,5 +97,5 @@
   `src/libs/irq.mln`。
 - 変更: `runtime/MyEmulator/src/{constants.rs,machine/mod.rs,machine/cpu_exec.rs,cli.rs,app.rs,instruction.rs}`、
   `toolchain/MyAssembler/src/instructions.c`、
-  `system/MyKernel/src/kernel_main.mln`、`qa/run_kernel.py`。
+  `system/MyKernel/src/kernel_main.mln`、`qa/runners/run_kernel.py`。
 - 不変: MyLangCompiler（新命令は masm 経由なのでコンパイラ変更不要）、MyLinker。

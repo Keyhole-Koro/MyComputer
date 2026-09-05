@@ -27,7 +27,7 @@ E2E としては有用だが、低レベル機能の単体テストまで全部 
 
 - `.test.mln` は「縦通しが動くこと」を確認する E2E DSL として使う。
 - compiler / syntax / semantic / assembler / linker のホスト側テストは残す。
-- `qa/run_kernel.py` や `qa/run_mylang.py` のような手動実行・デバッグ用ツールは残す。
+- `qa/runners/run_kernel.py` や `qa/runners/run_mylang.py` のような手動実行・デバッグ用ツールは残す。
 - Python runner を置き換えるかどうかは、診断性が悪化しないケースから判断する。
 - 置き換える場合も、失敗時に build log、generated source、emulator output、linked binary の
   パスを明確に出す。
@@ -64,10 +64,10 @@ E2E としては有用だが、低レベル機能の単体テストまで全部 
 - `mytest --keep-artifacts` を追加する。
 - `mytest --verbose` を追加する。
 - `options` に `disk`, `reg`, `timeout` などを追加するか検討する。
-- `qa/test-all.py` 上で、E2E と host-level tests を明確に分類表示する。
+- `qa/tests/test-all.py` 上で、E2E と host-level tests を明確に分類表示する。
 
 ## 完了条件
 
 - どの Python runner を `.test.mln` に移行し、どれを残すかの判断基準が文書化されている。
 - `mytest` 失敗時に、少なくとも build と emulator のどちらで落ちたかすぐ分かる。
-- `qa/test-all.py` の suite 表示で、E2E 失敗と host-level 失敗が区別できる。
+- `qa/tests/test-all.py` の suite 表示で、E2E 失敗と host-level 失敗が区別できる。
