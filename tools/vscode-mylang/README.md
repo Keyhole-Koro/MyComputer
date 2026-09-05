@@ -6,6 +6,11 @@ Ownership-oriented tokens are exposed through semantic tokens:
 - `ownershipRef` for `ref` and `&`
 - `ownershipMut` for `mut` and `&mut`
 
+Generic declarations and named imports are supported by the LSP. In particular,
+`Vec<Node>` type arguments are highlighted as types, and uses such as
+`vec_init<i32>(...)` do not produce syntax diagnostics. Hover and go-to-
+definition for imported templates are not implemented yet.
+
 `mymasm` files use a TextMate grammar and highlight:
 - `import ...`
 - `import ... from "..."`
