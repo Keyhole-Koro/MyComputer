@@ -101,7 +101,7 @@ def main():
     parser.add_argument(
         "--timer-interval",
         dest="timer_interval",
-        help="Pass --timer-interval to emulator (raise a timer IRQ every N instructions).",
+        help="Pass --timer-interval to emulator: the wall-clock tick period in microseconds. Below ~50000 the tick handler starves the guest; see run_system.py.",
     )
     parser.add_argument(
         "--profile",
