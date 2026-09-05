@@ -43,13 +43,13 @@ jobs:
         run: |
           python3 -m py_compile \
             tools/project_paths.py \
-            qa/build_toolchain.py \
-            qa/debug_session.py \
-            qa/profile_report.py \
-            qa/run_kernel.py \
-            qa/run_mylang.py \
-            qa/run_system.py \
-            qa/test-all.py
+            qa/runners/build_toolchain.py \
+            qa/runners/run_kernel.py \
+            qa/runners/run_mylang.py \
+            qa/runners/run_system.py \
+            qa/tools/debug_session.py \
+            qa/tools/profile_report.py \
+            qa/tests/test-all.py
 
       - name: Run pinned component-owned suites
         run: make qa ARGS="compiler assembler linker emulator --jobs 1"

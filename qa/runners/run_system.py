@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from tools.project_paths import MYEMULATOR_DIR, MYKERNEL_DIR, QA_DIR, REPO_ROOT
+from tools.project_paths import MYEMULATOR_DIR, MYKERNEL_DIR, MYOS_DIR, QA_DIR, REPO_ROOT
 from qa.tools.debug_session import DebugSession, copy_artifacts, default_session_dir, run_logged
 
 GREEN = "32"
@@ -71,8 +71,9 @@ def main():
     fw_stub = MYFIRMWARE_DIR / "src" / "boot" / "stub.masm"
     fw_bin = build_dir / "firmware_linked.mbin"
 
-    kernel_source = MYKERNEL_DIR / "src" / "kernel" / "main.mln"
-    kernel_stub = MYKERNEL_DIR / "src" / "boot" / "stub.masm"
+    # The entry point is MyOS's: see system/MyOS/src/boot/main.mln.
+    kernel_source = MYOS_DIR / "src" / "boot" / "main.mln"
+    kernel_stub = MYOS_DIR / "src" / "boot" / "stub.masm"
     kernel_bin = build_dir / "kernel_linked.mbin"
 
     build_toolchain = QA_DIR / "runners" / "build_toolchain.py"
