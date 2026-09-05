@@ -146,7 +146,7 @@ MVP では TCP / WebSocket は不要。CI で扱いやすい stdio を優先す�
 
 ## Python client
 
-`qa/mykernel_playwright/` のような場所に薄い client library を置く。
+`qa/mydomtester/`（ツール名: MyDOMTester）に薄い client library を置く。
 
 最小 API:
 

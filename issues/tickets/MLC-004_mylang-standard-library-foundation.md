@@ -106,7 +106,7 @@ MMIO や raw pointer 操作は `unchecked` と関連する。
 ## 検証
 
 1. `python3 qa/mlc-test.py`
-2. `python3 qa/run_mylang.py <std library example> --headless`
+2. `python3 qa/runners/run_mylang.py <std library example> --headless`
 3. `toolchain/MyLangTester/build/mytest system/MyKernel/tests`
 
 ## 変更ファイル（想定）
@@ -115,7 +115,7 @@ MMIO や raw pointer 操作は `unchecked` と関連する。
 - `toolchain/MyLangCompiler/tests/succeed/package/*`
 - `system/MyKernel/src/lib/*`
 - `system/MyKernel/tests/libs/*`
-- `qa/build_toolchain.py`
+- `qa/runners/build_toolchain.py`
 
 ## 完了条件
 

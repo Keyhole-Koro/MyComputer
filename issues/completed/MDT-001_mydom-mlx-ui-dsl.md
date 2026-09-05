@@ -96,10 +96,10 @@ DOM API に合わせて決める。
 
 ### フェーズ3: Build integration
 
-- `qa/build_toolchain.py` が `.mlx` を見つけたら先に `mydomc` を実行する。
+- `qa/runners/build_toolchain.py` が `.mlx` を見つけたら先に `mydomc` を実行する。
 - generated `.mln` を既存の MyLangCompiler 入力に含める。
 - generated file の出力先を `qa/outputs/` 配下などに固定する。
-- `qa/run_mylang.py` / `qa/test-all.py` が MyDOMTranspiler を通常 toolchain として build / test する。
+- `qa/runners/run_mylang.py` / `qa/tests/test-all.py` が MyDOMTranspiler を通常 toolchain として build / test する。
 
 ### フェーズ4: OS DOM integration
 
@@ -132,7 +132,7 @@ DOM API に合わせて決める。
 ## 変更ファイル（想定）
 
 - `toolchain/MyDOMTranspiler/*`
-- `qa/build_toolchain.py`
+- `qa/runners/build_toolchain.py`
 - `system/MyOS/src/**/*.mlx`
 - `system/MyOS/docs/*`
 - `issues/tickets/dom-like-os.md`
@@ -265,7 +265,7 @@ mlx 統合のために dom.mln へ追加が要るもの（DOM_SPEC.md で未実�
    新 API 出力に更新。id 型を `DomNode*`→`i32` に。
 3. **`set_on_click` と handler slot** を dom.mln に足す（関数ポインタ幅を先に確認）。
 4. **最小 mlx sample を縦に1本通す**: `system/MyOS/src/apps/*.mlx` を書き、
-   `mydomc → mlc → emulator` まで通す。`qa/build_toolchain.py` の `.mlx` 前処理を確認。
+   `mydomc → mlc → emulator` まで通す。`qa/runners/build_toolchain.py` の `.mlx` 前処理を確認。
 5. renderer を DOM 駆動へ（DOM_SPEC 例2）・find_at hit-test（例3）・snapshot（ISSUE-024）は
    既存フェーズのまま継続。
 
@@ -315,7 +315,7 @@ mlx 統合のために dom.mln へ追加が要るもの（DOM_SPEC.md で未実�
 - ✅ **カーネルの実 UI を `.mlx` 化**。`system/MyKernel/src/kernel/main.mln` →
   `main.mlx`、手書きの `build_ui()` を JSX return に置換。ツリーは window を返し、
   `first_child` / `next_sibling` で button と label を取り出す（`counter.mlx` と同じ形）。
-  併せて `src/boot/stub.masm` の import と `qa/run_kernel.py` / `qa/run_system.py` の
+  併せて `src/boot/stub.masm` の import と `qa/runners/run_kernel.py` / `qa/runners/run_system.py` の
   既定パスを `.mlx` へ更新。run_kernel / run_system どちらでも DOM tree が生成され、
   ディスク経由の boot でも `MyKernel Window / CLICK ME / clicks: 0` が dump に出る。
 - ⚠️ **`build_toolchain.py` の generated 命名を変更**：`<name>.generated.mln` →
@@ -371,7 +371,7 @@ return __dom0;
 - `system/MyOS/src/ui/dom.mln` に element 関数 `Window` / `Button` / `Text` を追加
   （既存 `create_*` + `set_on_click` の薄い wrapper）。UI の語彙はここに集約。
 - `system/MyKernel/src/kernel/main.mlx` → **`main.dom.mln`**。`stub.masm` の import と
-  `qa/run_kernel.py` / `qa/run_system.py` の既定パスも更新。
+  `qa/runners/run_kernel.py` / `qa/runners/run_system.py` の既定パスも更新。
 - 検証：`run_kernel --headless` と `run_system`（ディスク経由 boot）の両方で、mydomc を
   一切通さずに同じ DOM tree（`MyKernel Window` / `CLICK ME` / `clicks: 0`）が出る。
 
@@ -406,11 +406,11 @@ MyLangCompiler 側が `.dom.mln` の **native DOM syntax** に向かっている
 移植せず破棄。`SourceTranspiler` の役割は lexer の DOM モードが正しく担っている。
 
 - `system/MyOS/src/apps/counter.mlx` → `counter.dom.mln`（参照ゼロ、JSX 本体は無変更で通った）
-- `qa/build_toolchain.py` から `.mlx` 分岐と mydomc 呼び出しを削除
+- `qa/runners/build_toolchain.py` から `.mlx` 分岐と mydomc 呼び出しを削除
 - `tools/project_paths.py` の `MYDOMTRANSPILER_DIR`、`readme.md`、`.vscode/settings.json`
   の `*.mlx` 関連付けを削除
 - `toolchain/MyDOMTranspiler` submodule を削除（repo 自体は GitHub に残存）
-- 検証：compiler `make test-component` 87 PASS / `qa/run_kernel.py` で boot し、
+- 検証：compiler `make test-component` 87 PASS / `qa/runners/run_kernel.py` で boot し、
   serial に `MyKernel Window` / `CLICK ME` / `clicks: 0` の DOM tree を確認
 
 **コンパイラ側の整理（同日）**

@@ -80,7 +80,7 @@ hover / pressed も「前回ヒットしたノード」を保持して差分を�
 `main.dom.mln` → `main.mln`（JSX が無くなるので `dom` modifier が不要になる）。
 
 - `src/boot/stub.masm` の import パスを追従
-- `qa/run_kernel.py` / `qa/run_system.py` の既定パスを追従
+- `qa/runners/run_kernel.py` / `qa/runners/run_system.py` の既定パスを追従
 - `kernel_init()` は `counter.mount()` を呼び、compositor をタスクとして起動する
 
 ⚠️ **要検討**: 現在 `kernel_init()` の末尾で `ui_loop(btn)` を直接呼んでおり、
@@ -97,8 +97,8 @@ UI タスクと shell タスクが両方 `sleep(1)` で回る形になる。
 
 ## 検証
 
-1. `python3 qa/run_kernel.py` で boot し、serial に DOM tree が出る。
-2. `python3 qa/gui_click_test.py` でボタンを実クリックし、ラベルが
+1. `python3 qa/runners/run_kernel.py` で boot し、serial に DOM tree が出る。
+2. `python3 qa/tests/gui_click_test.py` でボタンを実クリックし、ラベルが
    `clicks: 1` → `clicks: 2` と更新される（XTEST + フレームバッファ撮影）。
 3. `make dom-test` — `.dom.mln` lowering の e2e が通ったままであること。
 4. `system/MyKernel/src/kernel/main.mln` に UI コードが残っていない。
@@ -115,9 +115,9 @@ UI タスクと shell タスクが両方 `sleep(1)` で回る形になる。
 フェーズ1〜3 完了。`main.dom.mln` 185行 → `main.mln` 51行、UI コードはゼロ。
 `ui_loop` は `compositor.run()` として一般化し、ノード id を一切持たない形になった。
 検証は `make dom-test`（lowering + hit-dispatch の2 suite）が通ることと、
-`qa/run_kernel.py` で boot して DOM tree が出ること。
+`qa/runners/run_kernel.py` で boot して DOM tree が出ること。
 
-⚠️ `qa/gui_click_test.py` は未実行。`python-xlib` が入っておらず、この環境の pip は
+⚠️ `qa/tests/gui_click_test.py` は未実行。`python-xlib` が入っておらず、この環境の pip は
 PEP 668 で外部インストールを拒否する。XTEST 自体は `libXtst` を ctypes で叩けば
 使えるので（性能計測ではその方法でポインタを動かした）、テスト側をそちらに
 移植すれば実行できる。
@@ -196,7 +196,7 @@ XTEST で動かしながらの実測：
 （現在は単一の bounding box なので、離れた 2 箇所が変わると間の領域も再描画する）
 か、MLC-005 で codegen の冗長さ自体を減らす。
 
-⚠️ **ビルドキャッシュの注意**: `qa/run_system.py` は `--clean` を受け付けず黙って
+⚠️ **ビルドキャッシュの注意**: `qa/runners/run_system.py` は `--clean` を受け付けず黙って
 無視する。ソースを編集しても masm が再生成されないことがあり、検証が偽陰性になる。
 `rm -rf build/system` で強制再ビルドすること。
 

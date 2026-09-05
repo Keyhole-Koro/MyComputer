@@ -3,7 +3,7 @@ QA_DIR := qa
 
 .PHONY: help run system build system-build kernel kernel-build emulator qa test qa-no-build \
 	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom \
-	mlc-test as-test linker-test serial-rx-test dom-test profile clean-qa
+	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test profile clean-qa
 
 help:
 	@printf '%s\n' \
@@ -19,69 +19,81 @@ help:
 		'  make qa-serial-rx     Run serial RX QA suite' \
 		'  make qa-scheduler     Run scheduler QA suite' \
 		'  make qa-dom           Run DOM lowering and hit-dispatch QA suites' \
+		'  make dom-tester-test  Build the system image and run the headless MyDOMTester E2E test' \
 		'  make profile ARGS="profile.json --map image.mbin.map"' \
 		'' \
 		'Pass script options with ARGS="...".'
 
 run system:
-	$(PYTHON) $(QA_DIR)/run_system.py $(ARGS)
+	$(PYTHON) $(QA_DIR)/runners/run_system.py $(ARGS)
 
 build system-build:
-	$(PYTHON) $(QA_DIR)/run_system.py --no-run $(ARGS)
+	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run $(ARGS)
 
 kernel:
-	$(PYTHON) $(QA_DIR)/run_kernel.py $(ARGS)
+	$(PYTHON) $(QA_DIR)/runners/run_kernel.py $(ARGS)
 
 kernel-build:
-	$(PYTHON) $(QA_DIR)/run_kernel.py --no-run $(ARGS)
+	$(PYTHON) $(QA_DIR)/runners/run_kernel.py --no-run $(ARGS)
 
 emulator:
 	$(MAKE) -C runtime/MyEmulator
 
 qa test:
-	$(PYTHON) $(QA_DIR)/test-all.py $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py $(ARGS)
 
 qa-no-build:
-	$(PYTHON) $(QA_DIR)/test-all.py --no-build $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py --no-build $(ARGS)
 
 qa-compiler:
-	$(PYTHON) $(QA_DIR)/test-all.py compiler $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py compiler $(ARGS)
 
 qa-assembler:
-	$(PYTHON) $(QA_DIR)/test-all.py assembler $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py assembler $(ARGS)
 
 qa-linker:
-	$(PYTHON) $(QA_DIR)/test-all.py linker $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py linker $(ARGS)
 
 qa-heap:
-	$(PYTHON) $(QA_DIR)/test-all.py heap $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py heap $(ARGS)
 
 qa-serial-rx:
-	$(PYTHON) $(QA_DIR)/test-all.py serial-rx $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py serial-rx $(ARGS)
 
 qa-scheduler:
-	$(PYTHON) $(QA_DIR)/test-all.py scheduler $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py scheduler $(ARGS)
 
 qa-dom:
-	$(PYTHON) $(QA_DIR)/test-all.py dom dom-hit $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py dom dom-hit $(ARGS)
 
 mlc-test:
-	$(PYTHON) $(QA_DIR)/test-all.py compiler $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py compiler $(ARGS)
 
 as-test:
-	$(PYTHON) $(QA_DIR)/test-all.py assembler $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py assembler $(ARGS)
 
 linker-test:
-	$(PYTHON) $(QA_DIR)/test-all.py linker $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py linker $(ARGS)
 
 serial-rx-test:
-	$(PYTHON) $(QA_DIR)/test-all.py serial-rx $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py serial-rx $(ARGS)
 
 dom-test:
-	$(PYTHON) $(QA_DIR)/test-all.py dom dom-hit $(ARGS)
+	$(PYTHON) $(QA_DIR)/tests/test-all.py dom dom-hit $(ARGS)
+
+# MYOS-004: headless UI automation E2E test (MyDOMTester), distinct from
+# dom-test's compiler-level DOM lowering/hit-dispatch suites above -- this
+# drives a real running kernel over myemu --control-stdio and asserts on the
+# live DOM/accessibility tree. Builds the system image first (--no-run also
+# writes disk.img, not just the two .mbin files -- see run_system.py) rather
+# than reusing `make build`, since ARGS there would otherwise leak into both
+# steps.
+dom-tester-test:
+	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run --headless
+	$(PYTHON) system/MyOS/tests/dom_click_test.py
 
 profile:
-	$(PYTHON) $(QA_DIR)/profile_report.py $(ARGS)
+	$(PYTHON) $(QA_DIR)/tools/profile_report.py $(ARGS)
 
 clean-qa:
 	rm -rf $(QA_DIR)/outputs
