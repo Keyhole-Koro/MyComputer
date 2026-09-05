@@ -87,10 +87,35 @@ MMIO や raw pointer 操作は `unchecked` と関連する。
 
 ### フェーズ3: Minimal core APIs
 
-- `std.mem`
-- `std.str`
-- `std.serial`
-- `std.test` または `kernel.test`
+**実装済み**（`system/MyKernel/src/lib/`）:
+
+| package | 内容 |
+| --- | --- |
+| `str` | len / cmp / eq / ncmp / starts_with / copy / ncopy / cat / chr / find / itoa / xtoa / atoi |
+| `bytes` | set / zero / copy / move / cmp / eq / find |
+| `bitset` | get / set / clear / put / toggle / find_clear / find_set / count |
+| `ringbuf` | init / push / pop / peek / has / full / count / capacity |
+| `strbuf` | reset / push / append / append_n / append_i32 / append_hex / truncate |
+
+`std.mem` は `bytes` という名前になった。`package mem`（`src/mm/mem.mln`）が
+すでにカーネルの word 単位の絶対アドレスアクセサとして存在するため。
+
+呼び出し側の回収も済んでいる: `serial.mln` の入力キュー（ringbuf）、
+`MyOS/src/fs/fs.mln` のブロックビットマップ（bitset）、
+`MyOS/src/apps/shell.mln` の私的な `str_eq`（str.eq）、
+`MyOS/src/apps/counter.dom.mln` の手書き10進バイト列（strbuf）。
+
+**保留**:
+
+- `std.serial` — 既存の `serial` package をそのまま使っている。分離の必要性が
+  出てから。
+- `std.test` / `kernel.test` の命名決定 — 未決。下流の ISSUE-013 / ISSUE-014 が
+  依存するため、別途決める必要がある。
+
+API 設計は compiler の3つの制約に強く縛られている（struct が package 境界を
+越えない、export した定数がリンクされない、乗除算命令がない）。詳細と実測の
+根拠は `docs/design/mylang-stdlib-and-string.md`。制約自体の解消は
+`MLC-016_cross-package-types-and-constants.md`。
 
 ### フェーズ4: Compiler fixtures
 

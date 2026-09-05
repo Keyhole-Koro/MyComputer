@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from tools.project_paths import MYEMULATOR_DIR, MYKERNEL_DIR, QA_DIR, REPO_ROOT
+from tools.project_paths import MYEMULATOR_DIR, MYKERNEL_DIR, MYOS_DIR, QA_DIR, REPO_ROOT
 from qa.tools.debug_session import DebugSession, copy_artifacts, default_session_dir, run_logged
 
 GREEN = "32"
@@ -112,11 +112,11 @@ def main():
     )
     parser.add_argument(
         "--source",
-        help="Path to the MyLang kernel source file to build and run. Defaults to system/MyKernel/src/kernel/main.mln",
+        help="Path to the MyLang entry source to build and run. Defaults to system/MyOS/src/boot/main.mln",
     )
     parser.add_argument(
         "--stub",
-        help="Path to the stub.masm file. Defaults to system/MyKernel/src/boot/stub.masm",
+        help="Path to the stub.masm file. Defaults to system/MyOS/src/boot/stub.masm",
     )
     args = parser.parse_args()
 
@@ -128,8 +128,10 @@ def main():
     build_dir = kernel_dir / "build"
     build_dir.mkdir(parents=True, exist_ok=True)
 
-    kernel_source = Path(args.source).resolve() if args.source else kernel_dir / "src" / "kernel" / "main.mln"
-    kernel_stub = Path(args.stub).resolve() if args.stub else kernel_dir / "src" / "boot" / "stub.masm"
+    # System bring-up lives in MyOS: it starts the DOM, filesystem, compositor
+    # and apps, and only hands the kernel its own init calls along the way.
+    kernel_source = Path(args.source).resolve() if args.source else MYOS_DIR / "src" / "boot" / "main.mln"
+    kernel_stub = Path(args.stub).resolve() if args.stub else MYOS_DIR / "src" / "boot" / "stub.masm"
     linked_bin = build_dir / f"{kernel_source.stem}_linked.mbin"
     build_toolchain = QA_DIR / "runners" / "build_toolchain.py"
     myemu = MYEMULATOR_DIR / "target" / "release" / "myemu"
