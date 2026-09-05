@@ -13,5 +13,6 @@ MYLANGTESTER_DIR = TOOLCHAIN_DIR / "MyLangTester"
 MYLINKER_DIR = TOOLCHAIN_DIR / "MyLinker"
 MYEMULATOR_DIR = RUNTIME_DIR / "MyEmulator"
 MYKERNEL_DIR = SYSTEM_DIR / "MyKernel"
+MYOS_DIR = SYSTEM_DIR / "MyOS"
 # Legacy alias kept for older scripts/docs after qa/ flattening.
 MYTESTER_DIR = QA_DIR
