@@ -63,7 +63,9 @@ wrap with a compare instead of `%`, and a future hash must be djb2
 
 ### Phase 0 -- done, no compiler change required
 
-`system/MyKernel/src/lib/`:
+`toolchain/MyStdLib/` (moved out of `system/MyKernel/src/lib/` once MyOS and
+MyLangCompiler's own tests started reaching into MyKernel for it -- a kernel
+repo growing the shared library for its siblings was backwards):
 
 | package | role |
 | --- | --- |
