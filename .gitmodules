@@ -39,3 +39,6 @@
 [submodule "system/MyFirmware"]
 	path = system/MyFirmware
 	url = git@github.com:Keyhole-Koro/MyFirmware.git
+[submodule "toolchain/MyStdLib"]
+	path = toolchain/MyStdLib
+	url = git@github.com:Keyhole-Koro/MyStdLib.git

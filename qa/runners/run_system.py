@@ -145,9 +145,17 @@ def main():
 
     # 4. Run emulator.
     # --timer-interval is a real-time tick period in microseconds. 1000 us = 1 ms
-    # = a ~1 kHz scheduler tick, which keeps the UI poll/redraw smooth. (It used to
-    # be an instruction count; the timer is now wall-clock driven so the CPU can
-    # idle on WFI without stalling the timer.)
+    # = a ~1 kHz scheduler tick, which keeps the UI poll/redraw smooth. (It used
+    # to be an instruction count; the timer is now wall-clock driven so the CPU
+    # can idle on WFI without stalling the timer.)
+    #
+    # A period this short used to starve the guest: the handler outlasted it, so
+    # the next tick was already due the moment it returned and nothing but
+    # interrupts ever ran -- the first frame never finished drawing. The timer
+    # now also requires a minimum number of retired instructions between ticks
+    # (MIN_INSTRS_PER_TICK in runtime/MyEmulator/src/machine/timer.rs), so a tick
+    # is delayed rather than allowed to crowd the guest out, and the period is
+    # once again just an upper bound on the tick rate.
     emu_cmd = [str(myemu), "-i", str(fw_bin), "--disk", str(disk_img), "-o", str(report_path), "--log-dir", str(session.session_dir), "--timer-interval", "1000"]
     if args.headless:
         emu_cmd.append("--headless")

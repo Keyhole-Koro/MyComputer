@@ -87,15 +87,24 @@ MMIO や raw pointer 操作は `unchecked` と関連する。
 
 ### フェーズ3: Minimal core APIs
 
-**実装済み**（`system/MyKernel/src/lib/`）:
+**実装済み**（当初 `system/MyKernel/src/lib/` に置いたが、2026-09-06 に
+独立 submodule `toolchain/MyStdLib`（[Keyhole-Koro/MyStdLib](https://github.com/Keyhole-Koro/MyStdLib)）へ
+切り出し済み — MyOS の app/fs コードと MyLangCompiler 自身の generic import
+テストが両方とも「kernel リポジトリの中の lib」を跨いで参照する状態になって
+おり、kernel が兄弟リポジトリ用の共有ライブラリを生やす形は本末転倒だった
+ため。history は `git filter-branch --subdirectory-filter` で保持して移設。
+package 名はフラットなままで、`std.` prefix という当初案までは踏み込んで
+いない（dotted package namespace はコンパイラ未対応）:
 
 | package | 内容 |
 | --- | --- |
 | `str` | len / cmp / eq / ncmp / starts_with / copy / ncopy / cat / chr / find / itoa / xtoa / atoi |
 | `bytes` | set / zero / copy / move / cmp / eq / find |
 | `bitset` | get / set / clear / put / toggle / find_clear / find_set / count |
-| `ringbuf` | init / push / pop / peek / has / full / count / capacity |
+| `ringbuf` | init / push / pop / peek / has / full / count / capacity（`RingBuffer<T>` payload型、`ring_*` API） |
 | `strbuf` | reset / push / append / append_n / append_i32 / append_hex / truncate |
+| `vec` / `slice` / `arena` / `intrusive_list` / `hashmap` | 汎用ジェネリックコンテナ（`generics/` から `lib/` 直下へ統合済み） |
+| `option` / `result` | payload enum `Option<T>` / `Result<T,E>`（構造体からの置き換え済み、MyLangCompilerの `feat/tagged-result-patterns` が実装） |
 
 `std.mem` は `bytes` という名前になった。`package mem`（`src/mm/mem.mln`）が
 すでにカーネルの word 単位の絶対アドレスアクセサとして存在するため。
@@ -104,6 +113,7 @@ MMIO や raw pointer 操作は `unchecked` と関連する。
 `MyOS/src/fs/fs.mln` のブロックビットマップ（bitset）、
 `MyOS/src/apps/shell.mln` の私的な `str_eq`（str.eq）、
 `MyOS/src/apps/counter.dom.mln` の手書き10進バイト列（strbuf）。
+いずれも `toolchain/MyStdLib/...` への相対パスに更新済み。
 
 **保留**:
 
