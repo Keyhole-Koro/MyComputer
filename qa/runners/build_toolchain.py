@@ -157,6 +157,7 @@ def main():
     parser.add_argument("--masm", action="store_true", help="Include .masm when scanning directories")
     parser.add_argument("--clean", action="store_true", help="Clean build directory before build")
     parser.add_argument("--base", type=str, help="Base address for linking in hex (default: 0)")
+    parser.add_argument("--header", action="store_true", help="Emit MBIN v2 executable header")
     args = parser.parse_args()
 
     repo = REPO_ROOT
@@ -250,6 +251,8 @@ def main():
     linker_cmd = [mllinker, "--map", map_path]
     if args.base:
         linker_cmd.extend(["--base", args.base])
+    if args.header:
+        linker_cmd.append("--header")
     linker_cmd.append(out_path)
     linker_cmd.extend(final_mobj)
 

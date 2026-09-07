@@ -44,6 +44,31 @@
         "path": "./syntaxes/mymasm.tmLanguage.json"
       }
     ],
+    "semanticTokenScopes": [
+      {
+        "language": "mylang",
+        "scopes": {
+          "result": [
+            "entity.name.type.result.mylang"
+          ],
+          "resultVariant": [
+            "entity.name.function.result-variant.mylang"
+          ]
+        }
+      }
+    ],
+    "configurationDefaults": {
+      "[mylang]": {
+        "editor.semanticTokenColorCustomizations": {
+          "rules": {
+            "enum": "#C75632",
+            "enumMember": "#B84A2C",
+            "result": "#D65D3A",
+            "resultVariant": "#B84A2C"
+          }
+        }
+      }
+    },
     "configuration": {
       "title": "MyLang",
       "properties": {

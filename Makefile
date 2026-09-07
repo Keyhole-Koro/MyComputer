@@ -63,6 +63,9 @@ qa-serial-rx:
 qa-scheduler:
 	$(PYTHON) $(QA_DIR)/tests/test-all.py scheduler $(ARGS)
 
+qa-process:
+	$(PYTHON) $(QA_DIR)/tests/test-all.py process $(ARGS)
+
 qa-dom:
 	$(PYTHON) $(QA_DIR)/tests/test-all.py dom dom-hit $(ARGS)
 

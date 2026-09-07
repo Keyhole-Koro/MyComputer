@@ -149,6 +149,10 @@ SUITES = {
         ["python3", str(MYKERNEL_DIR / "tests" / "scheduler" / "run_scheduler_test.py")],
         ["mlc", "myas", "mllinker", "myemu"],
     ),
+    "process": (
+        ["python3", str(MYKERNEL_DIR / "tests" / "process" / "run_process_test.py")],
+        ["mlc", "myas", "mllinker", "myemu"],
+    ),
 }
 
 # These suites may incrementally build the same sibling repositories internally.
