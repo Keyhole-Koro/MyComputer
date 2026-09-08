@@ -48,6 +48,10 @@ Compiler integration tests:
 make mlc-test
 ```
 
+MyLang syntax, token, and semantic-token tests are included in the compiler
+test suite. The shared syntax engine builds an LR(1) table from the grammar;
+the compiler and the LSP use the same syntax-checking path for diagnostics.
+
 Assembler / linker:
 
 ```bash
@@ -83,6 +87,22 @@ Profile report:
 make profile ARGS="system/MyKernel/build/sessions/<session>/profile.json"
 ```
 
+## MyLang And VS Code
+
+The MyLang frontend supports generic types such as `Result<i32, MmuError>`,
+unit-style results such as `Result<_, LoaderError>`, and qualified enum
+variants such as `MmuError::AllocFailed` and `LoaderError::OutOfMemory`.
+Pattern matching with `Ok(value)` / `Err(error)` is also supported.
+
+For syntax diagnostics and semantic highlighting in VS Code, install the
+extension in [`tools/vscode-mylang`](tools/vscode-mylang/README.md). The
+extension launches the repository's MyLang LSP and supports `.mln` and `.mlx`
+files. See the design notes for the LR(1) engine and frontend integration:
+
+- [Generic syntax engine](docs/implemented/syntax-engine-generic.md)
+- [Shared frontend and LSP](docs/implemented/shared-frontend.md)
+- [Result and qualified enum variants](docs/design/mbin-executable-header.md)
+
 ## Tickets
 
 - [Issue index](issues/README.md)
@@ -106,9 +126,12 @@ make profile ARGS="system/MyKernel/build/sessions/<session>/profile.json"
 ├── toolchain/
 │   ├── MyAssembler/          # Assembler
 │   ├── MyLangCompiler/       # Compiler (incl. native .dom.mln UI syntax)
+│   ├── MySyntaxEngine/        # Generic LR(1) syntax engine
 │   ├── MyLinker/             # Linker
+│   ├── MyStdLib/              # MyLang standard library
 │   └── MyLangTester/         # MyLang test tooling
 ├── tools/                    # Helper tools and editor integration
+│   └── vscode-mylang/        # VS Code syntax/LSP integration
 ├── .devcontainer/            # Dev container settings
 └── readme.md                 # This file
 ```

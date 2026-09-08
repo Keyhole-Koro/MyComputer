@@ -111,13 +111,9 @@ The firmware currently assumes the kernel fits within 10 blocks (640 KB). If the
 Located in `system/MyKernel/src/` and `system/MyOS/src/`.
 
 ### 4.1 Memory Management & Heap Allocator (`heap.mln`)
-* **Out of Memory Panic:** If `heap.alloc(size)` cannot find a free block large enough (first-fit search fails), it invokes:
+* **Out of Memory Panic:** If `heap.alloc(size)` cannot find a free block large enough (first-fit search fails), it invokes the shared debug utility:
   ```c
-  void panic(char* msg) {
-      debug.print("heap panic: ");
-      debug.println(msg);
-      halt_cpu();
-  }
+  debug.panic("out of memory");
   ```
   This immediately halts the CPU after emitting the diagnostic message over the serial console.
 * **Invalid Allocation Size:** If `size <= 0`, `heap.alloc()` returns `0` (NULL).

@@ -21,6 +21,7 @@
 | MLC-011 | [MyLang Warning Diagnostics](completed/MLC-011_compiler-warning-diagnostics.md) | Done | warning severity、warning fixture、warnings-as-errors の土台を作る。 |
 | MLT-002 | [MyLang Test Framework（mytest + test declaration）](tickets/MLT-002_mylang-test-framework.md) | Proposed | `*.test.mln`、Jest 風 test declaration、mytest runner、emulator test options を設計・実装する。 |
 | MLT-001 | [MyLang Test Diagnostics Strategy](tickets/MLT-001_mylang-test-diagnostics-strategy.md) | Proposed | `.test.mln` E2E とホスト側テストの役割分担、失敗時の切り分け方針を整理する。 |
+| MLT-003 | [MyLang Function Mocking Framework](tickets/MLT-003_mylang-di-and-mocking.md) | Proposed | MyLangTestKitを基盤に、production DIを要求しない型付きMock/Spyとtest-build dispatchを設計する。 |
 | EMU-002 | [エミュレータのデバイス挙動をリアル化（非同期DMA / 実時間タイマー / VBlank同期）](tickets/EMU-002_emulator-realistic-devices.md) | Proposed | DMA を BUSY→DONE→完了割込に、タイマーを実時間ベースに、SWAP を VBlank 同期に。 |
 | MLC-014 | [MyLang Function Signature Type Checking](completed/MLC-014_mylang-function-signature-type-checking.md) | Done | 関数 signature に引数型・戻り値型を持たせ、call site の型不一致を semantic で検出する。 |
 | MLC-002 | [MyLang Flow-Sensitive Borrow And Move Analysis](tickets/MLC-002_mylang-flow-sensitive-borrow-analysis.md) | In Progress | 分岐、field、関数呼び出し越しの move / borrow 解析を強化する。 |
@@ -61,11 +62,12 @@
 6. MYOS-006: ファイルシステムを実装する（SSD + ブロックドライバ + MyFileSystem(MFS)）。
 7. MLT-002: Python runner を置き換える MyLang test framework を整備する。
 8. MLT-001: `mytest` の診断性と、`.test.mln` 化する範囲を整理する。
-9. MLC-012: diagnostic code の採番規則を明文化する（MLC-014 / MLC-003 が新 code を足す前の土台）。
-10. MLC-002: move / borrow 解析を分岐・field・関数呼び出しへ広げる（MLC-014 の signature 拡張に依存）。
-11. MLC-001 / MLC-003: aggregate data layout と package symbol 解決を固める。
-12. MLC-005: typed IR の導入可否を設計し、段階移行を始める。
-13. MLSP-001 / MLC-004: LSP 診断と標準 library の開発体験を整える。
-14. MYOS-004: DOM-like UI と headless emulator をつなぎ、Playwright 風 E2E テストを可能にする。
-15. MDT-001: OS DOM UI を宣言的に書けるようにする。MyLangCompiler の native `.dom.mln` 構文で実現し、MyDOMTranspiler は撤去済み。
-16. MYOS-008: 仮想 NIC と Ethernet / ARP / IPv4 / ICMP / UDP を追加し、headless で通信可能にする。
+9. MLT-003: MyLangTestKitを追加し、production DIを要求しない型付きfunction Mock / Spyをtest buildへ追加する。
+10. MLC-012: diagnostic code の採番規則を明文化する（MLC-014 / MLC-003 が新 code を足す前の土台）。
+11. MLC-002: move / borrow 解析を分岐・field・関数呼び出しへ広げる（MLC-014 の signature 拡張に依存）。
+12. MLC-001 / MLC-003: aggregate data layout と package symbol 解決を固める。
+13. MLC-005: typed IR の導入可否を設計し、段階移行を始める。
+14. MLSP-001 / MLC-004: LSP 診断と標準 library の開発体験を整える。
+15. MYOS-004: DOM-like UI と headless emulator をつなぎ、Playwright 風 E2E テストを可能にする。
+16. MDT-001: OS DOM UI を宣言的に書けるようにする。MyLangCompiler の native `.dom.mln` 構文で実現し、MyDOMTranspiler は撤去済み。
+17. MYOS-008: 仮想 NIC と Ethernet / ARP / IPv4 / ICMP / UDP を追加し、headless で通信可能にする。
