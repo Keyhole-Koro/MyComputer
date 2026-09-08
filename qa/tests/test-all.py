@@ -39,6 +39,7 @@ from tools.project_paths import (
     MYLANGCOMPILER_DIR,
     MYLANGTESTER_DIR,
     MYLINKER_DIR,
+    MYOS_DIR,
     REPO_ROOT,
 )
 
@@ -142,7 +143,7 @@ SUITES = {
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
     "dom-hit": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "dom" / "dom_hit_dispatch.test.mln")],
+        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYOS_DIR / "tests" / "dom" / "dom_hit_dispatch.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
     "scheduler": (
