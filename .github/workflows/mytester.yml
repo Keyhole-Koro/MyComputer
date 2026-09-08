@@ -64,7 +64,7 @@ jobs:
         run: make serial-rx-test
 
       - name: Run DOM lowering test
-        run: make dom-test
+        run: python3 qa/tests/test-all.py dom dom-hit --verbose
 
       - name: Run MyDOMTester E2E (headless UI automation, MYOS-004)
         run: make dom-tester-test
