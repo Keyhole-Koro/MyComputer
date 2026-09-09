@@ -64,7 +64,7 @@ MyKernel subsystem tests:
 ```bash
 python3 system/MyKernel/tests/heap/run_heap_tests.py
 python3 system/MyKernel/tests/scheduler/run_scheduler_test.py
-python3 system/MyKernel/tests/fs/run_fs_smoke_test.py
+python3 system/MyOS/tests/fs/run_fs_smoke_test.py
 ```
 
 ## Debugging
@@ -89,11 +89,6 @@ make profile ARGS="system/MyKernel/build/sessions/<session>/profile.json"
 
 ## MyLang And VS Code
 
-The MyLang frontend supports generic types such as `Result<i32, MmuError>`,
-unit-style results such as `Result<_, LoaderError>`, and qualified enum
-variants such as `MmuError::AllocFailed` and `LoaderError::OutOfMemory`.
-Pattern matching with `Ok(value)` / `Err(error)` is also supported.
-
 For syntax diagnostics and semantic highlighting in VS Code, install the
 extension in [`tools/vscode-mylang`](tools/vscode-mylang/README.md). The
 extension launches the repository's MyLang LSP and supports `.mln` and `.mlx`
@@ -101,13 +96,6 @@ files. See the design notes for the LR(1) engine and frontend integration:
 
 - [Generic syntax engine](docs/implemented/syntax-engine-generic.md)
 - [Shared frontend and LSP](docs/implemented/shared-frontend.md)
-- [Result and qualified enum variants](docs/design/mbin-executable-header.md)
-
-## Tickets
-
-- [Issue index](issues/README.md)
-- [DOM-like OS object model](issues/tickets/dom-like-os.md)
-- [MyKernel DOM UI Automation](issues/tickets/mykernel-ui-automation.md)
 
 ## Directory Structure
 
@@ -115,6 +103,8 @@ files. See the design notes for the LR(1) engine and frontend integration:
 .
 ├── architecture/             # Architecture notes and design docs
 ├── docs/                     # Project-wide documentation
+├── hardware/
+│   └── verilator/            # Verilog/Verilator hardware model
 ├── issues/                   # Proposed / completed work tickets
 ├── qa/                       # Test scripts, build runners, debug helpers
 ├── runtime/
@@ -126,12 +116,14 @@ files. See the design notes for the LR(1) engine and frontend integration:
 ├── toolchain/
 │   ├── MyAssembler/          # Assembler
 │   ├── MyLangCompiler/       # Compiler (incl. native .dom.mln UI syntax)
-│   ├── MySyntaxEngine/        # Generic LR(1) syntax engine
+│   ├── MySyntaxEngine/       # Generic LR(1) syntax engine
 │   ├── MyLinker/             # Linker
-│   ├── MyStdLib/              # MyLang standard library
-│   └── MyLangTester/         # MyLang test tooling
+│   ├── MyStdLib/             # MyLang standard library
+│   ├── MyLangTester/         # MyLang test tooling
+│   └── MyLangTestKit/        # MyLang mock/spy test-double runtime
 ├── tools/                    # Helper tools and editor integration
-│   └── vscode-mylang/        # VS Code syntax/LSP integration
+│   ├── vscode-mylang/        # VS Code syntax/LSP integration
+│   └── MyLangServerProtocol/ # MyLang LSP server
 ├── .devcontainer/            # Dev container settings
 └── readme.md                 # This file
 ```
