@@ -4,14 +4,13 @@
 
 In progress.  The ABI-v1 verdict bridge and the first compiler-facing generic
 building blocks (`Matcher<T>`, `ReturnSequence<T>`, and `CallHistory<Args,
-Ret>`) are implemented in `MyLangTestKit` and run in MyEmulator.  The fluent
-DSL recognition, typed dispatcher generation, rule engine, and stable
-dispatch-slot backend remain to be implemented in MyLangCompiler/TestKit.
+Ret>`) are implemented in `MyLangTestKit` and run in MyEmulator.  The generic
+`Mock<Args, Ret>` / rule engine, typed hook generation, and stable link-time
+interception backend remain to be implemented.
 
 ## 結論
 
-テストのために production code を DI 化しない。MyLang の関数・メソッドを test build だけで
-intercept し、次の API を提供する。
+MyLang の関数・メソッドを test build でinterceptし、次の API を提供する。
 
 ```mylang
 mock.of(ssd.read_block)
@@ -27,21 +26,18 @@ mock.of(ssd.read_block)
 
 `.ret()` を採用する。`.return()` は MyLang の `return` keyword と衝突し、`.returns()` より短い。
 
-DI は、RAM disk / SSD、複数 clock、複数 allocator など、production 自身が実装を交換する必要を
-持ったときに採用する設計手法として別に扱う。mockability だけを理由に `Port`、constructor parameter、
-service locator、DI container を production API へ追加しない。
-
 ## 設計判断
 
 1. mock target は型が解決できる MyLang function / method とする。
 2. `mock.of(target)` から target signature を推論する。利用者は target ごとの Mock struct を書かない。
 3. 共通の rule / matcher / call history / return sequence は generics で実装する。
-4. target 固有の引数 packing と dispatcher だけを compiler が生成する。
-5. 安定版は text を書き換えず、test build 専用の dispatch slot を使う。
-6. detour は API を早期検証する prototype backend に限定し、最終 backend にはしない。
+4. `Mock<Args, Ret>`、rule、matcher、history、verification は MyLang generics / methods として
+   TestKitに実装する。targetごとのbuild supportが`Args` packingとhookを提供する。
+5. test buildのlink時に対象symbolへのdirect call relocationを固定hookへ向ける。
+6. detour は API を早期検証する prototype backend とする。
 7. 一つの test case は独立した emulator process で実行し、mock state を case 間で共有しない。
 8. test body の正常 return を PASS とし、その前に自動 verification / cleanup を実行する。
-9. Mock と Spy は同じ `Mock<F>` engine を使い、unmatched call の方針だけを変える。
+9. Mock と Spy は同じ `Mock<Args, Ret>` engine を使い、unmatched call の方針だけを変える。
 10. guest側の test runtime は `toolchain/MyLangTestKit` submodule が所有する。`MyLangTester` は host側の
     discovery / build / emulator runner に限定する。
 
@@ -56,7 +52,7 @@ toolchain/MyLangTestKit
 ```
 
 ```text
-MyLangCompiler  -- typed lowering / target wrapper generation -->  MyLangTestKit
+MyLangCompiler  -- typed hook/support generation ----------->  MyLangTestKit
        ^                                                        (guest runtime)
        |                                                              |
        | test plan / ABI                                               | TEST_FAIL, mock state
@@ -65,12 +61,12 @@ MyLangTester   -- build / run / verdict ----------------------> MyEmulator
        (host runner)
 ```
 
-- `MyLangTestKit`: `mock` DSLのruntime helper、matcher/rule/history、verification、verdict、test lifecycle、
+- `MyLangTestKit`: genericな`Mock<Args, Ret>`、matcher/rule/history、verification、verdict、test lifecycle、
   `assert_fail` adapter、prototype用detour supportを持つ。production buildへは入らない。
-- `MyLangCompiler`: DSL recognition、signature validation、typed glue、test-build dispatch wrapperを持つ。
+- `MyLangCompiler`: signature validationと、target固有のArgs packing / typed hook / real-call thunkを生成する。
   MyLangTestKitのsourceを直接参照せず、定義済みABIに対してcodeを生成する。
-- `MyLangTester`: `.test.mln` discovery、plan作成、TestKitのsource追加、build/emulator実行、serial verdict
-  の分類を持つ。guest-side mock stateは持たない。
+- `MyLangTester`: `.test.mln` discovery、plan作成、TestKitのsource追加、build/emulator実行、linkerへ
+  interception targetを渡すこと、serial verdictの分類を持つ。guest-side mock stateは持たない。
 - `MyStdLib`: productionでも有用な`assert_*`だけを持つ。`extern assert_fail`の実装はTestKitがtest buildへ
   提供する。
 
@@ -145,60 +141,28 @@ MockState<SsdReadBlockArgs, i32> __mock_ssd_read_block;
 fallback thunk だけである。generics は mock engine の重複を消し、compiler generation は signature
 の違いを橋渡しする。
 
-### Mock chain は compile-time DSL
+### Mock API
 
-`mock.of(...).when(...).ret(...)` を通常の package function / receiver method 群として実装しない。
-現状は cross-package method と generic receiver method に制約があり、通常関数として実装しても
-`mock.of` の戻り型を target ごとに変えられないためである。
+`mock` packageのfunctionとreceiver methodでMockを構成する。`Mock<Args, Ret>` がrule、sequence、
+historyを保持し、targetごとのbuild supportがArgs descriptorを提供する。
 
-test compile では parser が作った通常の call/member AST を、専用の `lower_test_mock_chains` が
-`resolve_method_calls` より前に認識する。chain を状態機械として検査し、生成 support symbol への
-通常 call に書き換える。
-
-```text
-mock.of(target).when(m1, m2).ret(value)
-
-  -> __mlt_rule_begin_<target>(MOCK_STRICT)
-  -> __mlt_rule_match_<target>(m1, m2)
-  -> __mlt_rule_ret_<target>(value)
+```mylang
+// `ReadBlockArgs` はtarget signatureから生成されるinternal type。
+Mock<ReadBlockArgs, i32> read = mock.of(ssd.read_block);
+read.when(ReadBlockArgs { block: 2, buffer: mock.any() })
+    .ret(-1)
+    .then_ret(-2);
 ```
 
-これにより fluent API のためだけに一般言語の method dispatch を拡張しない。`mock` は test source
-限定の予約 namespace とし、import は不要にする。通常 source で使用した場合は
-`mock DSL is only available in test builds` と診断する。
+`Mock<Args, Ret>` はtarget descriptorを保持する。descriptorはtest planが割り当てたtarget id、
+hook address、real entry address、state storageへの参照から成る。通常のmethod型検査で`ret`、
+`answer`、matcher、verificationの型を検査する。関数signatureをArgs / Retへ分解する機能は不要で、
+target固有のArgs descriptorを生成するbuild supportが橋渡しする。
 
-受理する chain を明示的に限定する。
-
-```text
-target      := mock.of(function) | mock.spy(function)
-stub        := target [ .when(matchers...) ]
-               ( .ret([value]) [ .then_ret(value)... ] [ .expect_times(n) ]
-               | .answer(function) [ .expect_times(n) ] )
-verify      := target .verify(matchers...)
-               [ .returned(matcher) ] [ .called_real() ]
-               ( .times(n) | .once() | .never()
-               | .at_least(n) | .at_most(n) )
-inspect     := target .call_count()
-             | target .call(index)
-               ( .arg(const_index) | .ret() | .path() | .complete() )
-activate    := mock.of(function) | mock.spy(function)
-maintenance := mock.clear_calls(function) | mock.reset(function)
-```
-
-`ret` と `answer` の併用、`then_ret` の前の `ret` 欠落、terminal operation 後の chain、target のない
-matcher は compile error にする。fluent chain の途中値は runtime value として保存・受け渡しせず、
-一つの式全体を compiler が lowering する。
-
-standalone activation または stub registration の `mock.of(target)` / `mock.spy(target)` が実行された
-時点でtargetを有効化する。sourceにchainが存在するだけでは有効化しないため、setupより前に行われた
-呼び出しは記録・置換されない。`verify(...)` / `call(...)` chainの先頭にある `mock.of` / `mock.spy` は
-lookupだけを行い、
-新規に有効化しない。未有効化targetのverification/inspectionは
-`target was not activated before observation` として失敗させる。これにより、実行後に初めて Spy を置いて
-過去の呼び出しを検査できたように見える誤用を防ぐ。
-
-同じ test case に `mock.of(target)` と `mock.spy(target)` が静的に混在する場合は compile error にする。
-将来、条件分岐等で静的判定できない形を許した場合に備え、runtime にも mode conflict guard を残す。
+対象の有効化は`mock.of(target)` / `mock.spy(target)` が実行された時点で行う。sourceにchainが
+存在するだけでは有効化しない。`verify(...)` / `call(...)` はlookupだけを行い新規有効化しない。
+未有効化targetの観測は `target was not activated before observation` としてfailureにする。
+同一targetのMock / Spy mode競合はruntimeでfailureにする。
 
 ## 利用 API
 
@@ -408,7 +372,8 @@ verification 時の `str_eq` はその address を再度読む。literal や tes
 
 ### Spy call inspection
 
-ArgumentCaptor相当は、target固有のArgs structを公開せず、call historyへのcompile-time DSLで提供する。
+ArgumentCaptor相当は、target固有のArgs structを公開せず、typed `Mock<Args, Ret>` methodと
+generated accessorで提供する。
 
 ```mylang
 i32 count = mock.spy(ssd.read_block).call_count();
@@ -486,10 +451,10 @@ mock.spy(ssd.read_block)
     .once();
 ```
 
-matcher の `T` は target の該当 parameter から推論するため、利用者は `mock.any<i32>()` や
-`mock.eq_i32(...)` と書かない。これは一般言語の return-context type inference ではなく、mock DSL
-lowering が型付き helper を生成する規則である。pointer expression は意味が曖昧なので暗黙 `eq` にせず、
-address identity は `mock.same(ptr)`、文字列内容は `mock.str_eq(text)` を明記する。
+matcher の `T` は通常のmethod parameter型から解決できる場合に推論する。解決できない場合は
+`mock.any<i32>()` のように明示する。将来の`when(2, mock.any())` sugarはtarget parameter型から
+型引数を補うが、runtime APIの前提にはしない。pointer expressionは意味が曖昧なので暗黙`eq`にせず、
+address identityは`mock.same(ptr)`、文字列内容は`mock.str_eq(text)`を明記する。
 
 implicit `eq` にできるexpressionは、通常のassignment規則でparameter型へ入れられるscalar/enumに限る。
 `mock.matches(predicate)` のpredicateは `i32 predicate(T actual)` を要求し、0をfalse、非0をtrueとする。
@@ -522,94 +487,58 @@ functionは対象にできる。
 `cannot mock serial_write_raw: target has no MyLang function body in the build graph` のように理由を示す。
 method targetは前述のとおり通常functionの安定版完了後に追加する。
 
-## Stable backend: test-build dispatch slot
+## Stable backend: link-time interception
 
-安定版では function entry の machine code を実行時に変更しない。mock target だけを test build で
-次の形へ lower する。
+test buildのlink時に、test planで指定されたtargetへの**direct call relocation**を、targetごとの固定hook
+symbolへ解決する。hookのmachine codeは
+test binary作成時に一度だけ生成され、その後のMock / Spy / rule切替えはMyLangTestKitのruntime stateだけを
+変更する。ruleごと、test中のconfiguration変更ごとに再linkしない。
 
 ```text
 normal build
-  caller -> ssd_read_block
+  fs_load -> ssd_read_block
 
-test build
-  caller -> ssd_read_block$dispatch
-               |
-               +-- slot == 0 -> ssd_read_block$real
-               |
-               +-- slot != 0 -> generated mock dispatcher
-                                      |
-                                      +-- matching rule -> ret / answer
-                                      +-- unmatched     -> real(Spy) / TEST_FAIL(Mock)
+test build (link redirect)
+  fs_load -> __mlt_hook_t0
+                 |
+                 +-- state OFF  -> ssd_read_block (real address)
+                 +-- matching rule -> configured return / answer
+                 +-- Spy unmatched -> ssd_read_block (real address)
+                 +-- Mock unmatched -> TEST_FAIL
 ```
 
-conceptual lowering:
+`fs_load`や他callerのsourceへif文を足さない。linkerが`ssd_read_block`を参照するrelocationをhook addressへ
+付け替えるため、同じtargetを直接callする全moduleから観測できる。hookは引数を`Args`へpackし、call開始を
+historyへ記録してTestKit rule engineを呼ぶ。`REAL` pathだけがlinkerの保存したoriginal entry addressへ
+tail call / typed callを行い、戻り後にreturn valueとcompleteをhistoryへ記録する。
 
-```mylang
-i32 __mock_slot_ssd_read_block = 0;
-
-i32 ssd_read_block(i32 block, i32 buffer) {
-    i32 target = __mock_slot_ssd_read_block;
-    if (target == 0) {
-        return __real_ssd_read_block(block, buffer);
-    }
-    return target(block, buffer);
-}
-
-i32 __real_ssd_read_block(i32 block, i32 buffer) {
-    // original body
-}
+```masm
+__mlt_hook_t0:                    ; i32 ssd_read_block(i32 block, i32 buffer)
+    ; R5/R6をArgsへpackし、TestKitのstateを照会
+    call __mlt_dispatch_t0
+    ; decision = RET / ANSWER / REAL / UNEXPECTED
+    ; RET/ANSWERはconfigured valueを返す
+    ; REALだけsaved real addressへ跳ぶ
 ```
 
-global data initializer は function address relocation を持たないため、slot は zero 初期化する。zero は
-「originalへ直行」を意味し、test setup が mock dispatcher address を書き込む。
+linkerの責務はsymbol relocationのredirectとoriginal entry addressの保存だけに留める。signatureを知る必要が
+あるArgs packing、return ABI、TestKit call、条件分岐はcompilerまたはgenerated test-support moduleがtyped hook
+として生成する。これによりlinkerはtarget固有のMock semanticsを持たない。
 
-slot を別 module から直接書かせない。mock target を持つ module は test build で次の内部 control
-symbols も生成する。
+`mock.of` / `mock.spy` はhookをinstallするのではなく、既存hookが読むtarget stateをOFF / MOCK / SPYへ変更する。
+`reset` とtest epilogue cleanupはOFFへ戻す。したがってsetupより前のboot code等は観測されず、一つのbinary内で
+複数のArrange / Act / Verify checkpointを安全に実行できる。
 
-```mylang
-void __mlt_install_ssd_read_block(i32 dispatcher) {
-    __mock_slot_ssd_read_block = dispatcher;
-}
+MyLangTesterはcaseごとのtest planをbuild toolchainとlinkerへ渡す。planにはcanonical target id、link name、
+signature、hook symbolを含める。生成内部symbolはlink nameを連結せずplan-local idを使い、例えば
+`__mlt_hook_t0`、`__mlt_dispatch_t0`とする。target集合が変わるときだけtest binaryを再build/relinkする。
 
-i32 __mlt_real_ssd_read_block(i32 block, i32 buffer) {
-    return __real_ssd_read_block(block, buffer);
-}
-```
+初期対応は通常のMyLang direct callに限る。実行時function pointer値、extern/builtin、`.masm`のみで定義された
+symbol、inlining後にdirect relocationを持たないcallはinterceptionしない。self-recursionはhookを再通過し、
+別recordとして扱う。
 
-generated test support moduleはTestKit runtimeのregistryと、target ownerの`install` / `real`だけを参照する。
-これなら linker に data-section relocation を追加せず、現行の function symbol relocation だけで縦通しを
-作れる。cleanup は `install(0)` を呼ぶ。
-
-target の wrapper は binary 作成時から存在するが、slot は0なので通常どおり real を呼ぶ。最初の
-`mock.of` / `mock.spy` helper が registry を初期化して `install(dispatcher)` を呼び、`reset` または
-epilogue cleanup が `install(0)` を呼ぶ。したがって test setup より前の boot code、global initializer、
-別 test helper の呼び出しを意図せず観測しない。
-
-MyLangTesterのbuild integrationはcaseごとのtest plan pathを全 `.mln` compile commandへ
-`-test-plan <plan.json>` として渡し、同時にMyLangTestKitのruntime sourceをtest buildだけへ追加する。
-target descriptorをcommand lineに展開しないので、型・pathのescapingとcommand lengthを増やさずに済む。
-定義を所有するmoduleだけがcanonical sourceとlink nameの一致を検出してwrapperを生成し、caller objectは
-従来どおり公開symbolをcallするため変更不要である。targetが一つもないsourceは通常のtest buildと同じ
-codeを生成する。
-
-生成内部 symbol はlink nameをそのまま連結せず、planがcanonical target順に割り当てたplan-local idを使う。
-`__mlt_install_t0`、`__mlt_real_t0` のようにすれば、長いmangle名や将来のmethod symbolを安全に扱える。
-planにはidとcanonical signatureも保存し、discovery時と各module compile時でsignatureが変わった場合はbuildを
-止める。
-
-この方式の利点:
-
-- production source に DI や function-pointer field を追加しない。
-- production build に indirect call cost を残さない。
-- text write / RWX mapping に依存しない。
-- original implementation が binary に残るため unmatched fallback が安全。
-- 同じ dispatcher で Mock / Spy の両方を実装できる。
-- target signature を compiler が知っているため `ret` / matcher / answer を型検査できる。
-- test build では target を自動的に no-inline にできる。
-
-同一 module 内 call、import 越し call、関数値取得がすべて dispatch symbol を指すよう symbol rewrite を
-一箇所で行う。real body 内の自己再帰 call の扱いは「dispatchを再通過する」で統一し、必要なら後続で
-`call_real` 専用 symbol を公開する。
+original addressを保持するためSpyのautomatic fallbackが安全である。同じ固定hookでstrict Mock、pure Spy、
+partial Spyを切替えられる。target signatureからArgs packingとreturn ABIを型どおりに生成する。
 
 ## Prototype backend: detour
 
@@ -625,11 +554,11 @@ target entry の先頭一語を fake dispatcher への `jmp` に置換する方�
 - nested patch の restore order を管理する必要がある。
 
 したがって detour prototype が検証するのは strict Mock の `.ret` / `.answer` / call recording までとする。
-pure Spy、partial Spy、`REAL` path recording は安全な original call-through を持つ dispatch-slot backend
+pure Spy、partial Spy、`REAL` path recording は安全な original call-through を持つ link-time interception backend
 から開始する。prototype 用だけの不完全な trampoline は作らない。
 
-この制約を利用者 API へ漏らさない。`mock.of(...).when(...).ret(...)` は backend 非依存とし、dispatch
-slot が完成した時点で detour backend を削除する。ISA opcode encoding は MyStdLib ではなく
+`mock.of(...).when(...).ret(...)` はbackend共通のAPIとする。link-time interception backendの完成後、
+detour backendは削除する。ISA opcode encoding は MyStdLib ではなく
 MyLangTestKitのinternal runtime内に閉じ込める。
 
 ## Mock storage
@@ -717,21 +646,19 @@ annotation移行前と移行後で、compile backendに渡すplan形式は変え
 移行中は case ごとに次を行う。
 
 1. 現行 `TestParser.java` が一つのtest bodyを generated `.mln` にする。
-2. `mlc -emit-mock-plan <generated.mln> <plan.json>` がimportを解決し、mock chainを検査してcanonical
-   target descriptorとTestKit ABI versionを出す。このmodeはmachine codeを生成しない。
+2. `mlc -emit-mock-plan <generated.mln> <plan.json>` がimportを解決し、`mock.of` / `mock.spy` callから
+   canonical target descriptorとTestKit ABI versionを出す。このmodeはmachine codeを生成しない。
 3. MyLangTesterがMyLangTestKit runtime sourceを追加し、全source compileへ `-test-plan <plan.json>` を付ける。
-4. compilerがtarget定義moduleへreal body / dispatch thunk / control symbolsを、generated test moduleへ
-   typed dispatcher / `kernel_main` を生成する。TestKitはそこから使うgeneric stateとverdict runtimeを提供する。
+4. compilerがgenerated test support moduleへtyped hook / Args packing / real-call thunkを生成し、linkerが
+   targetへのdirect call relocationをhookへredirectする。TestKitはhookが使うgeneric stateとverdict runtimeを提供する。
 5. bodyの正常return後、`verify_all`、cleanup、PASS出力、haltを行う。
 
 annotation移行後は、`mlc -emit-test-manifest <source.test.mln> <manifest.json>` がtest metadataとcase別mock
 targetを同時に出し、手順1と2を置き換える。mytestは選択したcaseから同じ`plan.json`をmaterializeする。
-この二段階により、dispatch-slot backendをannotation完成まで待たせず、後でbuild側を作り直さずに済む。
+この二段階により、link-time interception backendをannotation完成まで待たせず、後でbuild側を作り直さずに済む。
 
-`lower_test_mock_chains` は function literal hoist 後、`resolve_method_calls` 前に実行する。plan emissionでも
-同じsymbol resolutionとchain validationを通し、actual compileではplanに記録したtarget idへlowering
-する。planに無いtargetをactual compile中に発見した場合は、黙ってwrapperなしで進めず
-`mock target missing from test plan` として失敗する。
+plan emissionとactual compileは同じtarget resolutionを通す。planに無いtargetをactual compile中に発見した場合は、
+`mock target missing from test plan` としてfailureにする。
 
 一つの source に複数 test があっても、初期版は case ごとに別 binary / emulator process を使う。
 global、SSD、IRQ、mock rule を完全に分離する。
@@ -797,26 +724,24 @@ assertion、strict unmatched call、未達 expectation、capacity overflow は `
 
 - scalar引数・scalar return の target 一つから開始する。
 - detour backend でstrict Mockの `.when().ret()`、call history、`verify().times()` を実証する。
-- prototypeではSpy/original fallbackを提供せず、APIを同名のdispatch-slot backendへ移せることを確認する。
+- prototypeではSpy/original fallbackを提供せず、APIを同名のlink-time interception backendへ移せることを確認する。
 - filesystem から `ssd.read_block` を直接呼ぶ構造は変更しない。
 
 ### Phase C: 型付き generic mock core
 
 - TestKitに`Matcher<T>`, `Rule<Args, Ret>`, `MockState<Args, Ret>` を追加する。
 - TestKitに`MockStateVoid<Args>` を追加する。
-- target signature から Args struct と typed dispatcher を生成する。
-- `lower_test_mock_chains` で fluent chain を通常 helper call へ書き換える。
-- `ResolverFunctionInfo` を使い matcher / `ret` / `answer` を検査する。
+- target signature から Args struct、typed hook、real-call thunkを生成する。
+- `Mock<Args, Ret>` methodの型検査で matcher / `ret` / `answer` を検査する。
+- target descriptorを`Mock<Args, Ret>`へ渡すsupportを生成する。
 - `-emit-mock-plan` とplan consistency checkを追加する。
 
-first-class function type と generic receiver method は mock framework の必須条件にしない。一般言語機能
-として導入された場合は内部生成量を減らせるが、mock target の型は既存 resolver から取得できる。
-
-### Phase D: dispatch-slot backend
+### Phase D: link-time interception backend
 
 - test manifest から mock target を build pipeline へ渡す。
 - build toolchainから全source compileへ `-test-plan` を渡す。
-- target body rename、dispatch thunk、zero-init slot を生成する。
+- targetごとのfixed hookとreal entry descriptorを生成する。
+- linkerがtargetへのdirect call relocationをhook addressへredirectする。
 - Spy の automatic original fallback / Mock の strict mode / no-inline を実装する。
 - Mock の unexpected-call failure と Spy の original fallback を同じ dispatcher に実装する。
 - typed `call(i).arg(j)` / `ret()` / `path()` getterを生成する。
@@ -852,7 +777,7 @@ first-class function type と generic receiver method は mock framework の必�
   - ABI v1 mismatchがlink errorになること。
   - matcher / rule / history / verdict adapterのguest-side unit / integration test。
 - emulator integration:
-  - strict Mockについてdetour prototypeとdispatch-slot backendが同じobservable behaviorを持つ。
+  - strict Mockについてdetour prototypeとlink-time interception backendが同じobservable behaviorを持つ。
   - Mock unmatched failure、Spy original fallback、pure/partial Spy、rule override。
   - sequence exhaustion、typed call inspection、call path記録、capacity overflow。
   - answerから同一targetへの直接再入がruntime failureになる。
@@ -869,10 +794,10 @@ first-class function type と generic receiver method は mock framework の必�
 - pure Spy と partial Spy が引数・回数を記録し、unmatched call を original へ渡す。
 - `call(i).arg(j)` がtarget signatureに対応する型で履歴を返し、公開target固有structを要求しない。
 - `verify` と epilogue expectation failure が reason 付きで表示される。
-- production binary に mock runtime、dispatch slot、indirect call overhead が含まれない。
+- production binaryは既存のsymbol、code path、performanceを維持する。
 - rootがMyLangCompiler、MyLangTester、MyLangTestKitの互換submodule revisionをpinする。
 - 一つの `.test.mln` に複数 case を書け、各 case が独立した emulator state で動く。
-- stable backend が writable text と inline 禁止へ依存しない。
+- stable backendは固定hookとdirect-call relocationで動作する。
 
 ## 非目標
 
