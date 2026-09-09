@@ -2,7 +2,7 @@
 
 | Status | Branch | Agent | Updated |
 | --- | --- | --- | --- |
-| Proposed | - | - | 2026-09-09 |
+| In Progress | - | claude-code:sonnet-5 | 2026-09-09 |
 
 ## Summary
 
@@ -108,9 +108,9 @@ Alternatives Considered を参照。
 
 ## Progress
 
-- [ ] フェーズ1: `mydomtester/inspect.py` の 1 回 dump モード
-- [ ] フェーズ1: `--watch` モードとスナップショット間 diff 表示
-- [ ] フェーズ1: `--node <id>` の詳細表示
+- [x] フェーズ1: `mydomtester/inspect.py` の 1 回 dump モード（`make dom-inspect`）
+- [x] フェーズ1: `--watch` モードとスナップショット間 diff 表示
+- [x] フェーズ1: `--node <id>` の詳細表示
 - [ ] フェーズ2: `shell.mln` に `set <id> <prop> <value>` コマンド追加
 - [ ] フェーズ2: `control_stdio.rs` に `dom.set_prop` 追加
 - [ ] フェーズ2: `Page.set_prop()` と `inspect.py` の対話編集モード
@@ -119,13 +119,16 @@ Alternatives Considered を参照。
 
 ```
 # ビルド（既存の counter UI fixture を使う）
-python3 qa/runners/run_system.py --no-run
+make build
 
 # フェーズ1: 1回 dump
-python3 -m system.MyOS.tests.mydomtester.inspect build/firmware_linked.mbin --disk build/disk.img
+make dom-inspect
+
+# フェーズ1: 特定ノードの詳細
+make dom-inspect ARGS="--node 11"
 
 # フェーズ1: watch しながら実機クリックでカウンタが動くのを確認
-python3 -m system.MyOS.tests.mydomtester.inspect build/firmware_linked.mbin --disk build/disk.img --watch
+make dom-inspect ARGS="--watch"
 ```
 
 ## 完了条件

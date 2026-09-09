@@ -3,7 +3,7 @@ QA_DIR := qa
 
 .PHONY: help run system build system-build kernel kernel-build emulator qa test qa-no-build \
 	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom \
-	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test profile clean-qa
+	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test dom-inspect profile clean-qa
 
 help:
 	@printf '%s\n' \
@@ -20,6 +20,7 @@ help:
 		'  make qa-scheduler     Run scheduler QA suite' \
 		'  make qa-dom           Run DOM lowering and hit-dispatch QA suites' \
 		'  make dom-tester-test  Build the system image and run the headless MyDOMTester E2E test' \
+		'  make dom-inspect      Dump the live DOM tree (ARGS="--watch" to follow changes, needs make build first)' \
 		'  make profile ARGS="profile.json --map image.mbin.map"' \
 		'' \
 		'Pass script options with ARGS="...".'
@@ -94,6 +95,12 @@ dom-test:
 dom-tester-test:
 	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run --headless
 	$(PYTHON) system/MyOS/tests/dom_click_test.py
+
+# MYOS-012 phase 1: read-only DOM inspector. Launches myemu --control-stdio
+# itself (via mydomtester.launch), so it does NOT rebuild -- run `make build`
+# first if build/firmware_linked.mbin or build/disk.img are stale/missing.
+dom-inspect:
+	$(PYTHON) -m system.MyOS.tests.mydomtester.inspect $(ARGS)
 
 profile:
 	$(PYTHON) $(QA_DIR)/tools/profile_report.py $(ARGS)
