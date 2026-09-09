@@ -37,6 +37,7 @@
 | MLC-017 | [パーサ状態のコンテキスト化とモジュール解決層](completed/MLC-017_parser-context-and-module-resolution.md) | Stale/Partial | グローバル23→実質1個、4つのハックは置換済み。型の解決層越境のみ未達。要再検証。 |
 | MYOS-010 | [MyKernel / MyOS 相互依存の解消](completed/MYOS-010_submodule-dependency-cycle.md) | Done | テストと起動処理を MyOS へ移し、MyKernel から MyOS への参照をゼロにした。 |
 | MYOS-011 | [`dom_click_test.py` control-stdio タイムアウト](completed/MYOS-011_dom-click-test-control-stdio-timeout.md) | Stale/Partial | バグ自体は現存。記載の原因（文字インターリーブ）は再現せず、別症状（起動直後ハング）に変化。要再調査。 |
+| MYOS-012 | [DOM Inspector CLI（MyDOMTester 拡張）](tickets/MYOS-012_dom-inspector-cli.md) | Proposed | `dom.snapshot` の上にターミナル向け watch/inspect CLI を足す。ブラウザ DevTools の Elements パネル相当。 |
 | MLC-012 | [MyLang Diagnostic Code Registry](completed/MLC-012_mylang-diagnostic-code-registry.md) | Done | diagnostic code のカテゴリ採番規則を明文化し、`E04xx`=package 等の予約帯を記録する。 |
 | MYOS-004 | [MyKernel DOM UI Automation（Playwright 風テスト基盤）](completed/MYOS-004_mykernel-ui-automation.md) | Done | MyKernel DOM を locator で操作・検証するヘッドレス UI automation 基盤（`system/MyOS/tests/dom_click_test.py` 等）を実装済み。 |
 | MDT-001 | [MyDOMTranspiler `.mlx` UI DSL Compiler](completed/MDT-001_mydom-mlx-ui-dsl.md) | Done | JSX 風の OS DOM UI 記述。native `.dom.mln` へ統合し、MyDOMTranspiler は撤去（2026-08-13）。 |
