@@ -11,9 +11,13 @@ In progress.
 - `MyStdLib/assert.mln` の `assert_fail` adapter。
 - `Matcher<T>`、`ReturnSequence<T>`、`CallHistory<Args, Ret>`。
 - MyLangTesterによるTestKit runtimeの自動link。
+- MyLangのgeneric receiver method。receiver-bound type parameterを持つ
+  `T (ref Box<T> self) get()` は、`Box<i32>` の具体化時に concrete method
+  として生成・登録され、generic receiver typeをimportした側にもその
+  method templateが引き継がれる。
 
-次の実装単位はMyLangのgeneric receiver methodである。その後、
-`Mock<Args, Ret>`、rule、verification、interceptionを実装する。
+次の実装単位は `Mock<Args, Ret>`、rule、verification のruntimeである。
+その後、target固有facadeとinterceptionを縦に接続する。
 
 ## Goal
 
