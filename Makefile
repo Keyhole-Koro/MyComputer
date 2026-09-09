@@ -3,7 +3,7 @@ QA_DIR := qa
 
 .PHONY: help run system build system-build kernel kernel-build emulator qa test qa-no-build \
 	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom \
-	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test dom-inspect profile clean-qa
+	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test dom-inspect dom-script profile clean-qa
 
 help:
 	@printf '%s\n' \
@@ -21,6 +21,7 @@ help:
 		'  make qa-dom           Run DOM lowering and hit-dispatch QA suites' \
 		'  make dom-tester-test  Build the system image and run the headless MyDOMTester E2E test' \
 		'  make dom-inspect      Dump the live DOM tree (ARGS="--watch" to follow changes, needs make build first)' \
+		'  make dom-script SCRIPT=path.domscript   Run a .domscript click/wait_for/dump script' \
 		'  make profile ARGS="profile.json --map image.mbin.map"' \
 		'' \
 		'Pass script options with ARGS="...".'
@@ -101,6 +102,12 @@ dom-tester-test:
 # first if build/firmware_linked.mbin or build/disk.img are stale/missing.
 dom-inspect:
 	$(PYTHON) -m system.MyOS.tests.mydomtester.inspect $(ARGS)
+
+# MYOS-012 phase 3: run a .domscript file (click/wait_for/dump/screenshot/sleep)
+# against the built firmware. SCRIPT is required; ARGS can override the
+# binary path / --disk (see mydomtester/dsl.py --help).
+dom-script:
+	$(PYTHON) -m system.MyOS.tests.mydomtester.dsl $(SCRIPT) $(ARGS)
 
 profile:
 	$(PYTHON) $(QA_DIR)/tools/profile_report.py $(ARGS)
