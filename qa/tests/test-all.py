@@ -136,6 +136,16 @@ SUITES = {
          str(MYKERNEL_DIR / "tests" / "heap" / "exhaustion.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
+    "stdlib": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"),
+         str(MYKERNEL_DIR / "tests" / "libs" / "std.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
+    "mmu": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"),
+         str(MYKERNEL_DIR / "tests" / "mmu" / "mmu.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
     "serial-rx": (
         [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "serial" / "serial_rx.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
