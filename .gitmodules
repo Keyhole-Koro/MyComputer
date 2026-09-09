@@ -42,3 +42,6 @@
 [submodule "toolchain/MyStdLib"]
 	path = toolchain/MyStdLib
 	url = git@github.com:Keyhole-Koro/MyStdLib.git
+[submodule "toolchain/MyLangTestKit"]
+	path = toolchain/MyLangTestKit
+	url = git@github.com:Keyhole-Koro/MyLangTestKit.git
