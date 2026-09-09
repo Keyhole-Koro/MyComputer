@@ -176,7 +176,7 @@ MyLangCompilerがこの型付きfacadeをtarget signatureごとに生成する�
 - function argumentsを内部`Args`へpackする。
 - matcherを該当parameter型へ揃える。
 - return / answer typeをtarget return typeへ揃える。
-- generic Mock engineを呼ぶ。
+- matcherが選んだrule indexでgeneric Mock engineの`dispatch_rule`を呼ぶ。
 
 test authorがtarget固有のstructやfacadeを定義することはない。
 
