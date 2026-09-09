@@ -10,14 +10,18 @@ In progress.
 - `TEST_PASS:<name>` / `TEST_FAIL:<reason>` verdict bridge。
 - `MyStdLib/assert.mln` の `assert_fail` adapter。
 - `Matcher<T>`、`ReturnSequence<T>`、`CallHistory<Args, Ret>`。
+- `Mock<Args, Ret>`、`Rule<Args, Ret>`、Mock/Spy mode、rule hit count、
+  return sequence、call history、`clear_calls()`、`reset()`。
+- Linker の `--redirect <original>=<entry>`。direct-call relocationだけを
+  entryへ向け、entryを定義するobjectからoriginalへのcallは維持する。
 - MyLangTesterによるTestKit runtimeの自動link。
 - MyLangのgeneric receiver method。receiver-bound type parameterを持つ
   `T (ref Box<T> self) get()` は、`Box<i32>` の具体化時に concrete method
   として生成・登録され、generic receiver typeをimportした側にもその
   method templateが引き継がれる。
 
-次の実装単位は `Mock<Args, Ret>`、rule、verification のruntimeである。
-その後、target固有facadeとinterceptionを縦に接続する。
+次の実装単位は、target固有facadeをMyLangCompilerから生成し、test buildで
+redirect metadataをMyLangTester経由でLinkerへ渡す縦接続である。
 
 ## Goal
 
@@ -89,6 +93,10 @@ test buildのfunction interceptionを担当する。
 - original function entryを保持する。
 - test entryが識別できるtarget idを割り当てる。
 - test objectに記録されたmock target metadataを使用する。
+
+`--redirect <original>=<entry>` はdirect-call relocationだけを対象にする。
+`<entry>` を定義するobject内の `<original>` relocation は変更しないため、
+Spyのoriginal fallbackはentryから直接呼べる。
 
 Mock / Spyのruleやhistoryは解釈しない。
 

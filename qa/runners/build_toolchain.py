@@ -158,6 +158,8 @@ def main():
     parser.add_argument("--clean", action="store_true", help="Clean build directory before build")
     parser.add_argument("--base", type=str, help="Base address for linking in hex (default: 0)")
     parser.add_argument("--header", action="store_true", help="Emit MBIN v2 executable header")
+    parser.add_argument("--redirect", action="append", default=[],
+                        help="Redirect direct calls: <original>=<entry> (repeatable)")
     args = parser.parse_args()
 
     repo = REPO_ROOT
@@ -253,6 +255,8 @@ def main():
         linker_cmd.extend(["--base", args.base])
     if args.header:
         linker_cmd.append("--header")
+    for redirect in args.redirect:
+        linker_cmd.extend(["--redirect", redirect])
     linker_cmd.append(out_path)
     linker_cmd.extend(final_mobj)
 
