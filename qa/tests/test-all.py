@@ -131,8 +131,10 @@ SUITES = {
         ["myas", "mllinker", "myemu"],
     ),
     "heap": (
-        ["python3", str(MYKERNEL_DIR / "tests" / "heap" / "run_heap_tests.py")],
-        ["mlc", "myas", "mllinker", "myemu"],
+        [str(MYLANGTESTER_DIR / "build" / "mytest"),
+         str(MYKERNEL_DIR / "tests" / "heap" / "allocator.test.mln"),
+         str(MYKERNEL_DIR / "tests" / "heap" / "exhaustion.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
     "serial-rx": (
         [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "serial" / "serial_rx.test.mln")],
