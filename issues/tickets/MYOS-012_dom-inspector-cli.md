@@ -24,6 +24,17 @@ MYOS-004 で `dom.snapshot`（JSON Lines）と `mydomtester` の Playwright 風 
 
 いずれも「1回叩いて終わり」か「アサーションの裏側」で、継続的に見る・差分を追う UI はない。
 
+**補足（2026-09-09、実機確認済み）**: 通常の `make run`（ウィンドウ表示あり、
+`--control-stdio` なし）でも、`shell.mln:63` の `dom` コマンドはそのまま使える。
+`execute_with_debug` パス（`runtime/MyEmulator/src/machine/interrupts.rs:12`
+`start_serial_input()`）はターミナルの stdin をシリアル RX へフォワードするので、
+ウィンドウを見ながら同じターミナルに `dom` と打つと、その場で JSON ツリーが
+標準出力に印字される（`--control-stdio` はこのフォワーディングをスキップして
+自前で stdin を握るので、ウィンドウ表示とは両立しない別モード）。
+「本物のウィンドウを見ながら自分でクリックしつつ DOM も見たい」という用途は、
+新規実装なしでこれで足りる。フェーズ1以降の CLI は「別プロセス・ヘッドレスで
+継続的に監視/操作したい」（watch・自動クリック）用途を担う。
+
 ## Design
 
 ### Current State
@@ -81,6 +92,33 @@ control-stdio に prop 書き込みコマンドを追加する。実装は `dom.
 ハイライト（画面上に選択ノードの枠を重ねる）はフェーズ2の範囲に含めない。理由は
 Alternatives Considered を参照。
 
+#### フェーズ3: クリック操作 DSL（実装済み、2026-09-09）
+
+`system/MyOS/tests/mydomtester/dsl.py`（新規）を追加。既存の `Page`/`Locator` API
+の上に薄い行指向スクリプト構文を乗せるだけで、新しいプロトコル・カーネル変更は
+一切増やさない。
+
+```
+# system/MyOS/tests/dom/counter.domscript
+dump
+click role=button name="CLICK ME"
+wait_for text="clicks: 1"
+click role=button name="CLICK ME"
+click role=button name="CLICK ME"
+wait_for text="clicks: 3"
+dump
+```
+
+```
+make dom-script SCRIPT=system/MyOS/tests/dom/counter.domscript
+```
+
+コマンド一覧: `click role=/name=/text=`、`wait_for ...  [timeout=<秒>]`、
+`dump`（`inspect.py` の `render_tree` を再利用）、`screenshot path=...`、
+`sleep <秒>`。各行は `shlex.split(..., comments=True)` でトークン化するので
+`name="CLICK ME"` のような空白入り文字列も安全に扱える。失敗時は
+`<path>:<lineno>: <行内容>: <エラー>` の形式で止まる（サイレント失敗させない）。
+
 ### Alternatives Considered
 
 - **ブラウザ風 DevTools Web UI**: 見た目は良いが、`MyEmulator` に HTTP/WebSocket サーバを
@@ -98,6 +136,14 @@ Alternatives Considered を参照。
 - **`dump()`（人間可読テキスト）をそのまま CLI に流用**: 出力フォーマットが安定した
   機械可読ではない（ISSUE-006 / DOM_SPEC の方針どおり `dump()` は人間用、`snapshot()` が
   機械可読用と役割分担済み）。CLI は `snapshot()` の上に作る。
+- **毎フレーム自動で DOM をキャプチャする**: renderer は入力のたびに高頻度で走るため、
+  render 呼び出しに素直に `dump_json()` を差し込むとシリアル出力が洪水になる。
+  「変化を追いたい」というニーズは既にフェーズ1の `--watch`（スナップショット間 diff、
+  指定間隔でポーリング）で満たせるため、フレーム同期のキャプチャは採用しない。
+- **クリック DSL を MyLang 側の `.test.mln`（MLT-001/002）に寄せる**: カーネルの
+  test framework と一体化できる利点はあるが、mylang / test runner 側の変更が要る。
+  今回は既存の Python `Page`/`Locator` API に薄い構文を足すだけで済む Python 側 DSL
+  （`dsl.py`）を選んだ。カーネルテスト基盤への統合は必要になったら別チケットで検討。
 
 ### Non-Goals
 
@@ -114,6 +160,8 @@ Alternatives Considered を参照。
 - [ ] フェーズ2: `shell.mln` に `set <id> <prop> <value>` コマンド追加
 - [ ] フェーズ2: `control_stdio.rs` に `dom.set_prop` 追加
 - [ ] フェーズ2: `Page.set_prop()` と `inspect.py` の対話編集モード
+- [x] フェーズ3: `mydomtester/dsl.py`（`click`/`wait_for`/`dump`/`screenshot`/`sleep`）
+- [x] フェーズ3: `make dom-script SCRIPT=...` と counter UI 用の example fixture
 
 ## Verification
 
@@ -129,6 +177,9 @@ make dom-inspect ARGS="--node 11"
 
 # フェーズ1: watch しながら実機クリックでカウンタが動くのを確認
 make dom-inspect ARGS="--watch"
+
+# フェーズ3: DSL スクリプトでクリック操作を自動実行
+make dom-script SCRIPT=system/MyOS/tests/dom/counter.domscript
 ```
 
 ## 完了条件
@@ -140,6 +191,10 @@ make dom-inspect ARGS="--watch"
 - フェーズ1: `--node <id>` が存在しない id を渡されたらエラーを返す（無言で落ちない）。
 - フェーズ2: `dom.set_prop` で `text` を書き換えた直後の `dom.snapshot` に反映される。
 - フェーズ2: 既存の `dom_click_test.py` / control-stdio 既存コマンドの挙動が変わらない（回帰なし）。
+- フェーズ3: `counter.domscript` が `make dom-script` で最後まで実行され、
+  `clicks: 3` の `wait_for` を通過する（実機確認済み、2026-09-09）。
+- フェーズ3: 存在しないノードを指す `click`/`wait_for` は `<path>:<lineno>` 付きの
+  エラーで止まる（サイレント失敗しない、実機確認済み）。
 
 ## 関連
 
