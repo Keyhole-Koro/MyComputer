@@ -204,6 +204,11 @@ def main():
             cmd = [mlc]
             if args.entry:
                 cmd += ["-entry", args.entry]
+            # Pass redirects through to MLC as well. This is essential for a
+            # call whose callee is defined in the same source file: otherwise
+            # MyAssembler resolves it before the linker can redirect it.
+            for redirect in args.redirect:
+                cmd += ["--redirect-call", redirect]
             cmd += [src, out_masm]
             run(cmd, cwd=repo)
             masm_outputs.append(out_masm)
