@@ -2,7 +2,11 @@
 
 ## Status
 
-Proposed
+In progress.  The ABI-v1 verdict bridge and the first compiler-facing generic
+building blocks (`Matcher<T>` and `ReturnSequence<T>`) are implemented in
+`MyLangTestKit` and run in MyEmulator.  The fluent DSL recognition, typed
+dispatcher generation, rule/history engine, and stable dispatch-slot backend
+remain to be implemented in MyLangCompiler/TestKit.
 
 ## 結論
 
