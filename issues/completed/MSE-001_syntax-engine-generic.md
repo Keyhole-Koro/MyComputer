@@ -1,5 +1,11 @@
 # 汎用構文エンジン化（MyLangSyntaxEngine → MySyntaxEngine）
 
+> **[DONE 2026-09-09] 実装済みのため tickets/ から completed/ へ移動。**
+> `MySyntaxEngine` への改名完了（`.gitmodules` 確認済み）、`role_for_lhs` /
+> `symbol_kind_for_lhs` のハードコードは完全削除、文法ファイルの `@role` /
+> `@decl()` / `%scope` 注釈方式に置換済み、`mlx.grammar` という第2言語文法も
+> 追加済み。設計方針が完全に実装されている。
+
 ## 背景・決定
 
 `MyLangSyntaxEngine` は元々**文法ファイルを食う汎用 LR1 エンジン**（テーブル生成＋

@@ -1,5 +1,11 @@
 # 割り込み機構（ISA拡張 + タイマー割り込み）
 
+> **[DONE 2026-09-09] 実装済みのため tickets/ から completed/ へ移動。**
+> 提案していた最小仕様（EI/DI/IRET、タイマー割り込み）を実装済みなだけでなく、
+> `irq_dispatch.mln` で timer/mouse/serial/ssd/syscall/page_fault/
+> privilege_violation の複数割り込み原因を扱う本格的なディスパッチャに発展・
+> 凌駕している。
+
 現状の MyEmulator には割り込み・例外・トラップが一切無く、CPUループは `halt`
 まで素直に fetch→exec するだけ（`runtime/MyEmulator/src/machine/mod.rs`）。
 `status_register` は存在するが、表示と読み書きに使われるのみで制御には使われて

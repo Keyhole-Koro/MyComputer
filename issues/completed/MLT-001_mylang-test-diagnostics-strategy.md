@@ -1,5 +1,11 @@
 # MyLang Test Diagnostics Strategy
 
+> **[DONE 2026-09-09] 実装済みのため tickets/ から completed/ へ移動。**
+> 完了条件3点をすべて充足: (1) 移行方針はこの文書自体で文書化済み、
+> (2) `MyLangTester/src/TestRunner.java` が "build failed" / "emulator exited
+> with N" / "no test verdict" 等を区別して報告、(3) `qa/tests/test-all.py` が
+> E2E / component-local suite をステータスラベルで区別済み。
+
 ## 背景
 
 `*.test.mln` + `mytest` によって、kernel/emulator E2E テストを MyLang 側に寄せられるように

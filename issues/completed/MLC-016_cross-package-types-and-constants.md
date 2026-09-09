@@ -1,5 +1,12 @@
 # Cross-Package Types And Constants
 
+> **[古い / STALE 2026-09-09] tickets/ から completed/ へ移動。本文は最新の実装状況を反映していません。**
+> - 実装済み: 問題#2（`export i32 HEADER` のような定数の越境利用）は実機確認済み
+>   ——export/import されリンクまで通る。
+> - 未実装（残作業）: 問題#1（`sb.SB b;` のような型の越境）は依然
+>   `error: expected ';' after expression` で失敗（実機確認済み）。[[MLC-017]] と
+>   同じ穴が残っている。再着手する前に本文を書き直すこと。
+
 ## 背景
 
 MyLang の `import pkg from "path.mln"` は **package 名前空間を登録するだけ**で、

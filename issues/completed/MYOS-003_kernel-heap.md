@@ -1,5 +1,13 @@
 # Kernel Heap Improvements
 
+> **[古い / STALE 2026-09-09] tickets/ から completed/ へ移動。本文は最新の実装状況を反映していません。**
+> - 実装済み: High Priority（隣接ブロック統合）と Efficiency（アドレス順 free
+>   list）は commit `891a42d "feat(heap): coalescing free list, exhaustion
+>   panic, unit tests"` で実装済み。Robustness の Heap Exhaustion Handling
+>   （`debug.panic`）も実装済み。
+> - 未実装（残作業）: best/next-fit の評価、Header Integrity Checks、Heap
+>   Statistics は未実装。再着手する前に本文を書き直すこと。
+
 The current kernel heap implementation (`system/MyKernel/src/libs/heap.mln`) is a basic first-fit free-list allocator. Several improvements are needed for long-term stability and efficiency.
 
 ## High Priority

@@ -1,5 +1,15 @@
 # `dom_click_test.py` が control-stdio でタイムアウトする
 
+> **[古い / STALE 2026-09-09] tickets/ から completed/ へ移動。バグ自体は現存しますが、原因の記述が古くなっています。**
+> - 実機で再現テストを実施（2回）。本文が記載する「1文字単位のインター
+>   リーブ」は再現せず、代わりに `kernel: enabling interrupts for event
+>   queue` の直後で完全にハングし、シェルプロンプトにすら到達しない、より
+>   深刻な決定論的失敗に変化している。割り込み/スケジューラの大幅リファクタ
+>   （`daaec4a`, `0e30097`, `471c18d`）後に症状が変わった可能性が高い。
+> - `debug.print` 自体が non-atomic（1バイトずつの `serial.putc`）である点は
+>   未修正。テスト自体は依然失敗（ゴール未達）。再調査してから tickets/ へ
+>   差し戻すか判断すること。
+
 ## 背景
 
 MYOS-004 で入れたヘッドレス UI automation（MyDOMTester）の実テストである

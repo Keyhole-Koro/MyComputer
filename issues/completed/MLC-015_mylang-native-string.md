@@ -1,5 +1,13 @@
 # MyLang Native String (`str` / `String`)
 
+> **[古い / STALE 2026-09-09] tickets/ から completed/ へ移動。本文は最新の実装状況を反映していません。**
+> - 実装済み: フェーズ1「struct の値渡し・値返し」は commit `301b160
+>   "Implement MLC-015: struct and array by-value parameters and returns"`
+>   （2026-09-06）で実装済み。本文はまだ「値渡し・値返しは codegen error」と
+>   記述しており矛盾している。
+> - 未実装（残作業）: フェーズ2以降（aggregate initializer、cross-package 型解決、
+>   `str` 自体の言語組み込み）は未着手。再着手する前に本文を書き直すこと。
+
 ## 背景
 
 現在の MyLang の文字列は data セクションの NUL 終端バイト列へのポインタ（`char*`）

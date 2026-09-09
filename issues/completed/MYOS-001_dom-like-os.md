@@ -1,5 +1,14 @@
 # DOM 的 OS オブジェクトモデル
 
+> **[古い / STALE 2026-09-09] tickets/ から completed/ へ移動。本文は進捗ゼロの体裁のままですが、実際は大きく進んでいます。**
+> - 実装済み: フェーズ1（Node/NodeKind ツリー）・フェーズ2（Window/Box/Column/
+>   Text/Button 描画）は `system/MyOS/src/ui/dom.mln` で本文の設計とほぼ1:1で
+>   実装済み。フェーズ4（mylang UI リテラル）は MDT-001 経由で `.dom.mln` の
+>   ネイティブ構文として実現済み。
+> - 未実装（残作業）: フェーズ3はクリックイベントのみ（keydown/timer/message
+>   等の汎用 Event は未実装）。フェーズ5（宣言的差分更新）は未着手。
+>   再着手する前に本文を現状に合わせて書き直すこと。
+
 ## 背景・方向性
 
 MyComputer の OS は、単にプロセスとデバイスを裏で管理するだけではなく、OS 全体を

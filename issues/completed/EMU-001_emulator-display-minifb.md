@@ -1,5 +1,11 @@
 # エミュレータへのディスプレイ（minifb）追加
 
+> **[DONE 2026-09-09] 実装済みのため tickets/ から completed/ へ移動。**
+> `runtime/MyEmulator/Cargo.toml` への `minifb` 依存追加、`constants.rs` の
+> VRAM ベースアドレス/サイズ定義、`machine/mod.rs` / `run_loop.rs` /
+> `shm_present.rs` での描画ループと `--headless` オプション、すべて実装済みを
+> コードで確認（commit `32b2618`, `1d46ba7`）。
+
 ## 背景
 DOM-like OS のフェーズ2を進めるにあたり、カーネルから UI を画面に描画する必要があります。
 しかし、現在 `MyEmulator` は純粋なコンソールアプリケーションであり、描画対象となるディスプレイデバイスが存在しません。

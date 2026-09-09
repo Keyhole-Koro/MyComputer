@@ -1,5 +1,13 @@
 # エミュレータのデバイス挙動をリアル化（非同期DMA / 実時間タイマー / VBlank同期）
 
+> **[古い / STALE 2026-09-09] tickets/ から completed/ へ移動。本文は最新の実装状況を反映していません。**
+> - 実装済み: ②タイマーの実時間ベース化（`machine/timer.rs`、`Instant`/`Duration`、
+>   `MIN_INSTRS_PER_TICK`）。①SSD DMA の BUSY→DONE 非同期化（`ssd.rs`）。
+>   ③VBlank 同期は提案どおりの `swap_pending` 遅延コピー方式ではないが、
+>   `maybe_refresh_display` によるレート制限描画で目的は概ね達成。
+> - 未実装（残作業）: ①のうち DMA2D fill（`service_dma2d`）は依然同期即完了のまま。
+>   再着手する前に現状のコードを見直し、本文を書き直すこと。
+
 現状の MyEmulator はいくつかのデバイスを「コマンドを書いた瞬間に全部終わる」
 同期・即時完了で実装している。動作はするが、実ハードウェアの
 「CPU がステータスをポーリングして待つ」「転送中は並行動作」「完了で割り込み」

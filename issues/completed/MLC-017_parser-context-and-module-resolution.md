@@ -1,5 +1,15 @@
 # パーサ状態のコンテキスト化と、モジュール解決層
 
+> **[古い / STALE 2026-09-09] tickets/ から completed/ へ移動。本文は最新の実装状況を反映していません。**
+> - 実装済み: `parser_state_internal.h` のグローバルは23個→実質1個
+>   （`g_default_package`）まで削減済み。`ParserContext` / `ModuleGraph` /
+>   `ModuleLoader` / `FrontendSession` が新設され、本文が名指しした4箇所のハック
+>   （`parser_toplevel.c`、`parser_dom_sig.c`×2、`codegen_toplevel.c`）は全て
+>   `module_loader_load` 経由に置き換え済み。フェーズ1〜3は大部分完了。
+> - 未実装（残作業）: 完了条件「import 先の型が解決層から引ける」はプレーンな
+>   struct/typedef では未達（[[MLC-016]] と同じ穴）。再着手する前に本文を
+>   書き直すこと。
+
 ## 背景
 
 MyLang の cross-package な機能 —— 型、定数、enum、generic テンプレート、関数
