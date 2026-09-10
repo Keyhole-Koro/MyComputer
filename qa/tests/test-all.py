@@ -156,6 +156,16 @@ SUITES = {
          str(MYOS_DIR / "tests" / "fs" / "minode_fd.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
+    "scheduler": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"),
+         str(MYKERNEL_DIR / "tests" / "scheduler" / "scheduler.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
+    "process": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"),
+         str(MYKERNEL_DIR / "tests" / "process" / "process.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
     "serial-rx": (
         [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "serial" / "serial_rx.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
@@ -167,14 +177,6 @@ SUITES = {
     "dom-hit": (
         [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYOS_DIR / "tests" / "dom" / "dom_hit_dispatch.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
-    ),
-    "scheduler": (
-        ["python3", str(MYKERNEL_DIR / "tests" / "scheduler" / "run_scheduler_test.py")],
-        ["mlc", "myas", "mllinker", "myemu"],
-    ),
-    "process": (
-        ["python3", str(MYKERNEL_DIR / "tests" / "process" / "run_process_test.py")],
-        ["mlc", "myas", "mllinker", "myemu"],
     ),
 }
 
