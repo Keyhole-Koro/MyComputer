@@ -62,9 +62,9 @@ make linker-test
 MyKernel subsystem tests:
 
 ```bash
-python3 system/MyKernel/tests/heap/run_heap_tests.py
-python3 system/MyKernel/tests/scheduler/run_scheduler_test.py
-python3 system/MyOS/tests/fs/run_fs_smoke_test.py
+./toolchain/MyLangTester/build/mytest system/MyKernel/tests/heap
+./toolchain/MyLangTester/build/mytest system/MyKernel/tests/scheduler
+./toolchain/MyLangTester/build/mytest system/MyOS/tests/fs
 ```
 
 ## Debugging
