@@ -157,6 +157,11 @@ SUITES = {
          str(MYOS_DIR / "tests" / "fs" / "ssd_unavailable.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
+    "disk-fixture": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"),
+         str(MYOS_DIR / "tests" / "fs" / "disk_fixture.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
     "minode-fd": (
         [str(MYLANGTESTER_DIR / "build" / "mytest"),
          str(MYOS_DIR / "tests" / "fs" / "minode_fd.test.mln")],
