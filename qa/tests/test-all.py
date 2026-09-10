@@ -154,7 +154,8 @@ SUITES = {
     "fs-errors": (
         [str(MYLANGTESTER_DIR / "build" / "mytest"),
          str(MYOS_DIR / "tests" / "fs" / "error_contracts.test.mln"),
-         str(MYOS_DIR / "tests" / "fs" / "ssd_unavailable.test.mln")],
+         str(MYOS_DIR / "tests" / "fs" / "ssd_unavailable.test.mln"),
+         str(MYOS_DIR / "tests" / "fs" / "mocked_ssd.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
     "disk-fixture": (
