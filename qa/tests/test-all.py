@@ -126,6 +126,10 @@ SUITES = {
         ["make", "-C", str(MYLANGCOMPILER_DIR), "test-e2e"],
         ["mlc", "myas", "mllinker", "myemu"],
     ),
+    "testkit": (
+        ["python3", str(REPO_ROOT / "toolchain" / "MyLangTestKit" / "tests" / "run_integration_tests.py")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
     "assembler-e2e": (
         ["make", "-C", str(MYASSEMBLER_DIR), "test-e2e"],
         ["myas", "mllinker", "myemu"],
@@ -155,7 +159,8 @@ SUITES = {
         [str(MYLANGTESTER_DIR / "build" / "mytest"),
          str(MYOS_DIR / "tests" / "fs" / "error_contracts.test.mln"),
          str(MYOS_DIR / "tests" / "fs" / "ssd_unavailable.test.mln"),
-         str(MYOS_DIR / "tests" / "fs" / "mocked_ssd.test.mln")],
+         str(MYOS_DIR / "tests" / "fs" / "mocked_ssd.test.mln"),
+         str(MYOS_DIR / "tests" / "fs" / "mocked_result.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
     "disk-fixture": (
@@ -193,7 +198,7 @@ SUITES = {
 }
 
 # These suites may incrementally build the same sibling repositories internally.
-SERIAL_SUITES = {"compiler-e2e", "assembler-e2e"}
+SERIAL_SUITES = {"compiler-e2e", "assembler-e2e", "testkit"}
 
 
 def run_suite(name):
