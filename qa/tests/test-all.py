@@ -146,6 +146,16 @@ SUITES = {
          str(MYKERNEL_DIR / "tests" / "mmu" / "mmu.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
+    "fs-smoke": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"),
+         str(MYOS_DIR / "tests" / "fs" / "fs_smoke.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
+    "minode-fd": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"),
+         str(MYOS_DIR / "tests" / "fs" / "minode_fd.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
     "serial-rx": (
         [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "serial" / "serial_rx.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
