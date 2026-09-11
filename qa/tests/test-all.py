@@ -196,6 +196,14 @@ SUITES = {
         [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYOS_DIR / "tests" / "dom" / "dom_hit_dispatch.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
+    "input-queues": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "io" / "input_queues.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
+    "graphics": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYOS_DIR / "tests" / "ui" / "graphics.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
 }
 
 # These suites may incrementally build the same sibling repositories internally.

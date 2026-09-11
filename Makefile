@@ -1,15 +1,17 @@
 PYTHON ?= python3
 QA_DIR := qa
 
-.PHONY: help run system build system-build kernel kernel-build emulator qa test qa-no-build \
-	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom \
-	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test dom-inspect dom-script profile clean-qa
+.PHONY: help run system build system-build screenshot kernel kernel-build emulator qa test qa-no-build \
+	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom qa-graphics \
+	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test dom-inspect dom-script font profile clean-qa
 
 help:
 	@printf '%s\n' \
 		'Targets:' \
 		'  make run              Build and run the full system' \
 		'  make build            Build system images without running the emulator' \
+		'  make screenshot       Build, boot headless and save the desktop as build/screenshot.png (OUT=path to change)' \
+		'  make font             Regenerate system/MyOS/src/ui/font_sans.mln from a system TTF (tools/gen_font.py)' \
 		'  make kernel           Build and run the kernel ROM path' \
 		'  make qa               Run all QA suites' \
 		'  make qa-compiler      Run compiler QA suite' \
@@ -19,6 +21,7 @@ help:
 		'  make qa-serial-rx     Run serial RX QA suite' \
 		'  make qa-scheduler     Run scheduler QA suite' \
 		'  make qa-dom           Run DOM lowering and hit-dispatch QA suites' \
+		'  make qa-graphics      Run the graphics primitives (DMA2D) and input-queue QA suites' \
 		'  make dom-tester-test  Build the system image and run the headless MyDOMTester E2E test' \
 		'  make dom-inspect      Dump the live DOM tree (ARGS="--watch" to follow changes, needs make build first)' \
 		'  make dom-script SCRIPT=path.domscript   Run a .domscript click/wait_for/dump script' \
@@ -31,6 +34,13 @@ run system:
 
 build system-build:
 	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run $(ARGS)
+
+OUT ?= build/screenshot.png
+screenshot:
+	$(PYTHON) $(QA_DIR)/runners/run_system.py --screenshot $(OUT) $(ARGS)
+
+font:
+	$(PYTHON) tools/gen_font.py $(ARGS)
 
 kernel:
 	$(PYTHON) $(QA_DIR)/runners/run_kernel.py $(ARGS)
@@ -70,6 +80,9 @@ qa-process:
 
 qa-dom:
 	$(PYTHON) $(QA_DIR)/tests/test-all.py dom dom-hit $(ARGS)
+
+qa-graphics:
+	$(PYTHON) $(QA_DIR)/tests/test-all.py graphics input-queues $(ARGS)
 
 mlc-test:
 	$(PYTHON) $(QA_DIR)/tests/test-all.py compiler $(ARGS)

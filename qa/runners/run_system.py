@@ -58,6 +58,11 @@ def main():
     parser.add_argument("--no-run", action="store_true", help="Build only; skip emulator run.")
     parser.add_argument("--headless", action="store_true", help="Run emulator without display.")
     parser.add_argument("--verbose", action="store_true", help="Show full command output in the terminal.")
+    parser.add_argument(
+        "--screenshot", metavar="PATH",
+        help="Run headless until the first idle (the desktop has painted), save the frame "
+             "as PNG/PPM at PATH, and exit.",
+    )
     args = parser.parse_args()
 
     global VERBOSE
@@ -157,8 +162,13 @@ def main():
     # is delayed rather than allowed to crowd the guest out, and the period is
     # once again just an upper bound on the tick rate.
     emu_cmd = [str(myemu), "-i", str(fw_bin), "--disk", str(disk_img), "-o", str(report_path), "--log-dir", str(session.session_dir), "--timer-interval", "1000"]
-    if args.headless:
+    if args.headless or args.screenshot:
         emu_cmd.append("--headless")
+    if args.screenshot:
+        # --step makes the emulator stop at the first WFI, which is right
+        # after the compositor painted the desktop and went idle; the
+        # screenshot is then written from the presented frame.
+        emu_cmd += ["--step", "200000000", "--screenshot", str(Path(args.screenshot).resolve())]
 
     status_line("STEP", "run emulator", CYAN)
     try:
@@ -166,7 +176,10 @@ def main():
     except subprocess.CalledProcessError:
         pass
 
-    status_line("DONE", "system run complete", GREEN)
+    if args.screenshot:
+        status_line("DONE", f"screenshot written to {args.screenshot}", GREEN)
+    else:
+        status_line("DONE", "system run complete", GREEN)
 
 if __name__ == "__main__":
     main()

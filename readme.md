@@ -20,6 +20,12 @@ Build the system images without running them:
 make build
 ```
 
+Boot headless and save the desktop as a PNG (`OUT=path` to change the name):
+
+```bash
+make screenshot
+```
+
 (Note: `make kernel` can still be used for testing the kernel directly in ROM)
 
 Build the emulator:
@@ -66,6 +72,29 @@ MyKernel subsystem tests:
 ./toolchain/MyLangTester/build/mytest system/MyKernel/tests/scheduler
 ./toolchain/MyLangTester/build/mytest system/MyOS/tests/fs
 ```
+
+UI: graphics primitives against the emulator's 2D accelerator, input queues,
+DOM hit-dispatch, and the headless end-to-end desktop test (clicks, typing,
+window drag/close via `--control-stdio`):
+
+```bash
+make qa-graphics
+make qa-dom
+make dom-tester-test
+make dom-script SCRIPT=system/MyOS/tests/dom/counter.domscript
+```
+
+## Desktop UI
+
+`system/MyOS/src/ui/` is a small window system on top of the emulator's 2D
+accelerator: anti-aliased proportional text (`font_sans.mln`, generated from a
+system TTF by `make font` / `tools/gen_font.py`), rounded windows with soft
+shadows, a title bar with a close button and drag-to-move, focus and z-order,
+buttons, checkboxes, text fields with keyboard input, a taskbar with a
+launcher and an uptime clock. Apps describe their windows in `.dom.mln`
+markup (see `src/apps/counter.dom.mln` and `notes.dom.mln`); colours and
+metrics live in `theme.mln`. Details: [`system/MyOS/docs/DOM_SPEC.md`](system/MyOS/docs/DOM_SPEC.md),
+[`runtime/MyEmulator/readme.md`](runtime/MyEmulator/readme.md).
 
 ## Debugging
 
