@@ -175,7 +175,8 @@ SUITES = {
     ),
     "scheduler": (
         [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(MYKERNEL_DIR / "tests" / "scheduler" / "scheduler.test.mln")],
+         str(MYKERNEL_DIR / "tests" / "scheduler" / "scheduler.test.mln"),
+         str(MYKERNEL_DIR / "tests" / "scheduler" / "mock_context.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
     "process": (
