@@ -3,7 +3,7 @@ QA_DIR := qa
 
 .PHONY: help run system build system-build screenshot kernel kernel-build emulator qa test qa-no-build \
 	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom qa-graphics \
-	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test dom-inspect dom-script font profile clean-qa
+	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test dom-inspect font profile clean-qa
 
 help:
 	@printf '%s\n' \
@@ -24,7 +24,6 @@ help:
 		'  make qa-graphics      Run the graphics primitives (DMA2D) and input-queue QA suites' \
 		'  make dom-tester-test  Build the system image and run the headless MyDOMTester E2E test' \
 		'  make dom-inspect      Dump the live DOM tree (ARGS="--watch" to follow changes, needs make build first)' \
-		'  make dom-script SCRIPT=path.domscript   Run a .domscript click/wait_for/dump script' \
 		'  make profile ARGS="profile.json --map image.mbin.map"' \
 		'' \
 		'Pass script options with ARGS="...".'
@@ -110,17 +109,9 @@ dom-tester-test:
 	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run --headless
 	$(PYTHON) system/MyOS/tests/dom_click_test.py
 
-# MYOS-012 phase 1: read-only DOM inspector. Launches myemu --control-stdio
-# itself (via mydomtester.launch), so it does NOT rebuild -- run `make build`
-# first if build/firmware_linked.mbin or build/disk.img are stale/missing.
+# Read-only DOM inspector using the automation bridge. It does not rebuild.
 dom-inspect:
 	$(PYTHON) -m system.MyOS.tests.mydomtester.inspect $(ARGS)
-
-# MYOS-012 phase 3: run a .domscript file (click/wait_for/dump/screenshot/sleep)
-# against the built firmware. SCRIPT is required; ARGS can override the
-# binary path / --disk (see mydomtester/dsl.py --help).
-dom-script:
-	$(PYTHON) -m system.MyOS.tests.mydomtester.dsl $(SCRIPT) $(ARGS)
 
 profile:
 	$(PYTHON) $(QA_DIR)/tools/profile_report.py $(ARGS)

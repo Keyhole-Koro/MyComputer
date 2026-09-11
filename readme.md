@@ -74,14 +74,14 @@ MyKernel subsystem tests:
 ```
 
 UI: graphics primitives against the emulator's 2D accelerator, input queues,
-DOM hit-dispatch, and the headless end-to-end desktop test (clicks, typing,
-window drag/close via `--control-stdio`):
+DOM hit-dispatch, and the headless end-to-end desktop test through the strict
+MyOS automation API:
 
 ```bash
 make qa-graphics
 make qa-dom
 make dom-tester-test
-make dom-script SCRIPT=system/MyOS/tests/dom/counter.domscript
+make dom-inspect ARGS="--watch"
 ```
 
 ## Desktop UI
