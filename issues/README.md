@@ -22,6 +22,7 @@
 | MLT-002 | [MyLang Test Framework（mytest + test declaration）](tickets/MLT-002_mylang-test-framework.md) | Proposed | `*.test.mln`、Jest 風 test declaration、mytest runner、emulator test options を設計・実装する。 |
 | MLT-001 | [MyLang Test Diagnostics Strategy](completed/MLT-001_mylang-test-diagnostics-strategy.md) | Done | 完了条件3点（移行方針・build/emulator失敗の切り分け・test-all.pyでのE2E区別）を充足。 |
 | MLT-003 | [MyLang Function Mocking Framework](tickets/MLT-003_mylang-di-and-mocking.md) | Proposed | MyLangTestKitを基盤に、production DIを要求しない型付きMock/Spyとtest-build dispatchを設計する。 |
+| MLT-004 | [mock.spy / mock.of の function pointer 経由 indirect call 対応](tickets/MLT-004_mock-indirect-call-via-function-pointer.md) | Proposed | 関数ポインタ経由の間接呼び出しがmock/spyのrecordを素通りする既知の制約に、DOM loweringテストで実際にぶつかった件。 |
 | EMU-001 | [エミュレータへのディスプレイ（minifb）追加](completed/EMU-001_emulator-display-minifb.md) | Done | VRAM 定義・描画ループ・`--headless` すべて実装済み。 |
 | EMU-002 | [エミュレータのデバイス挙動をリアル化（非同期DMA / 実時間タイマー / VBlank同期）](completed/EMU-002_emulator-realistic-devices.md) | Stale/Partial | タイマー実時間化・SSD DMA非同期化は実装済み。DMA2D fillのみ未対応。要再検証。 |
 | EMU-003 | [Virtual Memory & Paging](completed/EMU-003_virtual-memory-mmu.md) | Done | MMU・2段ページング・TLB・syscall命令・カーネル側ページディレクトリまで実装済み。 |
