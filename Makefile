@@ -3,7 +3,7 @@ QA_DIR := qa
 
 .PHONY: help run system build system-build screenshot kernel kernel-build emulator qa test qa-no-build \
 	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom qa-graphics \
-	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test dom-inspect font profile clean-qa
+	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test apps-test dom-inspect font profile clean-qa
 
 help:
 	@printf '%s\n' \
@@ -108,6 +108,10 @@ dom-test:
 dom-tester-test:
 	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run --headless
 	$(PYTHON) system/MyOS/tests/dom_click_test.py
+
+apps-test:
+	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run --headless
+	$(PYTHON) system/MyOS/tests/apps_e2e_test.py
 
 # Read-only DOM inspector using the automation bridge. It does not rebuild.
 dom-inspect:

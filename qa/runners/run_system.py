@@ -129,20 +129,30 @@ def main():
         log_name="02-build-kernel.log",
     )
 
-    # Embed kernel into disk.img at block 16000 (1048576000 bytes). Built
-    # even under --no-run: it's pure file I/O (no emulator process), and a
-    # caller that wants a launchable image without running it here -- e.g.
-    # MyDOMTester driving myemu --control-stdio itself -- needs disk.img to
-    # exist, not just the two .mbin files.
-    status_line("STEP", "embed kernel into disk image", CYAN)
-    with open(disk_img, "wb") as f:
-        # Seek to block 16000
-        f.seek(16000 * 65536)
-        with open(kernel_bin, "rb") as k:
-            f.write(k.read())
-        # Ensure file is 1GB (SSD_DISK_SIZE)
-        f.seek(1024*1024*1024 - 1)
-        f.write(b'\0')
+    # 4. Build the user-space programs (system/MyOS/user/apps -> build/user).
+    run_step(
+        [sys.executable, QA_DIR / "runners" / "build_user_apps.py", "--quiet"],
+        cwd=repo,
+        description="build user programs",
+        session=session,
+        log_name="03-build-user.log",
+    )
+
+    # 5. Make the disk image: an MFS filesystem holding the user programs and
+    # a few sample files, with the kernel embedded at block 16000 for the
+    # firmware to load. Built even under --no-run: a caller that wants a
+    # launchable image without running it here (e.g. MyDOMTester driving
+    # myemu --control-stdio itself) needs disk.img to exist.
+    mkfs_cmd = [sys.executable, REPO_ROOT / "tools" / "mkfs.py", disk_img, "--kernel", kernel_bin]
+    for mbin in sorted((build_dir / "user").glob("*.mbin")):
+        mkfs_cmd += ["--file", f"{mbin.stem}={mbin}"]
+    mkfs_cmd += [
+        "--text", "readme.txt=Welcome to MyOS.\n\nThis file lives on the MFS disk image.\n"
+                  "Open it from Files, edit it in the editor, and run the user\n"
+                  "programs (hello, echo, count) from the Terminal.\n",
+        "--text", "todo.txt=- write more apps\n- add a network stack\n",
+    ]
+    run_step(mkfs_cmd, cwd=repo, description="make disk image (mkfs)", session=session, log_name="04-mkfs.log")
 
     if args.no_run:
         status_line("DONE", "build complete; skipped emulator run", GREEN)

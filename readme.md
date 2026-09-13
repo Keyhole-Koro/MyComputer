@@ -81,6 +81,7 @@ MyOS automation API:
 make qa-graphics
 make qa-dom
 make dom-tester-test
+make apps-test
 make dom-inspect ARGS="--watch"
 ```
 
@@ -88,13 +89,27 @@ make dom-inspect ARGS="--watch"
 
 `system/MyOS/src/ui/` is a small window system on top of the emulator's 2D
 accelerator: anti-aliased proportional text (`font_sans.mln`, generated from a
-system TTF by `make font` / `tools/gen_font.py`), rounded windows with soft
-shadows, a title bar with a close button and drag-to-move, focus and z-order,
-buttons, checkboxes, text fields with keyboard input, a taskbar with a
-launcher and an uptime clock. Apps describe their windows in `.dom.mln`
-markup (see `src/apps/counter.dom.mln` and `notes.dom.mln`); colours and
-metrics live in `theme.mln`. Details: [`system/MyOS/docs/DOM_SPEC.md`](system/MyOS/docs/DOM_SPEC.md),
+system TTF by `make font` / `tools/gen_font.py`), rounded windows with a soft
+shadow, a title bar (close / minimize / maximize) with drag-to-move and a
+resize grip, focus and z-order, right-click window and desktop menus, buttons,
+checkboxes, single- and multi-line text fields, lists, a taskbar with an app
+launcher and an uptime clock, and Tab focus movement. Apps describe their
+windows in `.dom.mln` markup (see `src/apps/`); colours and metrics live in
+`theme.mln`. Details: [`system/MyOS/docs/DOM_SPEC.md`](system/MyOS/docs/DOM_SPEC.md),
 [`runtime/MyEmulator/readme.md`](runtime/MyEmulator/readme.md).
+
+## User-space programs
+
+The kernel runs isolated user processes (own page tables, W^X, syscalls) — see
+[`docs/design/user-space-processes-and-syscalls.md`](docs/design/user-space-processes-and-syscalls.md).
+Programs live in `system/MyOS/user/apps/*.mln` (`package app;` exporting
+`i32 main()`); `make build` compiles each into an MBIN v2 executable, and
+`tools/mkfs.py` places them on the disk image alongside a couple of text
+files. Launch them from the desktop's **Terminal** (type `hello`, `echo`,
+`count`, or `ls`/`cat`), or browse the disk with **Files** and edit with
+**Editor**, all reachable from the taskbar's MyOS menu. A process's stdout is
+routed to its terminal window through the kernel's console hooks
+(`system/MyOS/src/proc/console.mln`).
 
 ## Debugging
 
