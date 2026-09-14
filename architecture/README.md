@@ -152,8 +152,8 @@
 | ----------------------- | ------- | ---------------------- |
 | `0x00000000–0x1FFFFFFF` | 512 MB  | RAM                    |
 | `0x20000000–0x23FFFFFF` | 64 MB   | ROM                    |
-| `0x24000000–0x240000FF` | 256 B   | I/O Registers (incl. IRQ vector at `0x24000080`) |
-| `0x24000100–0x2FFFFFFF` | ~192 MB | Reserved / Future use  |
+| `0x24000000–0x240001FF` | 512 B   | I/O Registers (incl. IRQ vector, MMU and automation) |
+| `0x24000200–0x2FFFFFFF` | ~192 MB | Reserved / Future use  |
 | `0x30000000–0x30FFFFFF` | 16 MB   | VRAM (Framebuffer)     |
 | `0x31000000–FFFFFFFF`   | ∼3.2 GB | Reserved / Future use  |
 
@@ -163,11 +163,16 @@
 
 | Flag | Bit | Meaning               |
 | ---- | --- | --------------------- |
-| Z    | 0   | Result was zero       |
-| N    | 1   | Result was negative   |
-| C    | 2   | Carry/borrow occurred |
-| V    | 3   | Signed overflow       |
-| I    | 4   | Enable interrupts     |
+| I    | 0   | Enable interrupts     |
+| C    | 1   | Carry/borrow occurred |
+| Z    | 2   | Result was zero       |
+| N    | 3   | Result was negative   |
+| V    | 4   | Signed overflow       |
+| U    | 5   | User mode (0 = kernel) |
+
+Guest instructions writing SR require kernel mode. Page/access/privilege faults
+save the faulting PC; SYSCALL saves the following PC. Internal IRQ entry and
+IRET restore SR separately from guest register writes.
 
 ---
 
@@ -188,7 +193,10 @@
 
   * Single 32-bit handler slot at `0x24000080` (all sources share one vector)
   * `0x24000084` = IRQ Cause register: bit0=timer, bit1=mouse, bit2=serial, bit3=SSD.
+    bit4=syscall, bit5=page/access fault, bit6=privilege violation, bit7=keyboard.
     Read to dispatch; write 1s to acknowledge (clear) the handled bits.
+    Synchronous traps have a separate pending latch, bypass IE, and consume that
+    latch on entry. Their cause bits do not repeatedly retrigger the trap.
 * **Dispatch latency:** pending interrupts vector before the next instruction
   fetch (one-instruction latency, like real hardware)
 * **Context saved on interrupt:**
@@ -202,7 +210,7 @@
 ## 8. 🔌 I/O Interface
 
 * **Method:** ☑ Memory-mapped
-* **Address range:** `0x24000000–0x240000FF`
+* **Address range:** `0x24000000–0x240001FF`
 * **Standard Devices:**
 
 | Device        | Address                 | Notes                              |
@@ -211,9 +219,17 @@
 | SSD           | `0x24000010–0x2400001C` | CMD=`0x10` (W: 1=read, 2=write), BLOCK=`0x14`, ADDR=`0x18`, STATUS=`0x1C` (R: 0=idle, 1=busy, 2=done, 0xFF=error). Asynchronous DMA: STATUS reads busy until the transfer completes, then IRQ cause bit 3 |
 | 2D DMA        | `0x24000020–0x24000034` | DEST=`0x20`, COLOR=`0x24`, WIDTH=`0x28`, HEIGHT=`0x2C`, STRIDE=`0x30`, CMD=`0x34` (W: 1=fill rect) |
 | Display       | `0x24000038`            | SWAP: write 1 to present the back buffer (double buffering) |
+| Cursor        | `0x24000060–0x24000068` | X, Y, CTRL (bit0=visible) |
+| Display geometry | `0x240000D0–0x240000D4` | Read-only word WIDTH, HEIGHT in pixels; configured by `runtime/MyEmulator/config/hardware.conf` |
 | Mouse         | `0x24000040–0x2400005C` | Live state: X=`0x40`, Y=`0x44`, BUTTONS=`0x48` (bit0=left). Event FIFO (64 deep, oldest dropped on overflow): COUNT=`0x4C`, EVT_X=`0x50`, EVT_Y=`0x54`, EVT_BTN=`0x58`, POP=`0x5C` (W). Each change raises IRQ cause bit 1 |
 | IRQ control   | `0x24000080–0x24000084` | VECTOR=`0x80` (single shared handler address), CAUSE=`0x84` (R to dispatch, write 1s to acknowledge) |
 | Timer         | (internal)              | Wall-clock tick (period from `--timer-interval`, default 1000 µs); raises IRQ cause bit 0. No MMIO registers yet |
+
+CPU MMIO words are aligned, except UART LSR at `0x24000005`. Byte access is
+supported only for UART and automation registers. Unsupported widths and MMIO
+instruction fetches fault. DMA buffers use validated physical RAM addresses and
+never access MMIO or pass through the CPU MMU. See the
+[execution contracts](../runtime/MyEmulator/docs/execution-contracts.md).
 
 Text I/O Notes (Characters)
 - Character size is 8 bits (1 byte).

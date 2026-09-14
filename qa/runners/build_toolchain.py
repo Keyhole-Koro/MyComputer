@@ -28,7 +28,7 @@ MASM_IMPORT_FROM_RE = re.compile(
 
 
 def run(cmd, cwd=None):
-    print("+ " + " ".join(str(c) for c in cmd))
+    print("+ " + " ".join(str(c) for c in cmd), flush=True)
     subprocess.check_call([str(c) for c in cmd], cwd=cwd)
 
 
@@ -272,4 +272,12 @@ def main():
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except subprocess.CalledProcessError as exc:
+        command = " ".join(str(c) for c in exc.cmd)
+        print(
+            f"[ERROR] command failed (exit {exc.returncode}): {command}",
+            file=sys.stderr,
+        )
+        raise SystemExit(exc.returncode)

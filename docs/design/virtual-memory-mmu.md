@@ -25,6 +25,8 @@ When `SR[5] == 1` (User Mode):
 * The `iret` instruction is trapped.
 * (Optional) The `in` and `out` I/O instructions are trapped.
 * Memory access is strictly governed by the `User` bit in the MMU Page Tables.
+* All guest instructions with SR as destination trap before operand side effects.
+  Internal IRQ entry and IRET restore SR through a separate CPU-only path.
 
 ---
 
@@ -49,6 +51,10 @@ Each entry in a Page Directory or Page Table is 32 bits (4 bytes):
 * `[1]` : **W (Writable)** - If `1`, store instructions are allowed.
 * `[0]` : **V (Valid)** - If `1`, the PTE is valid. If `0`, throws a Page Fault.
 
+Implementation contract: PDE V/U gate the subtree; W/X are leaf PTE permissions
+and are ignored in PDEs. Effective U is `PDE.U && PTE.U`, including on TLB hits.
+The TLB keeps effective U separately from the raw PTE used for A/D updates.
+
 ---
 
 ## 4. MMU Control Registers
@@ -67,6 +73,14 @@ Rather than adding completely new CPU instructions to manage the MMU, we will le
 ---
 
 ## 5. Exceptions, Traps, and Syscalls
+
+Implemented execution details are recorded in
+[MyEmulator execution contracts](../../runtime/MyEmulator/docs/execution-contracts.md).
+Faults preserve the faulting PC and do not commit LD destinations or stack
+updates. SYSCALL saves the next PC. Pending synchronous exceptions are separate
+from asynchronous IRQ state; W1C cause bits alone do not retrigger a trap.
+Unaligned RAM words crossing pages are translated page by page, and stores
+validate the entire access before changing data memory.
 
 With processes running in User Mode, they need a safe way to transition back to Kernel Mode for system services (Syscalls) or when a fault occurs (Page Fault).
 

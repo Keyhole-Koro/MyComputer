@@ -115,20 +115,22 @@ family の bind/peerのみを保証対象とする。
 
 ## 6. MMIO register interface
 
-MyNet は既存 I/O window `0x24000000-0x240000FF` の `0x60-0x7C` を使用する。
+MyNet は既存 I/O window `0x24000000-0x240001FF` の `0x130-0x14C` を使用する。
+`0x60-0x68` は hardware cursor、IRQ cause bit 3 は SSD がすでに使用しているため、
+初期案の `0x60-0x7C` および bit 3 は使用しない。
 すべてのレジスタは 32-bit little/big endian の byte layout を外部へ公開せず、CPUの
 既存 `read_word` / `write_word` の値として扱う。
 
 | Address | Register | Access | Reset | Description |
 | --- | --- | --- | --- | --- |
-| `0x24000060` | `NET_CMD` | W | — | commandを書き込む |
-| `0x24000064` | `NET_STATUS` | R/W1C | `0` | link、RX、busy、error flags |
-| `0x24000068` | `NET_TX_ADDR` | R/W | `0` | TX source RAM address |
-| `0x2400006C` | `NET_TX_LEN` | R/W | `0` | TX frame length |
-| `0x24000070` | `NET_RX_ADDR` | R/W | `0` | RX destination RAM address |
-| `0x24000074` | `NET_RX_LEN` | R | `0` | RX FIFO先頭のframe length |
-| `0x24000078` | `NET_MAC_LOW` | R | config | MAC bytes 0..3 |
-| `0x2400007C` | `NET_MAC_HIGH` | R | config | low 16 bitsにMAC bytes 4..5 |
+| `0x24000130` | `NET_CMD` | W | — | commandを書き込む |
+| `0x24000134` | `NET_STATUS` | R/W1C | `0` | link、RX、busy、error flags |
+| `0x24000138` | `NET_TX_ADDR` | R/W | `0` | TX source RAM address |
+| `0x2400013C` | `NET_TX_LEN` | R/W | `0` | TX frame length |
+| `0x24000140` | `NET_RX_ADDR` | R/W | `0` | RX destination RAM address |
+| `0x24000144` | `NET_RX_LEN` | R | `0` | RX FIFO先頭のframe length |
+| `0x24000148` | `NET_MAC_LOW` | R | config | MAC bytes 0..3 |
+| `0x2400014C` | `NET_MAC_HIGH` | R | config | low 16 bitsにMAC bytes 4..5 |
 
 ### 6.1 Commands
 
@@ -226,7 +228,7 @@ Kernel IRQ handlerはprotocol parseを行わず、MyKernel側の固定長ringへ
 既存の共有cause registerへ次を追加する。
 
 ```text
-IRQ_CAUSE_NET = 1 << 3
+IRQ_CAUSE_NET = 1 << 8
 ```
 
 MyNetはRX FIFOがnon-emptyになった時にNET causeと`pending_irq`を立てる。Kernelの共有

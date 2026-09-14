@@ -12,6 +12,12 @@ from datetime import datetime
 from pathlib import Path
 
 
+_SOURCE_DIAGNOSTIC_RE = re.compile(
+    r"(?:^|\s)([^\n]+?:\d+:\d+:\s+(?:fatal\s+)?(?:error|warning)"
+    r"(?:\[[^\]]+\])?:.*)$"
+)
+
+
 def safe_slug(value: str) -> str:
     slug = re.sub(r"[^A-Za-z0-9_.-]+", "-", value.strip())
     slug = slug.strip("-")
@@ -72,28 +78,73 @@ def append_combined_log(session: DebugSession, title: str, text: str):
             fh.write("\n")
 
 
-def run_logged(cmd, cwd: Path, description: str, session: DebugSession, log_name: str):
-    proc = subprocess.run(
-        [str(c) for c in cmd],
-        cwd=cwd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
+def run_logged(
+    cmd,
+    cwd: Path,
+    description: str,
+    session: DebugSession,
+    log_name: str,
+    echo_output: bool = False,
+):
+    command = [str(c) for c in cmd]
+    if echo_output:
+        proc = subprocess.Popen(
+            command,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        output_parts = []
+        assert proc.stdout is not None
+        for line in proc.stdout:
+            output_parts.append(line)
+            print(line, end="", flush=True)
+        proc.wait()
+        output = "".join(output_parts)
+    else:
+        proc = subprocess.run(
+            command,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        output = proc.stdout
 
     log_path = session.path("steps", log_name)
     command_line = "+ " + " ".join(str(c) for c in cmd) + "\n"
-    log_text = command_line + proc.stdout
+    log_text = command_line + output
     log_path.write_text(log_text, encoding="utf-8", errors="replace")
     append_combined_log(session, description, log_text)
     session.add_step(description, cmd, cwd, proc.returncode, log_path)
 
     if proc.returncode != 0:
-        raise subprocess.CalledProcessError(proc.returncode, cmd, output=proc.stdout)
+        raise subprocess.CalledProcessError(proc.returncode, cmd, output=output)
 
-    return proc.stdout
+    return output
+
+
+def summarize_failure(output: str, fallback_lines: int = 20) -> str:
+    """Return the useful source diagnostic instead of an arbitrary log tail."""
+    lines = (output or "").strip().splitlines()
+    for index, line in enumerate(lines):
+        match = _SOURCE_DIAGNOSTIC_RE.search(line)
+        if not match:
+            continue
+
+        summary = [match.group(1)]
+        for context_line in lines[index + 1:index + 9]:
+            if not context_line.startswith(("  ", "\t")):
+                break
+            summary.append(context_line)
+        return "\n".join(summary)
+
+    return "\n".join(lines[-fallback_lines:])
 
 
 def copy_artifacts(src_dir: Path, session: DebugSession, suffixes=(".masm", ".mobj", ".mbin", ".bin", ".txt")):

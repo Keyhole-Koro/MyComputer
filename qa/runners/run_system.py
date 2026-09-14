@@ -14,7 +14,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from tools.project_paths import MYEMULATOR_DIR, MYKERNEL_DIR, MYOS_DIR, QA_DIR, REPO_ROOT
-from qa.tools.debug_session import DebugSession, copy_artifacts, default_session_dir, run_logged
+from qa.tools.debug_session import (
+    DebugSession,
+    copy_artifacts,
+    default_session_dir,
+    run_logged,
+    summarize_failure,
+)
 
 GREEN = "32"
 RED = "31"
@@ -28,26 +34,39 @@ def colored(text, color_code):
     return f"\033[{color_code}m{text}\033[0m"
 
 def status_line(label, message, color=CYAN):
-    print(colored(f"[{label}]", color), message)
+    print(colored(f"[{label}]", color), message, flush=True)
 
-def run_step(cmd, cwd, description, session: DebugSession, log_name: str, quiet_fail=False):
+def run_step(
+    cmd,
+    cwd,
+    description,
+    session: DebugSession,
+    log_name: str,
+    echo_output: bool = False,
+):
     if VERBOSE:
         status_line("RUN", " ".join(str(c) for c in cmd), CYAN)
     else:
         status_line("STEP", description, CYAN)
 
     try:
-        output = run_logged(cmd, cwd, description, session, log_name)
+        output = run_logged(
+            cmd,
+            cwd,
+            description,
+            session,
+            log_name,
+            echo_output=echo_output,
+        )
     except subprocess.CalledProcessError as exc:
-        if not quiet_fail:
-            status_line("FAIL", description, RED)
-            status_line("INFO", f"session: {session.session_dir}", YELLOW)
-            tail = "\n".join((exc.output or "").strip().splitlines()[-20:])
-            if tail:
-                print(tail)
+        status_line("FAIL", description, RED)
+        status_line("INFO", f"full log: {session.path('steps', log_name)}", YELLOW)
+        summary = summarize_failure(exc.output or "")
+        if summary:
+            print(summary)
         raise
 
-    if VERBOSE and output:
+    if VERBOSE and output and not echo_output:
         print(output, end="")
         status_line("OK", description, GREEN)
 
@@ -92,17 +111,13 @@ def main():
     status_line("INFO", f"session: {session.session_dir}", YELLOW)
 
     # 1. Build emulator
-    try:
-        run_step(
-            ["make", "-C", MYEMULATOR_DIR, "all"],
-            cwd=repo,
-            description="build emulator",
-            session=session,
-            log_name="00-build-myemu.log",
-            quiet_fail=True,
-        )
-    except subprocess.CalledProcessError:
-        pass
+    run_step(
+        ["make", "-C", MYEMULATOR_DIR, "all"],
+        cwd=repo,
+        description="build emulator",
+        session=session,
+        log_name="00-build-myemu.log",
+    )
 
     # 2. Build Firmware
     run_step(
@@ -180,11 +195,14 @@ def main():
         # screenshot is then written from the presented frame.
         emu_cmd += ["--step", "200000000", "--screenshot", str(Path(args.screenshot).resolve())]
 
-    status_line("STEP", "run emulator", CYAN)
-    try:
-        subprocess.run(emu_cmd, cwd=repo, check=True)
-    except subprocess.CalledProcessError:
-        pass
+    run_step(
+        emu_cmd,
+        cwd=repo,
+        description="run emulator",
+        session=session,
+        log_name="05-run-emulator.log",
+        echo_output=True,
+    )
 
     if args.screenshot:
         status_line("DONE", f"screenshot written to {args.screenshot}", GREEN)
@@ -192,4 +210,7 @@ def main():
         status_line("DONE", "system run complete", GREEN)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except subprocess.CalledProcessError as exc:
+        raise SystemExit(exc.returncode)
