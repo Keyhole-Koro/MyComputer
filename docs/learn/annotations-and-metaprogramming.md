@@ -176,5 +176,26 @@ annotation on_close          on method of app;
 ## 5. 実装状況
 
 - 2026-09-18: `@`属性構文、C 実装の `@app` lowering、`ref=`、デフォルト引数、
-  `(owner, id, arg)` ABI、MyOS フレームワーク（MYOS-016）。本メモの §1 の状態。
-- B 案への移行: 未着手。上の §4.5 の順で。
+  `(owner, id, arg)` ABI、MyOS フレームワーク（MYOS-016）。§1 の状態。
+- 2026-09-19: **B 案を実装**（MyLangCompiler `86e0b83`、MyAppFramework 新設）。
+  - `annotation name(params) on struct T [of X] [requires method m] { template }` /
+    `... ;`（マーカー）。本体はレクサが `TEMPLATE_BODY` 1 トークンとして切り出す。
+  - 属性は `import { app, timer } from "annotations.mln"` で解決（同ファイル → symbol-list
+    import の順）。未 import はエラー。
+  - ディレクティブは §4.2 のとおり + `@{T}`（識別子内への splice、`__app_@{T}_init`）。
+    `//` コメントはそのまま通す。`@if` は無し（実行時の `if` を生成する）。
+  - `parser_lower_app.c` は削除。残ったのは `parser_lower_annot.c` の機構
+    （宣言の解決・検査、テンプレート展開、`@tramp`、再パース、デフォルト引数の補完）。
+  - `@app` の意味は `system/MyAppFramework/src/annotations.mln` に、記述子の読み手は
+    同 `app.mln` に。`"Ctrl+S"` の解釈も `app.mln`（§4.2 で決めたとおり文字列のまま表へ）。
+  - フレームワークは独立リポジトリ [Keyhole-Koro/MyAppFramework](https://github.com/Keyhole-Koro/MyAppFramework)
+    を `system/MyAppFramework` に submodule として置いた。MyOS/src/apps →
+    MyAppFramework → MyOS/src/ui という循環はある（UI server の切り出しで解ける）。
+
+### 実装して分かったこと
+
+- `@T_init` のような「識別子の中に splice」は区切りが要る → `@{T}`。
+- テンプレート内のコメントに `@open` と書いただけでディレクティブ扱いになった →
+  `//` は素通し。
+- `Ok(Some(idx))` を値の case で受ける struct コピー未対応（MYOS-016 で判明）は
+  この変更とは独立に残っている。

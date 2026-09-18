@@ -45,3 +45,7 @@
 [submodule "toolchain/MyLangTestKit"]
 	path = toolchain/MyLangTestKit
 	url = git@github.com:Keyhole-Koro/MyLangTestKit.git
+[submodule "system/MyAppFramework"]
+	path = system/MyAppFramework
+	url = https://github.com/Keyhole-Koro/MyAppFramework.git
+	branch = main

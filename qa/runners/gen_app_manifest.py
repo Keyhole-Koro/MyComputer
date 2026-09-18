@@ -3,8 +3,8 @@
 
 Every `@app` struct under system/MyOS/src/apps becomes one line in
 build/apps_manifest.mln, which boot (system/MyOS/src/boot/main.mln) imports
-and calls once so the framework (system/MyOS/src/app/app.mln) learns about
-each app. An app never registers itself, and the framework never imports an
+and calls once so the framework (system/MyAppFramework/src/app.mln) learns
+about each app. An app never registers itself, and the framework never imports an
 app: this generated file is the only place that knows both.
 
 MyLang compiles the import graph from main.mln, so an app that is not
@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from tools.project_paths import MYOS_DIR, REPO_ROOT  # noqa: E402
 
 APPS_DIR = MYOS_DIR / "src" / "apps"
-FRAMEWORK = MYOS_DIR / "src" / "app" / "app.mln"
+FRAMEWORK = REPO_ROOT / "system" / "MyAppFramework" / "src" / "app.mln"
 
 # `@app` (with or without arguments) followed, possibly across lines, by the
 # struct it decorates. Comments are stripped first so a commented-out app is
