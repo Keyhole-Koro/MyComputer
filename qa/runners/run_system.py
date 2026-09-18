@@ -135,7 +135,15 @@ def main():
         log_name="01-build-firmware.log",
     )
 
-    # 3. Build Kernel
+    # 3. Generate the app manifest (which @app structs boot registers), then
+    # build the kernel, whose main.mln imports it.
+    run_step(
+        [sys.executable, QA_DIR / "runners" / "gen_app_manifest.py", "--quiet"],
+        cwd=repo,
+        description="generate app manifest",
+        session=session,
+        log_name="02-gen-manifest.log",
+    )
     run_step(
         [sys.executable, build_toolchain, kernel_stub, kernel_source, "-o", kernel_bin, "--build-dir", build_dir, "--base", "0x00100000"],
         cwd=repo,

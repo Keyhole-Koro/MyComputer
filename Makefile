@@ -3,7 +3,7 @@ QA_DIR := qa
 
 .PHONY: help run system build system-build screenshot kernel kernel-build emulator qa test qa-no-build \
 	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom qa-graphics \
-	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test apps-test dom-inspect font profile clean-qa
+	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test apps-test framework-test dom-inspect font profile clean-qa
 
 help:
 	@printf '%s\n' \
@@ -23,6 +23,7 @@ help:
 		'  make qa-dom           Run DOM lowering and hit-dispatch QA suites' \
 		'  make qa-graphics      Run the graphics primitives (DMA2D) and input-queue QA suites' \
 		'  make dom-tester-test  Build the system image and run the headless MyDOMTester E2E test' \
+		'  make framework-test   Build the system image and run the app framework E2E test' \
 		'  make dom-inspect      Dump the live DOM tree (ARGS="--watch" to follow changes, needs make build first)' \
 		'  make profile ARGS="profile.json --map image.mbin.map"' \
 		'' \
@@ -112,6 +113,10 @@ dom-tester-test:
 apps-test:
 	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run --headless
 	$(PYTHON) system/MyOS/tests/apps_e2e_test.py
+
+framework-test:
+	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run --headless
+	$(PYTHON) system/MyOS/tests/app_framework_test.py
 
 # Read-only DOM inspector using the automation bridge. It does not rebuild.
 dom-inspect:
