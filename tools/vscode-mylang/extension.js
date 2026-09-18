@@ -1,273 +1,65 @@
 const vscode = require('vscode');
-const cp = require('child_process');
 const path = require('path');
+const fs = require('fs');
+const { LanguageClient } = require('vscode-languageclient/node');
 
-const DIAGNOSTIC_DEBOUNCE_MS = 250;
-
-class JsonRpcConnection {
-  constructor(command, args, cwd) {
-    this.proc = cp.spawn(command, args, { cwd, stdio: ['pipe', 'pipe', 'inherit'] });
-    this.nextId = 1;
-    this.pending = new Map();
-    this.notificationHandlers = new Map();
-    this.buffer = Buffer.alloc(0);
-    this.proc.stdout.on('data', (chunk) => this.onData(chunk));
-    this.proc.on('exit', () => {
-      for (const [, pending] of this.pending) {
-        pending.reject(new Error('MyLang LSP exited'));
-      }
-      this.pending.clear();
-    });
-  }
-
-  onData(chunk) {
-    this.buffer = Buffer.concat([this.buffer, chunk]);
-    while (true) {
-      const headerEnd = this.buffer.indexOf('\r\n\r\n');
-      if (headerEnd < 0) return;
-      const header = this.buffer.slice(0, headerEnd).toString('utf8');
-      const match = header.match(/Content-Length:\s*(\d+)/i);
-      if (!match) {
-        this.buffer = this.buffer.slice(headerEnd + 4);
-        continue;
-      }
-      const length = Number(match[1]);
-      const total = headerEnd + 4 + length;
-      if (this.buffer.length < total) return;
-      const body = this.buffer.slice(headerEnd + 4, total).toString('utf8');
-      this.buffer = this.buffer.slice(total);
-      let msg;
-      try {
-        msg = JSON.parse(body);
-      } catch (_) {
-        continue;
-      }
-      if (Object.prototype.hasOwnProperty.call(msg, 'id') && this.pending.has(msg.id)) {
-        const pending = this.pending.get(msg.id);
-        this.pending.delete(msg.id);
-        if (msg.error) pending.reject(new Error(msg.error.message || 'LSP error'));
-        else pending.resolve(msg.result);
-      } else if (msg.method && this.notificationHandlers.has(msg.method)) {
-        this.notificationHandlers.get(msg.method)(msg.params || {});
-      }
-    }
-  }
-
-  send(payload) {
-    const text = JSON.stringify(payload);
-    const bytes = Buffer.from(text, 'utf8');
-    this.proc.stdin.write(`Content-Length: ${bytes.length}\r\n\r\n`);
-    this.proc.stdin.write(bytes);
-  }
-
-  request(method, params, timeoutMs = 5000) {
-    const id = this.nextId++;
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        this.pending.delete(id);
-        reject(new Error(`LSP request timed out: ${method}`));
-      }, timeoutMs);
-      this.pending.set(id, {
-        resolve: (val) => { clearTimeout(timer); resolve(val); },
-        reject: (err) => { clearTimeout(timer); reject(err); },
-      });
-      this.send({ jsonrpc: '2.0', id, method, params });
-    });
-  }
-
-  notify(method, params) {
-    this.send({ jsonrpc: '2.0', method, params });
-  }
-
-  onNotification(method, handler) {
-    this.notificationHandlers.set(method, handler);
-  }
-
-  dispose() {
-    try {
-      this.notify('exit', {});
-    } catch (_) {}
-    this.proc.kill();
-  }
-}
+let client;
 
 function documentSelector() {
   return [{ language: 'mylang', scheme: 'file' }];
 }
 
-function toTextDocumentItem(doc) {
-  return {
-    uri: doc.uri.toString(),
-    languageId: doc.languageId,
-    version: doc.version,
-    text: doc.getText(),
-  };
-}
-
-function toDiagnosticSeverity(severity) {
-  switch (severity) {
-    case 1:
-      return vscode.DiagnosticSeverity.Error;
-    case 2:
-      return vscode.DiagnosticSeverity.Warning;
-    case 3:
-      return vscode.DiagnosticSeverity.Information;
-    case 4:
-      return vscode.DiagnosticSeverity.Hint;
-    default:
-      return vscode.DiagnosticSeverity.Error;
+function findServerPath() {
+  for (const folder of vscode.workspace.workspaceFolders || []) {
+    const candidate = path.join(folder.uri.fsPath, 'tools', 'MyLangServerProtocol', 'server.py');
+    if (fs.existsSync(candidate)) return candidate;
   }
-}
-
-function toRange(range) {
-  return new vscode.Range(
-    range.start.line,
-    range.start.character,
-    range.end.line,
-    range.end.character,
-  );
-}
-
-function toDiagnostic(item) {
-  const diagnostic = new vscode.Diagnostic(
-    toRange(item.range),
-    item.message || 'MyLang syntax error',
-    toDiagnosticSeverity(item.severity),
-  );
-  if (item.source) diagnostic.source = item.source;
-  if (item.code) diagnostic.code = item.code;
-  return diagnostic;
-}
-
-function sendDidChange(rpc, doc) {
-  rpc.notify('textDocument/didChange', {
-    textDocument: { uri: doc.uri.toString(), version: doc.version },
-    contentChanges: [{ text: doc.getText() }],
-  });
-}
-
-function flushPendingChange(rpc, pendingChanges, doc) {
-  const uri = doc.uri.toString();
-  const pending = pendingChanges.get(uri);
-  if (pending) {
-    clearTimeout(pending);
-    pendingChanges.delete(uri);
-  }
-  sendDidChange(rpc, doc);
+  return null;
 }
 
 async function activate(context) {
-  const config = vscode.workspace.getConfiguration('mylang');
-  const pythonPath = config.get('lsp.pythonPath') || 'python3';
-  const semanticTokensEnabled = config.get('lsp.semanticTokens') === true;
-  const fs = require('fs');
-  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-  const serverPath = workspaceRoot ? path.join(workspaceRoot, 'tools', 'MyLangServerProtocol', 'server.py') : null;
-  if (!serverPath || !fs.existsSync(serverPath)) {
-    vscode.window.showErrorMessage('MyLangServerProtocol submodule was not found. Run git submodule update --init --recursive.');
+  const serverPath = findServerPath();
+  if (!serverPath) {
+    vscode.window.showErrorMessage(
+      'MyLangServerProtocol was not found in the workspace. Run git submodule update --init --recursive.',
+    );
     return;
   }
-  const cwd = path.dirname(serverPath);
-  const rpc = new JsonRpcConnection(pythonPath, [serverPath], cwd);
-  context.subscriptions.push({ dispose: () => rpc.dispose() });
-  const pendingChanges = new Map();
-  context.subscriptions.push({
-    dispose: () => {
-      for (const timer of pendingChanges.values()) {
-        clearTimeout(timer);
-      }
-      pendingChanges.clear();
-    }
-  });
 
-  const diagnostics = vscode.languages.createDiagnosticCollection('mylang');
-  context.subscriptions.push(diagnostics);
-  rpc.onNotification('textDocument/publishDiagnostics', (params) => {
-    if (!params.uri) return;
-    const uri = vscode.Uri.parse(params.uri);
-    diagnostics.set(uri, (params.diagnostics || []).map(toDiagnostic));
-  });
+  const config = vscode.workspace.getConfiguration('mylang');
+  const pythonPath = config.get('lsp.pythonPath') || 'python3';
+  const serverOptions = {
+    command: pythonPath,
+    args: [serverPath],
+    options: { cwd: path.dirname(serverPath) },
+  };
+  const clientOptions = {
+    documentSelector: documentSelector(),
+    initializationOptions: {
+      semanticTokens: config.get('lsp.semanticTokens') === true,
+    },
+    synchronize: {
+      configurationSection: 'mylang',
+      fileEvents: vscode.workspace.createFileSystemWatcher('**/*.{mln,mlx}'),
+    },
+    outputChannelName: 'MyLang Language Server',
+  };
 
-  const initResult = await rpc.request('initialize', {
-    processId: process.pid,
-    clientInfo: { name: 'mylang-vscode', version: '0.1.0' },
-    rootUri: vscode.workspace.workspaceFolders?.[0]?.uri.toString() || null,
-    capabilities: {}
-  });
-  rpc.notify('initialized', {});
-
-  function isMyLangDocument(doc) {
-    return doc.languageId === 'mylang';
-  }
-
-  for (const doc of vscode.workspace.textDocuments) {
-    if (isMyLangDocument(doc)) {
-      rpc.notify('textDocument/didOpen', { textDocument: toTextDocumentItem(doc) });
-    }
-  }
-
-  context.subscriptions.push(vscode.workspace.onDidOpenTextDocument((doc) => {
-    if (!isMyLangDocument(doc)) return;
-    rpc.notify('textDocument/didOpen', { textDocument: toTextDocumentItem(doc) });
-  }));
-
-  context.subscriptions.push(vscode.workspace.onDidChangeTextDocument((event) => {
-    if (!isMyLangDocument(event.document)) return;
-    const uri = event.document.uri.toString();
-    const previous = pendingChanges.get(uri);
-    if (previous) clearTimeout(previous);
-    pendingChanges.set(uri, setTimeout(() => {
-      pendingChanges.delete(uri);
-      sendDidChange(rpc, event.document);
-    }, DIAGNOSTIC_DEBOUNCE_MS));
-  }));
-
-  context.subscriptions.push(vscode.workspace.onDidSaveTextDocument((doc) => {
-    if (!isMyLangDocument(doc)) return;
-    flushPendingChange(rpc, pendingChanges, doc);
-  }));
-
-  context.subscriptions.push(vscode.workspace.onDidCloseTextDocument((doc) => {
-    if (!isMyLangDocument(doc)) return;
-    const uri = doc.uri.toString();
-    const pending = pendingChanges.get(uri);
-    if (pending) {
-      clearTimeout(pending);
-      pendingChanges.delete(uri);
-    }
-    rpc.notify('textDocument/didClose', { textDocument: { uri: doc.uri.toString() } });
-  }));
-
-  if (semanticTokensEnabled && initResult.capabilities.semanticTokensProvider) {
-    const legend = new vscode.SemanticTokensLegend(
-      initResult.capabilities.semanticTokensProvider.legend.tokenTypes,
-      initResult.capabilities.semanticTokensProvider.legend.tokenModifiers,
-    );
-
-    context.subscriptions.push(vscode.languages.registerDocumentSemanticTokensProvider(documentSelector(), {
-      provideDocumentSemanticTokens: async (doc) => {
-        const result = await rpc.request('textDocument/semanticTokens/full', {
-          textDocument: { uri: doc.uri.toString() }
-        });
-        return new vscode.SemanticTokens(new Uint32Array(result.data));
-      }
-    }, legend));
-  }
-
-  context.subscriptions.push(vscode.languages.registerDocumentSymbolProvider(documentSelector(), {
-    provideDocumentSymbols: async (doc) => {
-      const result = await rpc.request('textDocument/documentSymbol', {
-        textDocument: { uri: doc.uri.toString() }
-      });
-      return result.map((sym) => {
-        const range = new vscode.Range(sym.range.start.line, sym.range.start.character, sym.range.end.line, sym.range.end.character);
-        const selectionRange = new vscode.Range(sym.selectionRange.start.line, sym.selectionRange.start.character, sym.selectionRange.end.line, sym.selectionRange.end.character);
-        return new vscode.DocumentSymbol(sym.name, '', sym.kind, range, selectionRange);
-      });
-    }
-  }));
+  client = new LanguageClient(
+    'mylang',
+    'MyLang Language Server',
+    serverOptions,
+    clientOptions,
+  );
+  context.subscriptions.push(client);
+  await client.start();
 }
 
-function deactivate() {}
+async function deactivate() {
+  if (client) {
+    await client.stop();
+    client = undefined;
+  }
+}
 
 module.exports = { activate, deactivate };

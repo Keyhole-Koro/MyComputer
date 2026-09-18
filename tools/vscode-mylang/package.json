@@ -5,7 +5,7 @@
   "version": "0.0.1",
   "publisher": "local",
   "engines": {
-    "vscode": "^1.80.0"
+    "vscode": "^1.82.0"
   },
   "categories": [
     "Programming Languages"
@@ -15,6 +15,12 @@
     "onLanguage:mylang"
   ],
   "main": "./extension.js",
+  "scripts": {
+    "test": "node --check extension.js"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
   "contributes": {
     "languages": [
       {

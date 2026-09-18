@@ -9,6 +9,8 @@
 | MYOS-002 | [割り込み機構（ISA拡張 + タイマー割り込み）](completed/MYOS-002_interrupts.md) | Done | 最小仕様どころか複数割込み原因対応の本格 IRQ ディスパッチャまで実装済み。 |
 | MYOS-003 | [Kernel Heap Improvements](completed/MYOS-003_kernel-heap.md) | Stale/Partial | 隣接ブロック統合・アドレス順 free list・exhaustion panic は実装済み。統計・整合性チェックのみ未実装。要再検証。 |
 | MLSP-002 | [MyLang LSP Syntax Diagnostics Follow-ups](tickets/MLSP-002_mylang-lsp-syntax-diagnostics.md) | Proposed | LSP 診断・ハイライト周辺の品質改善。 |
+| MLSP-003 | [MyLang LSP Architecture Refactor](completed/MLSP-003_mylang-lsp-architecture-refactor.md) | Done | standard Language Client、versioned snapshot、frontend adapter、symbol indexへLSP基盤を分割済み。 |
+| MLSP-004 | [MyLang Parameter Documentation, Hover, and Signature Help](completed/MLSP-004_mylang-param-doc-hover-signature-help.md) | Done | frontend由来の関数metadataへdoc commentを結び、HoverとSignature Helpを実装済み。 |
 | MLC-006 | [共有フロントエンド化](completed/MLC-006_shared-frontend.md) | Superseded | 上書き元の MSE-001 が完了し、独自の残存スコープはゼロ。 |
 | MSE-001 | [汎用構文エンジン化](completed/MSE-001_syntax-engine-generic.md) | Done | MySyntaxEngine への改名・文法注釈方式への置換が完了。 |
 | MYOS-001 | [DOM 的 OS オブジェクトモデル](completed/MYOS-001_dom-like-os.md) | Stale/Partial | Phase1・2・4は設計通り実装済み。Phase3は click のみ、Phase5未着手。要再検証。 |

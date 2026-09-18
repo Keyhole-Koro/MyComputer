@@ -1,6 +1,10 @@
 # MyLang VS Code Extension
 
-Minimal VS Code extension for the MyLang sources in this repo, with highlighting driven by LSP semantic tokens.
+VS Code extension for the MyLang sources in this repo. It uses the standard
+`vscode-languageclient` package to connect to the Python language server.
+
+Current editor features include syntax diagnostics, semantic tokens, document
+symbols, function Hover, and Signature Help with `///` parameter documentation.
 
 Ownership-oriented tokens are exposed through semantic tokens:
 - `ownershipRef` for `ref` and `&`
@@ -9,7 +13,7 @@ Ownership-oriented tokens are exposed through semantic tokens:
 Generic declarations and named imports are supported by the LSP. In particular,
 `Vec<Node>` type arguments are highlighted as types, and uses such as
 `vec_init<i32>(...)` do not produce syntax diagnostics. Hover and go-to-
-definition for imported templates are not implemented yet.
+definition and Completion are not implemented yet.
 
 `mymasm` files use a TextMate grammar and highlight:
 - `import ...`
@@ -20,8 +24,9 @@ definition for imported templates are not implemented yet.
 - import path strings
 
 ## Install locally (no packaging)
-1. Copy this folder to your user extensions dir (e.g. `~/.vscode/extensions/mylang-syntax`) or run `ln -s /workspaces/MyComputer-1/tools/vscode-mylang ~/.vscode/extensions/mylang-syntax`.
-2. Reload VS Code. Files ending in `.mln` or `.mlx` should open as `MyLang` in the status bar.
+1. Run `npm install` in this directory.
+2. Copy this folder to your user extensions dir (e.g. `~/.vscode/extensions/mylang-syntax`) or run `ln -s /workspaces/MyComputer-1/tools/vscode-mylang ~/.vscode/extensions/mylang-syntax`.
+3. Reload VS Code. Files ending in `.mln` or `.mlx` should open as `MyLang` in the status bar.
 
 `.mlx` files may contain MyDOMTranspiler JSX-like returns such as:
 
