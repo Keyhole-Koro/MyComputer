@@ -177,25 +177,48 @@ annotation on_close          on method of app;
 
 - 2026-09-18: `@`属性構文、C 実装の `@app` lowering、`ref=`、デフォルト引数、
   `(owner, id, arg)` ABI、MyOS フレームワーク（MYOS-016）。§1 の状態。
-- 2026-09-19: **B 案を実装**（MyLangCompiler `86e0b83`、MyAppFramework 新設）。
-  - `annotation name(params) on struct T [of X] [requires method m] { template }` /
-    `... ;`（マーカー）。本体はレクサが `TEMPLATE_BODY` 1 トークンとして切り出す。
-  - 属性は `import { app, timer } from "annotations.mln"` で解決（同ファイル → symbol-list
-    import の順）。未 import はエラー。
-  - ディレクティブは §4.2 のとおり + `@{T}`（識別子内への splice、`__app_@{T}_init`）。
-    `//` コメントはそのまま通す。`@if` は無し（実行時の `if` を生成する）。
-  - `parser_lower_app.c` は削除。残ったのは `parser_lower_annot.c` の機構
-    （宣言の解決・検査、テンプレート展開、`@tramp`、再パース、デフォルト引数の補完）。
-  - `@app` の意味は `system/MyAppFramework/src/annotations.mln` に、記述子の読み手は
-    同 `app.mln` に。`"Ctrl+S"` の解釈も `app.mln`（§4.2 で決めたとおり文字列のまま表へ）。
-  - フレームワークは独立リポジトリ [Keyhole-Koro/MyAppFramework](https://github.com/Keyhole-Koro/MyAppFramework)
-    を `system/MyAppFramework` に submodule として置いた。MyOS/src/apps →
-    MyAppFramework → MyOS/src/ui という循環はある（UI server の切り出しで解ける）。
+- 2026-09-19: B 案（テンプレート）→ E 案（デコレータ関数 + `__annotations_init`）と試し、
+  最終的に **F 案：Java 式メタデータ** に落ち着いた。
 
-### 実装して分かったこと
+### F 案（採用）— アノテーション = 宣言付きメタデータ、ライフサイクルは framework
 
-- `@T_init` のような「識別子の中に splice」は区切りが要る → `@{T}`。
-- テンプレート内のコメントに `@open` と書いただけでディレクティブ扱いになった →
-  `//` は素通し。
-- `Ok(Some(idx))` を値の case で受ける struct コピー未対応（MYOS-016 で判明）は
-  この変更とは独立に残っている。
+```mylang
+// annotations.mln — Java の @interface 相当。呼ばれない
+export void timer(i32 fn, char *type, i32 size, i32 ms);
+
+@timer(100)
+void (Terminal *t) poll() { ... }
+// → コンパイラが terminal___annotations() の表に 1 行:
+//    ["timer", Terminal__poll, "Terminal", sizeof(Terminal), 1, 100, 0, 0]
+```
+
+- **mlc**：`@a(x)` を宣言（同ファイル / symbol-list import）と照合し、モジュールの表
+  `__annotations()`（`[count, 行×8 ワード]`）に記録する。`extern i32* __annotations_table(i32 m);`
+  を宣言し、かつ import 経由でアノテーション付きモジュールに到達する TU（= main.mln）に、
+  全モジュールの表を返す定義を生成する。関数は呼ばない、名前の意味も知らない
+- **MyAppFramework**：`annotations.mln`（宣言）、`meta.mln`（表の読み手）、`app.mln`
+  （`install()` が表を走査して registry へ。いつ・順序・検証はここ）
+- **発見**：`main.mln` がアプリを明示 import（暫定）。最終形はアプリを MFS 上の .mbin にし、
+  同じ表を MBIN ヘッダに載せてローダが読む（main.mln の TODO）
+
+Python の manifest 生成、`__annotations_init`、テンプレート、`annotation` キーワード、
+`@tramp` は全部無い。呼び出し規約が余分な引数を無視する（実測）ので、`onClick={c.click}` も
+`@timer` のメソッドも実体をそのまま表に載せられる。
+
+### 途中で捨てた案
+
+- **B（テンプレート）**：記法（`@each`, `@{T}`）を確認せずに決めて実装したので差し戻し。
+  記法を増やすほど角が増える（識別子内 splice、コメント内の `@` の誤爆）。
+- **E（デコレータ関数）**：`a(fn, "T", sizeof(T), x)` を `__annotations_init()` に生成。動いたが、
+  「いつ走るか」をコンパイラが決めること、Python 的な直感と裏腹に何も wrap しないこと、
+  ライフサイクルが framework に無いことから、F に。E との差はコンパイラが出すものが
+  「呼び出し」か「データ」かだけで、F は複数の読み手・遅延処理・検証の場所を framework 側に持てる。
+
+### 実装して分かったこと・直したこと
+
+- **`ref mut` の書き戻しバグを修正**（`codegen_lvalue.c`）：参照型の変数への `s.v` が、参照を
+  deref せずに「ポインタが入っているスロット」をフィールドとして読み書きしていた。修正後は
+  `ref` / `ref mut` レシーバも handler に使える（Counter が `ref mut Counter c` で書かれている）。
+- グローバルの `char *g[16]`（ポインタ配列）が誤コンパイルされる（未修正）。`i32` 配列で回避。
+- リンカは同名シンボルの重複を検出しない（黙って片方を選ぶ）。
+- `Ok(Some(idx))` を値の case で受ける struct コピー未対応（MYOS-016 で判明）は残っている。
