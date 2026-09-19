@@ -24,15 +24,17 @@ Java 式の言語機能に置き換えた（途中で試したテンプレート
 
 - **コンパイラ**: `parser_lower_annot.c` — `@a(...)` を `a` の宣言（同ファイル / symbol-list
   import）に解決し、先頭 3 引数 `(i32 fn, char *type, i32 size)` と残りの引数を検査して
-  モジュールの表 `__annotations()` に 1 行記録。`extern i32* __annotations_table(i32 m);` を
-  宣言した TU に全モジュール分の集約を生成。メソッドはポインタ／参照レシーバ必須。
+  行を記録、`codegen_annotations.c` が `annotations` 束ねセクションに静的データとして出す。
+  メソッドはポインタ／参照レシーバ必須。
+- **toolchain**: `.word symbol`（データ内リロケーション）、`.section NAME`（束ねセクション、
+  LNK2）、リンカの索引合成と重複検出 — `docs/design/toolchain-collected-sections.md`。
   `onClick={c.click}` はメソッドの実体を渡す（呼び出し規約が余分な引数を無視することを実測）。
   `parser_lower_app.c` は削除。**`ref mut` の書き戻しバグを修正**（`codegen_lvalue.c`）。
 - **MyAppFramework**: `src/annotations.mln`（宣言 5 つ）、`src/meta.mln`（表の読み手）、
   `src/app.mln`（型名キーのレジストリ、`key_spec_matches`、`install()` が表を走査）、
   `src/ui.mln`、`docs/APP_FRAMEWORK.md`。
 - **MyOS**: `@app` は struct ではなく view メソッドに。フィールド初期化子は view() へ。
-  `boot/main.mln` がアプリを明示 import + 集約の extern 宣言（TODO: fs 上の .mbin へ）。
+  `boot/main.mln` がアプリを明示 import（TODO: fs 上の .mbin へ、MBIN ヘッダに索引を載せる）。
 - **削除**: `qa/runners/gen_app_manifest.py`、`build/apps_manifest.mln`。
 - **MyOS**: `src/app/` 削除、アプリ 5 本と `boot/main.mln` が framework を import。
 - **manifest 生成**: framework の import 先を変更。

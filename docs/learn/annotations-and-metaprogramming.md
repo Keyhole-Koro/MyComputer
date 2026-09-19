@@ -192,10 +192,14 @@ void (Terminal *t) poll() { ... }
 //    ["timer", Terminal__poll, "Terminal", sizeof(Terminal), 1, 100, 0, 0]
 ```
 
-- **mlc**：`@a(x)` を宣言（同ファイル / symbol-list import）と照合し、モジュールの表
-  `__annotations()`（`[count, 行×8 ワード]`）に記録する。`extern i32* __annotations_table(i32 m);`
-  を宣言し、かつ import 経由でアノテーション付きモジュールに到達する TU（= main.mln）に、
-  全モジュールの表を返す定義を生成する。関数は呼ばない、名前の意味も知らない
+- **mlc**：`@a(x)` を宣言（同ファイル / symbol-list import）と照合し、モジュールの
+  `annotations` 束ねセクションに 8 ワード × 行の**静的データ**を出す。関数は呼ばない、
+  名前の意味も知らない
+- **リンカ**：全オブジェクトの `annotations` チャンクを `__annotations_start..end` の索引に
+  集める（`docs/design/toolchain-collected-sections.md`）。チャンクを持つオブジェクトは
+  参照されなくても落とさない。当初は `main.mln` の `extern i32* __annotations_table(i32 m);`
+  という目印をコンパイラが定義に置き換える方式で動かしたが、`.word` と `.section` を
+  toolchain に足してリンカに移した
 - **MyAppFramework**：`annotations.mln`（宣言）、`meta.mln`（表の読み手）、`app.mln`
   （`install()` が表を走査して registry へ。いつ・順序・検証はここ）
 - **発見**：`main.mln` がアプリを明示 import（暫定）。最終形はアプリを MFS 上の .mbin にし、
@@ -215,6 +219,11 @@ Python の manifest 生成、`__annotations_init`、テンプレート、`annota
   「呼び出し」か「データ」かだけで、F は複数の読み手・遅延処理・検証の場所を framework 側に持てる。
 
 ### 実装して分かったこと・直したこと
+
+- **toolchain に足したもの**（`docs/design/toolchain-collected-sections.md`）：`.word symbol`
+  （`RELOC_WORD32`）、`.section NAME` + `CollectEntry`（LNK2）、リンカの索引合成、活性化規則、
+  重複定義の検出、`extern` グローバルの import 化、グローバルポインタの静的初期化
+  （`char *s = "x";` が null になるバグの解消）。
 
 - **`ref mut` の書き戻しバグを修正**（`codegen_lvalue.c`）：参照型の変数への `s.v` が、参照を
   deref せずに「ポインタが入っているスロット」をフィールドとして読み書きしていた。修正後は

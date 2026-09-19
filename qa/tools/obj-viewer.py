@@ -10,8 +10,8 @@ import sys
 from pathlib import Path
 
 
-MAGIC = 0x4C4E4B31  # "LNK1"
-HEADER_STRUCT = struct.Struct("<LLLLL")     # magic, text_size, data_size, sym_count, reloc_count
+MAGIC = 0x4C4E4B32  # "LNK2"
+HEADER_STRUCT = struct.Struct("<LLLLLL")    # magic, text_size, data_size, sym_count, reloc_count, collect_count
 SYMBOL_STRUCT = struct.Struct("<64sLLL")    # name[64], type, section, offset
 RELOC_STRUCT = struct.Struct("<L64sL")      # offset, symbol_name[64], type
 
@@ -79,7 +79,7 @@ def hex_preview(buf, max_bytes, width=16):
 def show_obj(path: Path, max_bytes: int):
     try:
         with path.open("rb") as f:
-            magic, text_size, data_size, sym_count, reloc_count = read_header(f)
+            magic, text_size, data_size, sym_count, reloc_count, collect_count = read_header(f)
             if magic != MAGIC:
                 raise ValueError(f"Bad magic 0x{magic:08X} (expected 0x{MAGIC:08X})")
 
@@ -87,6 +87,14 @@ def show_obj(path: Path, max_bytes: int):
             data = f.read(data_size)
             symbols = read_symbols(f, sym_count)
             relocs = read_relocs(f, reloc_count)
+            collects = []
+            entry = struct.Struct("<64sLL")
+            for _ in range(collect_count):
+                raw = f.read(entry.size)
+                if len(raw) != entry.size:
+                    raise ValueError("File too short for collected-section table")
+                name, offset, size = entry.unpack(raw)
+                collects.append((name.split(b"\0", 1)[0].decode("utf-8", "replace"), offset, size))
     except Exception as e:
         print(f"[{path}] ERROR: {e}")
         return
@@ -94,8 +102,10 @@ def show_obj(path: Path, max_bytes: int):
     print(f"\n== {path} ==")
     print(
         f"Header: magic OK, text={text_size} bytes, data={data_size} bytes, "
-        f"symbols={len(symbols)}, relocs={len(relocs)}"
+        f"symbols={len(symbols)}, relocs={len(relocs)}, collected chunks={len(collects)}"
     )
+    for name, offset, size in collects:
+        print(f"  .section {name}: text+0x{offset:X}, {size} bytes")
 
     if text_size:
         print("Text preview:")
