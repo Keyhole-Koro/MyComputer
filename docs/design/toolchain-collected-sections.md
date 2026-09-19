@@ -3,7 +3,8 @@
 MyAssembler / MyLinker / MyLangCompiler にまたがる仕様。2026-09-19 に、アノテーションの
 メタデータ表を「誰も列挙しなくてもリンク時に全部集まる」形にするために追加した。
 C/ELF で言えば `.word sym`（データ内リロケーション）と `__start_SECTION` /
-`__stop_SECTION`（`KEEP(*(SECTION))`）に相当する。
+`__stop_SECTION`（`KEEP(*(SECTION))`）に相当する。2026-09-20 に、索引方式（LNK2）から
+物理連結 + 名前ディレクトリ（LNK3）に変え、読み手を MyStdLib の API にした。
 
 関連: `toolchain/MyLinker/DESIGN.md`、`toolchain/MyLinker/inc/ObjectFormat.h`、
 `toolchain/MyLangCompiler/docs/grammar.md` "Attributes and annotations"、
@@ -60,39 +61,68 @@ __annotations_rows:
 
 - `.section NAME` は**次のラベルブロック 1 つ**に効く。そのブロックは命令を持てず、
   `.byte` / `.word` だけ（違反はアセンブルエラー）
-- ブロックのバイト列は今まで通り TEXT に置かれる（**物理的には動かさない**）。
-  オブジェクトには `CollectEntry{ name[64], offset(TEXT 内), size }` を 1 つ記録する
-- オブジェクト形式は **LNK2**（マジック `0x4C4E4B32`）：`FileHeader` に `collect_count`、
-  リロケーション表の後に `CollectEntry` 配列
+- ブロックのバイト列は TEXT ではなく、オブジェクトの**束ねセクション blob**（DATA の後ろ）に
+  置かれる。オブジェクトには `CollectEntry{ name[64], offset(blob 内), size }` を 1 つ記録し、
+  ブロック内のシンボル／リロケーションは `section = 2 (SECTION_COLLECT)` + blob オフセットで表す
+  （blob 内のリロケーションは `RELOC_WORD32` のみ）
+- オブジェクト形式は **LNK3**（マジック `0x4C4E4B33`）：`FileHeader` に `collect_count` /
+  `collect_size`、`RelocEntry` に `section`、リロケーション表の後に `CollectEntry` 配列
 
-### リンカが合成する索引
+### リンカのレイアウト — 物理連結 + ディレクトリ
 
-全（活性）オブジェクトの同名チャンクをリンク順に集め、DATA の末尾に**索引**を置く：
+全（活性）オブジェクトの同名チャンクを**リンク順に隙間なく並べる**。読む側は 1 本の配列として
+読めばよく、チャンク境界を意識しない：
 
 ```
-__NAME_start:   .word chunk0_addr, chunk0_size
-                .word chunk1_addr, chunk1_size
-                ...
-__NAME_end:
-_end:                      ; 以前どおり、イメージの末尾
+                         ; ... 各オブジェクトの DATA ...
+__section_annotations:   ; チャンク A、チャンク B、... を連結
+__section_notes:         ; 別名のセクションは出現順に続く
+__sections:              ; ディレクトリ：1 行 3 ワード [name(char*), start, size]
+  .word n0, __section_annotations, 96      ; __section_annotations_size はこの行の size ワード
+  .word n1, __section_notes, 16
+  .word 0, 0, 0                            ; 終端行
+n0: "annotations\0"  n1: "notes\0"        ; 4 バイト境界にパディング
+_end:                    ; 以前どおり、イメージの末尾
 ```
 
-- 1 チャンク = `(アドレス, バイト数)` の 8 バイト。読む側は `(__NAME_end - __NAME_start) / 8`
-  個のペアを歩き、各チャンクをその場で読む
-- `__NAME_start` / `__NAME_end` はリンカ合成シンボル。参照側は `extern i32 __NAME_start[];`
-  （MyLang）または `import __NAME_start`（asm）で受ける。mlc は `extern` グローバルを
-  定義ではなく import として出す（以前は `extern` を無視して定義していた）
-- 複数のセクション名があれば最初に現れた順に並ぶ
+- リンカ合成シンボル：`__section_<name>`（先頭アドレス）、`__section_<name>_size`
+  （バイト数を持つワードのアドレス）、`__sections`（ディレクトリ。束ねセクションが 1 つも
+  無くても終端行だけのものを必ず定義する）
+- 参照側は `extern i32 __sections[];`（MyLang）または `import __sections`（asm）で受ける。mlc は
+  `extern` グローバルを定義ではなく import として出す
 - **活性化規則**：`CollectEntry` を持つオブジェクトはそれだけで live になる（誰も参照しなくても
   落とされない）。「表に載せる」は登録行為なので、参照の有無で消えては困る
+- 名前で探せるので、読み手側に「セクション名ごとの extern 宣言」は要らない（MyLang にはトークン
+  連結が無いので、静的な名前解決だけだと `as_slice<T>("annotations")` のような API が作れない）
 
 ### MBIN ヘッダ（未実装・TODO）
 
-アプリを MFS 上の `.mbin` にしたとき、ローダがその実行形式の索引を読めるように、
-`MbinHeader` に索引のオフセットとサイズ（またはセクション名ごとの表）を載せる。
-今は `__annotations_start` シンボル経由なので、カーネルにリンクされた表しか読めない。
+アプリを MFS 上の `.mbin` にしたとき、ローダがその実行形式の表を読めるように、
+`MbinHeader` にディレクトリ（`__sections` と同じ形）のオフセットを載せる。
+今はカーネルにリンクされた表しか読めない。
 
-## 4. アノテーションでの使い方
+## 4. 読み手 — MyStdLib の API
+
+「コンパイラは行を書くだけ、リンカは集めるだけ、意味は読み手」という分担。読み手の共通部分は
+MyStdLib に置いた：
+
+### `memory/section.mln` — セクションを名前で
+
+```mylang
+import section from ".../MyStdLib/memory/section.mln";
+import { as_slice } from ".../MyStdLib/memory/section.mln";
+
+section.exists("annotations");             // bool
+section.start("annotations");              // 先頭アドレス（無ければ 0）
+section.size("annotations");               // バイト数（無ければ 0）
+Slice<Row> rows = as_slice<Row>("annotations");   // size / sizeof(Row) 要素の Slice
+```
+
+`__sections` を歩いて名前を `str.eq` で照合する。`as_slice<T>` は generic なので import 側の
+TU で実体化される — そのため本体は同パッケージの **export 関数**（`start`/`size`）だけを呼ぶ
+（§6 のコンパイラ変更「テンプレート内の export 名の書き換え」）。
+
+### `meta/annotations.mln` — アノテーション行のイテレータ
 
 mlc は `@a(args)` を検査したうえで、モジュールごとに `annotations` セクションへ
 **8 ワード × 行**を出す（`codegen_annotations.c`）：
@@ -106,10 +136,24 @@ mlc は `@a(args)` を検査したうえで、モジュールごとに `annotati
 | 4 | 引数の数 |
 | 5–7 | 引数（数値／bool は 0・1／文字列は `char*`） |
 
-読む側（`system/MyAppFramework/src/meta.mln`）は `__annotations_start..end` のペアを歩き、
-チャンクサイズ / 32 を行数として平坦なインデックスを提供する。**コンパイラは行を書くだけ、
-リンカは集めるだけ、意味は読み手**という分担。manifest 生成も、`main.mln` の
-`extern i32* __annotations_table(i32 m);` という目印も不要になった。
+```mylang
+import annotations from ".../MyStdLib/meta/annotations.mln";
+import { Annotations } from ".../MyStdLib/meta/annotations.mln";
+
+Annotations it = annotations.named("app");         // all() / named(n) / of_type(t) / where(n, t)
+while (it.next()) {
+    register_app(it.type(), it.size(), it.fn(), it.arg(0), it.text(1));
+}
+annotations.count();                               // 全行数
+```
+
+- `AnnotationRow`（8 ワードそのまま）と `Annotations`（カーソル + フィルタ）は export struct
+- メソッド：`next()`、`reset()`、`row()`、`name()`、`fn()`、`type()`、`size()`、`argc()`、
+  `arg(k)`、`text(k)`（`char*` として）、`flag(k)`
+- 知らない名前の行は `named()` で頼まれなければ見えない。他のフレームワークが自分の
+  アノテーションを同じ表に混ぜても互いに干渉しない
+- MyAppFramework の `app.install()` はこれで `"app"` / `"timer"` / `"key"` / `"open"` /
+  `"on_close"` を型名キーのレジストリに振り分ける。`meta.mln` は無くなった
 
 ## 5. 重複定義の検出
 
@@ -126,22 +170,30 @@ DESIGN.md には「Detect Duplicate Definitions (Error)」とあったが、実�
 
 | 場所 | 変更 |
 | --- | --- |
-| `MyLinker/inc/ObjectFormat.h` | `LINKER_MAGIC` = LNK2、`FileHeader.collect_count`、`RELOC_WORD32`、`CollectEntry` |
+| `MyLinker/inc/ObjectFormat.h` | `LINKER_MAGIC` = LNK3、`collect_count`/`collect_size`、`RELOC_WORD32`、`SECTION_COLLECT`、`RelocEntry.section`、`CollectEntry` |
 | `MyAssembler/src/parser.c` | `.word`、`.section`（ブロック境界としても扱う） |
-| `MyAssembler/src/codeGen.c` | `.word` の出力とリロケーション、チャンク記録 |
-| `MyAssembler/src/assembler.c` | `CollectEntry` の書き出し |
-| `MyLinker/src/Linker.cpp` | LNK2 読み込み、WORD32 patch、索引合成、活性化規則、重複検出 |
-| `MyLinker/tools/obj_gen.py`, `obj_dump.py`, `qa/tools/obj-viewer.py` | LNK2 対応 |
+| `MyAssembler/src/codeGen.c` | `.word` の出力とリロケーション、blob へのチャンク記録 |
+| `MyAssembler/src/assembler.c` | blob と `CollectEntry` の書き出し |
+| `MyLinker/src/Linker.cpp` | LNK3 読み込み、WORD32 patch、物理連結、`__section_*` / `__sections` 合成、活性化規則、重複検出 |
+| `MyLinker/tools/obj_gen.py`, `obj_dump.py`, `qa/tools/obj-viewer.py` | LNK3 対応 |
 | `MyLangCompiler/src/backend/codegen/codegen_annotations.c` | 行の出力 |
 | `MyLangCompiler/src/backend/codegen/codegen_data.c` | `.word` によるポインタ初期化 |
-| `MyLangCompiler/src/backend/codegen/codegen_toplevel.c` | `extern` グローバルを import に |
-| `MyAppFramework/src/meta.mln` | 索引の読み手 |
+| `MyLangCompiler/src/backend/codegen/codegen_toplevel.c` | `extern` グローバルを import に。import した型のメソッドのシグネチャ登録 |
+| `MyLangCompiler/src/frontend/parser/parser_import_generics.c` | **クロスパッケージのメソッド呼び出し**：`import { T }` で T の export メソッドのプロトタイプを登録（`import_type_methods`）。T のフィールド型（同モジュールの struct、実体化済み `__mlg_s_` struct）も依存順に取り込む（`import_member_types`） |
+| `MyLangCompiler/src/frontend/parser/parser_instantiate.c` | 取り込んだ `__mlg_s_` 実体（`is_imported_instance`）を自 TU の実体化で再利用 |
+| `MyLangCompiler/src/frontend/parser/parser_method_resolve.c` | 連鎖レシーバ `pkg.f().m()` の型を import 先の宣言から解決 |
+| `MyLangCompiler/src/frontend/module/module_loader.c` | generic テンプレート本体の export 名を link 名に書き換えてから importer に渡す |
+| `MyLangCompiler/src/frontend/parser/parser_expr_unary.c`, `codegen_expr.c` | `sizeof(型)`（generic の `T` を含む） |
+| `MyStdLib/memory/section.mln`, `meta/annotations.mln` | 読み手の API（§4） |
+| `MyAppFramework/src/app.mln` | `install()` をイテレータで。`meta.mln` 削除 |
+| `MyLangTester/src/CompilerTestRunner.java` | e2e ケースが `../../MyStdLib/...` をリンクできるように |
 
 ## 7. 検証
 
 ```
 make -C toolchain/MyAssembler test-component test-e2e
-make -C toolchain/MyLinker test-component        # test_collect: 2 オブジェクトのチャンクが索引に
-make -C toolchain/MyLangCompiler test-e2e        # annotationTable, globalPointerInit
+make -C toolchain/MyLinker test-component        # test_collect: 2 オブジェクトのチャンクが連結、test_collect_dir: ディレクトリ
+make -C toolchain/MyLangCompiler test-e2e        # annotationTable（イテレータ API）, importedMethods, sizeofType, globalPointerInit
 make qa && make framework-test
+python3 system/MyOS/tests/dom_click_test.py; python3 system/MyOS/tests/apps_e2e_test.py
 ```

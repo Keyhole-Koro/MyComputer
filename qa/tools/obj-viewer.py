@@ -10,10 +10,10 @@ import sys
 from pathlib import Path
 
 
-MAGIC = 0x4C4E4B32  # "LNK2"
-HEADER_STRUCT = struct.Struct("<LLLLLL")    # magic, text_size, data_size, sym_count, reloc_count, collect_count
+MAGIC = 0x4C4E4B33  # "LNK3"
+HEADER_STRUCT = struct.Struct("<LLLLLLL")   # magic, text_size, data_size, sym_count, reloc_count, collect_count, collect_size
 SYMBOL_STRUCT = struct.Struct("<64sLLL")    # name[64], type, section, offset
-RELOC_STRUCT = struct.Struct("<L64sL")      # offset, symbol_name[64], type
+RELOC_STRUCT = struct.Struct("<L64sLL")      # offset, symbol_name[64], type  # + section
 
 SYMBOL_TYPES = {0: "UNDEFINED", 1: "DEFINED"}
 SECTION_TYPES = {0: "TEXT", 1: "DATA"}
@@ -52,7 +52,7 @@ def read_relocs(f, count):
         data = f.read(RELOC_STRUCT.size)
         if len(data) != RELOC_STRUCT.size:
             raise ValueError("File too short while reading relocations")
-        offset, raw_name, type_code = RELOC_STRUCT.unpack(data)
+        offset, raw_name, type_code, _section = RELOC_STRUCT.unpack(data)
         name = raw_name.split(b"\0", 1)[0].decode("utf-8", errors="replace")
         relocs.append(
             {
@@ -79,12 +79,13 @@ def hex_preview(buf, max_bytes, width=16):
 def show_obj(path: Path, max_bytes: int):
     try:
         with path.open("rb") as f:
-            magic, text_size, data_size, sym_count, reloc_count, collect_count = read_header(f)
+            magic, text_size, data_size, sym_count, reloc_count, collect_count, collect_size = read_header(f)
             if magic != MAGIC:
                 raise ValueError(f"Bad magic 0x{magic:08X} (expected 0x{MAGIC:08X})")
 
             text = f.read(text_size)
             data = f.read(data_size)
+            blob = f.read(collect_size)
             symbols = read_symbols(f, sym_count)
             relocs = read_relocs(f, reloc_count)
             collects = []
@@ -105,7 +106,7 @@ def show_obj(path: Path, max_bytes: int):
         f"symbols={len(symbols)}, relocs={len(relocs)}, collected chunks={len(collects)}"
     )
     for name, offset, size in collects:
-        print(f"  .section {name}: text+0x{offset:X}, {size} bytes")
+        print(f"  .section {name}: blob+0x{offset:X}, {size} bytes")
 
     if text_size:
         print("Text preview:")

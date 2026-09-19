@@ -27,12 +27,15 @@ Java 式の言語機能に置き換えた（途中で試したテンプレート
   行を記録、`codegen_annotations.c` が `annotations` 束ねセクションに静的データとして出す。
   メソッドはポインタ／参照レシーバ必須。
 - **toolchain**: `.word symbol`（データ内リロケーション）、`.section NAME`（束ねセクション、
-  LNK2）、リンカの索引合成と重複検出 — `docs/design/toolchain-collected-sections.md`。
+  LNK3）、リンカの物理連結・`__sections` ディレクトリ・重複検出 —
+  `docs/design/toolchain-collected-sections.md`。mlc にクロスパッケージのメソッド呼び出しと
+  `sizeof(型)`。
   `onClick={c.click}` はメソッドの実体を渡す（呼び出し規約が余分な引数を無視することを実測）。
   `parser_lower_app.c` は削除。**`ref mut` の書き戻しバグを修正**（`codegen_lvalue.c`）。
-- **MyAppFramework**: `src/annotations.mln`（宣言 5 つ）、`src/meta.mln`（表の読み手）、
-  `src/app.mln`（型名キーのレジストリ、`key_spec_matches`、`install()` が表を走査）、
-  `src/ui.mln`、`docs/APP_FRAMEWORK.md`。
+- **MyStdLib**: `memory/section.mln`（`as_slice<T>("name")`）、`meta/annotations.mln`
+  （`annotations.named("app")` イテレータ）— 表の読み手。
+- **MyAppFramework**: `src/annotations.mln`（宣言 5 つ）、`src/app.mln`（型名キーのレジストリ、
+  `key_spec_matches`、`install()` がイテレータで表を走査）、`src/ui.mln`、`docs/APP_FRAMEWORK.md`。
 - **MyOS**: `@app` は struct ではなく view メソッドに。フィールド初期化子は view() へ。
   `boot/main.mln` がアプリを明示 import（TODO: fs 上の .mbin へ、MBIN ヘッダに索引を載せる）。
 - **削除**: `qa/runners/gen_app_manifest.py`、`build/apps_manifest.mln`。

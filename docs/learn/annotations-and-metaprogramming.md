@@ -195,13 +195,19 @@ void (Terminal *t) poll() { ... }
 - **mlc**：`@a(x)` を宣言（同ファイル / symbol-list import）と照合し、モジュールの
   `annotations` 束ねセクションに 8 ワード × 行の**静的データ**を出す。関数は呼ばない、
   名前の意味も知らない
-- **リンカ**：全オブジェクトの `annotations` チャンクを `__annotations_start..end` の索引に
-  集める（`docs/design/toolchain-collected-sections.md`）。チャンクを持つオブジェクトは
-  参照されなくても落とさない。当初は `main.mln` の `extern i32* __annotations_table(i32 m);`
-  という目印をコンパイラが定義に置き換える方式で動かしたが、`.word` と `.section` を
-  toolchain に足してリンカに移した
-- **MyAppFramework**：`annotations.mln`（宣言）、`meta.mln`（表の読み手）、`app.mln`
-  （`install()` が表を走査して registry へ。いつ・順序・検証はここ）
+- **リンカ**：全オブジェクトの `annotations` チャンクを 1 本のセクションに物理連結し、
+  `__sections` ディレクトリに名前で載せる（`docs/design/toolchain-collected-sections.md`）。
+  チャンクを持つオブジェクトは参照されなくても落とさない。当初は `main.mln` の
+  `extern i32* __annotations_table(i32 m);` という目印をコンパイラが定義に置き換える方式で
+  動かしたが、`.word` と `.section` を toolchain に足してリンカに移した。索引（アドレス・サイズの
+  ペア列）を歩く方式も一度作ったが、読み手が「チャンク」を意識するのは分担として筋が悪いので、
+  連結して名前で探せる形にした
+- **MyStdLib**：`memory/section.mln`（セクションを名前で `as_slice<T>`）、`meta/annotations.mln`
+  （`annotations.named("app")` → `it.next()` / `it.fn()` … のイテレータ）。読み手の共通部分は
+  framework ではなく stdlib に置く。これを書くのに mlc へ**クロスパッケージのメソッド呼び出し**
+  （import した型の export メソッド）と `sizeof(型)` を足した
+- **MyAppFramework**：`annotations.mln`（宣言）、`app.mln`（`install()` がイテレータで registry
+  へ。いつ・順序・検証はここ）
 - **発見**：`main.mln` がアプリを明示 import（暫定）。最終形はアプリを MFS 上の .mbin にし、
   同じ表を MBIN ヘッダに載せてローダが読む（main.mln の TODO）
 
@@ -221,9 +227,14 @@ Python の manifest 生成、`__annotations_init`、テンプレート、`annota
 ### 実装して分かったこと・直したこと
 
 - **toolchain に足したもの**（`docs/design/toolchain-collected-sections.md`）：`.word symbol`
-  （`RELOC_WORD32`）、`.section NAME` + `CollectEntry`（LNK2）、リンカの索引合成、活性化規則、
-  重複定義の検出、`extern` グローバルの import 化、グローバルポインタの静的初期化
-  （`char *s = "x";` が null になるバグの解消）。
+  （`RELOC_WORD32`）、`.section NAME` + `CollectEntry`（LNK3）、リンカの物理連結と `__sections`
+  ディレクトリ、活性化規則、重複定義の検出、`extern` グローバルの import 化、グローバル
+  ポインタの静的初期化（`char *s = "x";` が null になるバグの解消）。
+
+- **mlc に足したもの**：`import { T }` で T の export メソッドが呼べる（フィールド型・実体化済み
+  generic も一緒に取り込む）、連鎖レシーバ `pkg.f().m()` の型解決、`sizeof(型)`、generic
+  テンプレート本体の export 名の link 名への書き換え（importer の TU で実体化しても同パッケージの
+  export 関数を呼べる）。
 
 - **`ref mut` の書き戻しバグを修正**（`codegen_lvalue.c`）：参照型の変数への `s.v` が、参照を
   deref せずに「ポインタが入っているスロット」をフィールドとして読み書きしていた。修正後は
