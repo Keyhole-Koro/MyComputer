@@ -10,9 +10,10 @@ foundation.
 The first consumer of this design is
 [`mylang-param-doc-and-lsp.md`](mylang-param-doc-and-lsp.md).
 
-The implementation lives in `tools/MyLangServerProtocol/` and
+The implementation lives in `tools/MyLangServerProtocol/src/mylang_lsp/` and
 `tools/vscode-mylang/extension.js`. The server package is split into protocol,
-document, native-frontend, analysis, and feature-service modules.
+analysis, native-frontend, and feature-service subpackages. Root-level
+`server.py` and `lsp_analysis.py` remain stable compatibility entry points.
 
 ---
 
@@ -321,9 +322,9 @@ barriers so prioritization never analyzes a request against a later snapshot.
 
 ### Phase B: Split server responsibilities
 
-- Keep protocol dispatch in `server.py`; extract `DocumentStore`, `LineMap`,
-  native-frontend process management, feature services, and `FrontendBackend`
-  into focused modules.
+- Keep protocol dispatch in `src/mylang_lsp/protocol/`; place
+  `DocumentStore`, `LineMap`, native-frontend process management, feature
+  services, and `FrontendBackend` in focused subpackages.
 - Key analysis results by URI and document version.
 - Add UTF-16 conversion tests, including Japanese text and emoji.
 
