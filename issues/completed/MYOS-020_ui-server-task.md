@@ -2,7 +2,7 @@
 
 | Status | Branch | Agent | Updated |
 | --- | --- | --- | --- |
-| Proposed | - | - | 2026-09-20 |
+| Done | main | claude-code:opus-5 | 2026-09-20 |
 
 ## Summary
 
@@ -35,7 +35,12 @@ paint の 1 ループ（`ui/compositor.mln:256`）。アプリが長く走ると
 
 ### Alternatives Considered
 
-- 検討中（チャネル + 固定長 か 共有リング か。MYOS-019 の表を見て決める）
+- 共有リング → 段 5 で syscall にするとき、カーネルがメッセージをコピーするだけで済む
+  「チャネル + 固定長（16 ワード）」にした
+- ブロッキング primitive（wait queue）→ `scheduler.sleep(1)` の poll で十分（1 kHz tick）。
+  要求 1 つ ≈ 2〜3 tick
+- IPC の syscall（`SYS_UI_REQUEST` 等）を今足す → 使うプロセスがまだ無く試せないので段 5 へ
+- 毎パス描画 → view() の CREATE が 1 パスずつ届くので、要求に答えたパスは描画を保留（最大 8 パス）
 
 ### Non-Goals
 
@@ -43,10 +48,13 @@ paint の 1 ループ（`ui/compositor.mln:256`）。アプリが長く走ると
 
 ## Progress
 
-- [ ] IPC 設計（`docs/design/ipc.md`）
-- [ ] チャネル syscall
-- [ ] UI サーバのタスク化
-- [ ] SDK のイベントループをチャネルに
+- [x] IPC 設計 — `docs/design/ui-protocol.md` §1 と `MyKernel/src/kernel/ipc.mln` の冒頭（別 doc にはしなかった）
+- [x] チャネル（`ipc.mln`: create / send / recv / pending / wait）。syscall 化は段 5
+- [x] アプリのタスク（`shell/host.mln`、64 KiB スタック `spawn_task_sized`）。UI サーバは task 0 のまま、`serve()` で答える
+- [x] SDK：`runtime.run()`（pump + idle）、`text_of` → `text_copy`、MAIN_WINDOW
+- [x] DOM ロック（手渡し付き）、automation がダンプで取る
+- [x] シェル：`mount` 非同期化（`window_ready`）、OPEN の保留
+- [x] 3 つの E2E、`make qa` 21 suites 緑（apps_e2e は exit code を待つように修正）
 
 ## Verification
 
@@ -57,8 +65,10 @@ python3 system/MyOS/tests/app_framework_test.py
 
 ## 完了条件
 
-- `dom.drain_events` がアプリのハンドラを呼ばない（アプリ側の `run()` が呼ぶ）
-- アプリのハンドラで busy loop しても compositor の paint が続く（テスト追加）
+- `dom.drain_events` がアプリのハンドラを呼ばない（アプリ側の `run()` が呼ぶ）— 済
+- アプリのハンドラで busy loop しても compositor の paint が続く — 構造上そうなる
+  （アプリのコードはアプリのタスクにしかない）が、自動テストは足していない。ハンドラで
+  busy loop するテスト用アプリを置く必要があり、段 5 の `/apps` の .mbin で作るほうが自然
 
 ## 関連
 

@@ -40,7 +40,7 @@
 | MLC-017 | [パーサ状態のコンテキスト化とモジュール解決層](completed/MLC-017_parser-context-and-module-resolution.md) | Stale/Partial | グローバル23→実質1個、4つのハックは置換済み。型の解決層越境のみ未達。要再検証。 |
 | MYOS-018 | [SDK / シェル分離](completed/MYOS-018_sdk-shell-separation.md) | Done | MyAppFramework を SDK だけに。`app.mln` を MyOS/src/shell へ、`ui` / `elements` をプロトタイプ + サーバ実装に。`docs/design/os-app-boundaries.md` 段 1。 |
 | MYOS-019 | [UI プロトコル](completed/MYOS-019_ui-protocol.md) | Done | アプリ ↔ UI サーバをメッセージ表に。段 2。 |
-| MYOS-020 | [UI サーバを自タスクに](tickets/MYOS-020_ui-server-task.md) | Proposed | IPC チャネル、DOM ロック。段 3。 |
+| MYOS-020 | [UI サーバを自タスクに](completed/MYOS-020_ui-server-task.md) | Done | カーネルのチャネル、アプリのタスク、DOM ロック。段 3。 |
 | MYOS-021 | [MBIN ヘッダ v2 とディスク上のアプリ](completed/MYOS-021_mbin-v3-and-apps-dir.md) | Done | ヘッダにセクション表のオフセット、シェルがディスクの MBIN から @app を読んでランチャーに。段 4。 |
 | MYOS-022 | [GUI アプリを .mbin に](tickets/MYOS-022_gui-apps-as-processes.md) | Proposed | アプリをプロセスに、main.mln の明示 import を削除。段 5。 |
 | MYOS-010 | [MyKernel / MyOS 相互依存の解消](completed/MYOS-010_submodule-dependency-cycle.md) | Done | テストと起動処理を MyOS へ移し、MyKernel から MyOS への参照をゼロにした。 |

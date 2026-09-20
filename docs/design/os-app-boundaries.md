@@ -84,7 +84,7 @@ export i32 request(UiMsg *m) { return ui_server.handle(m); }
 | --- | --- | --- | --- | --- |
 | 1 | MYOS-018 | **SDK / シェル分離** | リポジトリ | MyAppFramework が MyOS / MyKernel を import しない。`app.mln` が `MyOS/src/shell` に。`ui` / `elements` がプロトタイプ + サーバ実装。既存 E2E がすべて緑 |
 | 2 | MYOS-019 | **UI プロトコル**（済） | メッセージ | `ui` / `elements` の面がメッセージ表（`docs/design/ui-protocol.md`）になり、SDK 側スタブ → `uiproto.request` → サーバ側ディスパッチで動く（同一プロセス内）。ハンドラは SDK 側のハンドラ表から (owner, id, arg) で呼ばれる。アプリのノードに関数ポインタは無い。`@timer` / `@key` / `@open` / `@on_close` の意味は SDK の `runtime.mln` に移り、シェルは `@app` だけを知る |
-| 3 | MYOS-020 | **UI サーバをタスクに** | プロセス | カーネルに IPC チャネル syscall。UI サーバが自タスクで `drain_events` = メッセージループ。DOM ロック。アプリのハンドラは別タスク上で走る |
+| 3 | MYOS-020 | **UI サーバをタスクに**（済） | タスク | カーネルにチャネル（`ipc.mln`）。要求・返事・イベントがチャネルを通り、UI サーバのタスクが `serve()` で答える。アプリのコードはアプリのタスクでしか走らず、DOM はサーバのタスク（+ ロックを取った automation）でしか触らない。`text_of` → `text_copy`（サーバのポインタを返さない）。syscall 化は段 5 |
 | 4 | MYOS-021 | **MBIN ヘッダ v2 + ディスク上のアプリ**（済） | 実行形式 | ヘッダに `sections_offset`（`__sections` と同じディレクトリ）。MyStdLib `format/mbin.mln` / `annotations.in_image()` がファイルから表を読む。シェルは起動時にディスクの MBIN ファイルのヘッダから `@app` 行を読んでランチャーに載せ、起動はプロセス spawn。MFS は平坦なので「`/apps` ディレクトリ」ではなく「`@app` 行を持つ実行形式」が installed の定義 |
 | 5 | MYOS-022 | **GUI アプリを .mbin に** | 完成 | アプリを個別ビルドして `/apps` へ。`boot/main.mln` の明示 import と Phase A 経路を削除。レジストリは `/apps` のヘッダだけを見る |
 
@@ -96,10 +96,9 @@ export i32 request(UiMsg *m) { return ui_server.handle(m); }
 
 ## 5. 決めていないこと
 
-- **IPC の形**（3）：チャネル + 固定長メッセージか、共有リングか。UI プロトコルの
-  メッセージ表（2）ができてから決める
-- **文字列の渡し方**（2 → 3）：同一プロセスでは `char*` で足りるが、プロセス境界では
-  コピーが要る。メッセージ表で「文字列引数は長さ付き」にしておく
+- ~~**IPC の形**~~（3 で決めた）：チャネル + 16 ワード固定長メッセージ（`docs/design/ui-protocol.md` §1）
+- **文字列の渡し方**（5）：同一アドレス空間では `char*` で足りるが、プロセス境界では
+  syscall がコピーする。長さは NUL 終端 + 上限で決める
 - **ノード id 空間**：256 で尽きる既知の制限と、owner ごとの上限。2 で id の払い出しを
   サーバに寄せるときに直す
 - **`<Canvas>`**：自前描画の逃げ道。必要になるまで作らない
