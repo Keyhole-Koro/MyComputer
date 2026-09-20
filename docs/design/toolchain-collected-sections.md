@@ -185,7 +185,7 @@ DESIGN.md には「Detect Duplicate Definitions (Error)」とあったが、実�
 | `MyLangCompiler/src/frontend/module/module_loader.c` | generic テンプレート本体の export 名を link 名に書き換えてから importer に渡す |
 | `MyLangCompiler/src/frontend/parser/parser_expr_unary.c`, `codegen_expr.c` | `sizeof(型)`（generic の `T` を含む） |
 | `MyStdLib/memory/section.mln`, `meta/annotations.mln` | 読み手の API（§4） |
-| `MyAppFramework/src/app.mln` | `install()` をイテレータで。`meta.mln` 削除 |
+| `MyOS/src/shell/app.mln`（当時 `MyAppFramework/src/app.mln`） | `install()` をイテレータで。`meta.mln` 削除 |
 | `MyLangTester/src/CompilerTestRunner.java` | e2e ケースが `../../MyStdLib/...` をリンクできるように |
 
 ## 7. 検証
