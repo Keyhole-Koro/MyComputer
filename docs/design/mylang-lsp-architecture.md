@@ -10,24 +10,25 @@ foundation.
 The first consumer of this design is
 [`mylang-param-doc-and-lsp.md`](mylang-param-doc-and-lsp.md).
 
-The implementation lives in `tools/MyLangServerProtocol/lsp_analysis.py`,
-`tools/MyLangServerProtocol/server.py`, and `tools/vscode-mylang/extension.js`.
+The implementation lives in `tools/MyLangServerProtocol/` and
+`tools/vscode-mylang/extension.js`. The server package is split into protocol,
+document, native-frontend, analysis, and feature-service modules.
 
 ---
 
 ## 1. Motivation
 
-The current implementation is intentionally small:
+The original implementation was intentionally small:
 
 - `tools/vscode-mylang/extension.js` implements its own JSON-RPC connection and
   registers VS Code providers directly.
-- `tools/MyLangServerProtocol/server.py` owns protocol framing, document state,
+- `tools/MyLangServerProtocol/server.py` owned protocol framing, document state,
   compiler subprocess management, diagnostics, semantic tokens, and document
   symbols in one class.
 - Some editor-facing information comes from the syntax engine while other
   information is reconstructed by scanning source text.
 
-This was enough for the initial diagnostics and highlighting features. Adding
+That was enough for the initial diagnostics and highlighting features. Adding
 Hover, Signature Help, Completion, navigation, and workspace-wide symbol
 resolution directly to the same structure would duplicate standard LSP client
 behavior and make parsing, caching, cancellation, and symbol identity harder to
@@ -320,8 +321,9 @@ barriers so prioritization never analyzes a request against a later snapshot.
 
 ### Phase B: Split server responsibilities
 
-- Extract protocol dispatch, `DocumentStore`, `LineMap`, and
-  `FrontendBackend` from `server.py`.
+- Keep protocol dispatch in `server.py`; extract `DocumentStore`, `LineMap`,
+  native-frontend process management, feature services, and `FrontendBackend`
+  into focused modules.
 - Key analysis results by URI and document version.
 - Add UTF-16 conversion tests, including Japanese text and emoji.
 
