@@ -23,13 +23,13 @@ UI サーバ   MyOS/src/ui: dom / widgets / render / compositor  — 自分の�
    │  サーバ API（MyLang の import）
 シェル      MyOS/src/shell: レジストリ（/apps のヘッダ + 組み込み）、ランチャー、タスクバー、キー配送、ウィンドウ管理
    │  syscall（exit / write / read / spawn / sbrk + IPC）
-カーネル    MyKernel: mm / scheduler / process / loader (MBIN v3) / syscall
+カーネル    MyKernel: mm / scheduler / process / loader (MBIN, header v2) / syscall
 ```
 
 ### 原則
 
 1. **境界はプロトコルで越える。import では越えない。** アプリ ↔ UI サーバは UI プロトコル、
-   ユーザ空間 ↔ カーネルは syscall、ファイル ↔ ローダは MBIN v3 のセクション表。
+   ユーザ空間 ↔ カーネルは syscall、ファイル ↔ ローダ／シェルは MBIN ヘッダのセクション表。
    SDK（MyAppFramework）は MyOS / MyKernel のファイルを import しない。
 2. **依存は一方向。** アプリ → SDK → プロトコル → UI サーバ → カーネル。逆向きの通知は
    コールバック登録ではなくメッセージ（イベント）。
@@ -85,7 +85,7 @@ export i32 request(UiMsg *m) { return ui_server.handle(m); }
 | 1 | MYOS-018 | **SDK / シェル分離** | リポジトリ | MyAppFramework が MyOS / MyKernel を import しない。`app.mln` が `MyOS/src/shell` に。`ui` / `elements` がプロトタイプ + サーバ実装。既存 E2E がすべて緑 |
 | 2 | MYOS-019 | **UI プロトコル**（済） | メッセージ | `ui` / `elements` の面がメッセージ表（`docs/design/ui-protocol.md`）になり、SDK 側スタブ → `uiproto.request` → サーバ側ディスパッチで動く（同一プロセス内）。ハンドラは SDK 側のハンドラ表から (owner, id, arg) で呼ばれる。アプリのノードに関数ポインタは無い。`@timer` / `@key` / `@open` / `@on_close` の意味は SDK の `runtime.mln` に移り、シェルは `@app` だけを知る |
 | 3 | MYOS-020 | **UI サーバをタスクに** | プロセス | カーネルに IPC チャネル syscall。UI サーバが自タスクで `drain_events` = メッセージループ。DOM ロック。アプリのハンドラは別タスク上で走る |
-| 4 | MYOS-021 | **MBIN v3 + /apps** | 実行形式 | ヘッダにセクション表（`__sections` と同じ行）。ローダが読む。`/apps` を mkfs が作り、ランチャーが列挙して `@app` 行をヘッダから読む。`sys_spawn` の探索パス |
+| 4 | MYOS-021 | **MBIN ヘッダ v2 + ディスク上のアプリ**（済） | 実行形式 | ヘッダに `sections_offset`（`__sections` と同じディレクトリ）。MyStdLib `format/mbin.mln` / `annotations.in_image()` がファイルから表を読む。シェルは起動時にディスクの MBIN ファイルのヘッダから `@app` 行を読んでランチャーに載せ、起動はプロセス spawn。MFS は平坦なので「`/apps` ディレクトリ」ではなく「`@app` 行を持つ実行形式」が installed の定義 |
 | 5 | MYOS-022 | **GUI アプリを .mbin に** | 完成 | アプリを個別ビルドして `/apps` へ。`boot/main.mln` の明示 import と Phase A 経路を削除。レジストリは `/apps` のヘッダだけを見る |
 
 ### 二系統の期間
@@ -108,5 +108,5 @@ export i32 request(UiMsg *m) { return ui_server.handle(m); }
 
 - クライアント側 DOM（アプリごとのツールキット）
 - ELF 互換の実行形式。リロケーション・動的リンク・シンボル表は要らない（プロセスごとに
-  VA 空間があり、固定ベースで足りる）。MBIN v3 はセクション表を足すだけ
+  VA 空間があり、固定ベースで足りる）。MBIN はヘッダにセクション表のオフセットを足しただけ
 - コンソールプログラム（hello / echo / count）の作り直し。既にプロセスで、そのまま

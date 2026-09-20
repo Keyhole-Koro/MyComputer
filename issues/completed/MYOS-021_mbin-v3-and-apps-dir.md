@@ -2,7 +2,7 @@
 
 | Status | Branch | Agent | Updated |
 | --- | --- | --- | --- |
-| Proposed | - | - | 2026-09-20 |
+| Done | main | claude-code:opus-5 | 2026-09-20 |
 
 ## Summary
 
@@ -41,6 +41,9 @@ text / data / bss の位置しか持たない。アノテーション表は imag
 
 - ELF 互換 → リロケーション・動的リンクは要らない（VA 空間がプロセスごと）。却下
 - 表を別ファイル（manifest）に → ソースの `@app` が唯一の真実であるべき。却下
+- `/apps` ディレクトリ → MFS は平坦（名前 15 文字、ディレクトリ無し）。「ディスク上の MBIN
+  ファイルで `@app` 行を持つもの」を installed の定義にした。ディレクトリは FS 側の別チケット
+- `sys_spawn` の探索パス → 平坦 FS では意味が無い（名前がそのままパス）。見送り
 
 ### Non-Goals
 
@@ -48,10 +51,11 @@ text / data / bss の位置しか持たない。アノテーション表は imag
 
 ## Progress
 
-- [ ] MBIN v3（リンカ・ローダ・`obj-viewer`）
-- [ ] `section.from_header`
-- [ ] `/apps` と mkfs、ランチャーの列挙
-- [ ] `sys_spawn` の探索パス
+- [x] ヘッダ version 2（`sections_offset`）：リンカが書き、ローダが 1 / 2 を受ける
+- [x] MyStdLib `format/mbin.mln`（ヘッダ、ディレクトリ、`va_to_offset`）、`annotations.in_image()`
+- [x] シェル `scan_disk()`：MFS の各 MBIN ファイルのヘッダから `@app` を読み `register_file_app`、ランチャーから `console.spawn_file`
+- [x] `user/apps/demo.mln`（`@app(name = "Demo")` を持つユーザプログラム）と `app_framework_test.py` 段 8
+- [x] `sys_spawn` の探索パス — 見送り（上記）
 
 ## Verification
 
@@ -63,8 +67,8 @@ python3 system/MyOS/tests/apps_e2e_test.py
 
 ## 完了条件
 
-- v3 の .mbin をローダが読み、`hello` が動く
-- `/apps` に置いた .mbin のセクション表をシェルが読める（テスト追加）
+- version 2 ヘッダの .mbin をローダが読み、`hello` が動く（apps_e2e）
+- ディスク上の .mbin のセクション表をシェルが読み、ランチャーに載り、起動できる（app_framework_test 段 8）
 
 ## 関連
 

@@ -95,11 +95,14 @@ _end:                    ; 以前どおり、イメージの末尾
 - 名前で探せるので、読み手側に「セクション名ごとの extern 宣言」は要らない（MyLang にはトークン
   連結が無いので、静的な名前解決だけだと `as_slice<T>("annotations")` のような API が作れない）
 
-### MBIN ヘッダ（未実装・TODO）
+### MBIN ヘッダ（済、MYOS-021）
 
-アプリを MFS 上の `.mbin` にしたとき、ローダがその実行形式の表を読めるように、
-`MbinHeader` にディレクトリ（`__sections` と同じ形）のオフセットを載せる。
-今はカーネルにリンクされた表しか読めない。
+`--header` でリンクした実行形式は、ヘッダ（version 2、36 バイト）に `sections_offset` ——
+このディレクトリのファイル内オフセット —— を持つ（`docs/design/mbin-executable-header.md`）。
+MyStdLib `format/mbin.mln` がそれを読み（`section_offset(image, name)`、`va_to_ptr`）、
+`meta/annotations.mln` の `in_image(image)` がファイル上のアノテーション表を同じイテレータで
+返す。MyOS のシェルは起動時にディスク上の MBIN ファイルのヘッダを読んで `@app` 行を
+ランチャーに載せる（ロードはしない）。
 
 ## 4. 読み手 — MyStdLib の API
 

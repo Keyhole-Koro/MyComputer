@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build every user-space program under system/MyOS/user/apps into an MBIN v2
+"""Build every user-space program under system/MyOS/user/apps into an MBIN
 executable (build/user/<name>.mbin), linked at the user code base with the
 executable header the kernel loader expects (MYOS-015).
 

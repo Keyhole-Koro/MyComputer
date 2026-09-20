@@ -28,29 +28,41 @@
 
 ## 2. ヘッダ構造仕様 (MBIN Header Specification)
 
-ヘッダはファイルの先頭に配置される **32バイト固定長（8ワード）** の構造です。
+ヘッダはファイルの先頭に配置される **36バイト固定長（9ワード、header version 2）** の構造です。
 すべての数値フィールドは MyComputer のネイティブエンディアンである **Big Endian（ビッグエンディアン）** で記録されます。
 
 ```
-+-------------------------------------------------------+
-| Offset | Field        | Type     | Description        |
-+--------+--------------+----------+--------------------+
-| 0x00   | magic        | uint32_t | 0x4D42494E ('MBIN')|
-| 0x04   | version      | uint32_t | 1                  |
-| 0x08   | entry_point  | uint32_t | Initial PC (VAddr) |
-| 0x0C   | text_offset  | uint32_t | File offset to Text|
-| 0x10   | text_size    | uint32_t | Text size in bytes |
-| 0x14   | data_offset  | uint32_t | File offset to Data|
-| 0x18   | data_size    | uint32_t | Data size in bytes |
-| 0x1C   | bss_size     | uint32_t | BSS size in bytes  |
-+-------------------------------------------------------+
++-----------------------------------------------------------------+
+| Offset | Field           | Type     | Description                 |
++--------+-----------------+----------+-----------------------------+
+| 0x00   | magic           | uint32_t | 0x4D42494E ('MBIN')         |
+| 0x04   | version         | uint32_t | 2                           |
+| 0x08   | entry_point     | uint32_t | Initial PC (VAddr)          |
+| 0x0C   | text_offset     | uint32_t | File offset to Text (36)    |
+| 0x10   | text_size       | uint32_t | Text size in bytes          |
+| 0x14   | data_offset     | uint32_t | File offset to Data         |
+| 0x18   | data_size       | uint32_t | Data size in bytes          |
+| 0x1C   | bss_size        | uint32_t | BSS size in bytes           |
+| 0x20   | sections_offset | uint32_t | File offset of the section  |
+|        |                 |          | directory; 0 if none        |
++-----------------------------------------------------------------+
 ```
+
+`sections_offset`（header version 2、2026-09-20、MYOS-021）は、リンカが DATA の末尾に置く
+**セクションディレクトリ**（`__sections`：`[name (char*), start, size]` の行 + 終端行 + 名前文字列。
+`docs/design/toolchain-collected-sections.md` §3）のファイル内オフセット。コンパイラが記録する
+アノテーション表（`annotations` セクション）を、**ロードせずに**ファイルから読むためにある —
+シェルはこれで `/apps` 相当の実行形式の `@app(name = ...)` を起動前に知る。ディレクトリ内の
+アドレスは仮想アドレスなので、読む側は `text_vaddr = entry & ~0xFFF`、`data_vaddr = text_vaddr +
+page_up(text_size)` としてファイルオフセットに直す（`toolchain/MyStdLib/format/mbin.mln` の
+`va_to_offset`）。ローダは version 1 と 2 の両方を受け付け、セグメントの配置は同じ。
 
 ### C/C++ 構造体定義 (`toolchain/MyLinker/inc/ObjectFormat.h`)
 
 ```cpp
 const uint32_t MBIN_MAGIC = 0x4D42494E; // 'MBIN'
 const uint32_t MBIN_VERSION_1 = 1;
+const uint32_t MBIN_VERSION_2 = 2;   // adds sections_offset
 
 #pragma pack(push, 1)
 struct MbinHeader {
