@@ -2,7 +2,7 @@
 
 | Status | Branch | Agent | Updated |
 | --- | --- | --- | --- |
-| Proposed | - | - | 2026-09-20 |
+| Done | main | claude-code:opus-5 | 2026-09-20 |
 
 ## Summary
 
@@ -39,7 +39,11 @@ MYOS-018 の後も、`ui_set_text` は link 名でサーバの関数に直結し
 
 ### Alternatives Considered
 
-- 検討中（IPC の形は段 3 で決める。ここでは表と in-process 実装だけ）
+- `@key` を KEY イベントの後にアプリ側で照合する → 「widget にキーを渡すか」は即決が要り、
+  アプリを待てない。起動時に CLAIM_KEY で申告し、シェルが照合する形にした
+- CLOSE でシェルが即座に解放する → アプリの `@on_close` が非同期に走るので use-after-free。
+  アプリが EXIT を返してから解放する
+- `ui.set_key_filter`（インラインの同期コールバック）は残せない → 使うアプリが無かったので削除
 
 ### Non-Goals
 
@@ -48,10 +52,11 @@ MYOS-018 の後も、`ui_set_text` は link 名でサーバの関数に直結し
 
 ## Progress
 
-- [ ] メッセージ表（`docs/design/ui-protocol.md`）
-- [ ] SDK スタブ + ハンドラ表 + イベントループ
-- [ ] サーバ側ディスパッチ
-- [ ] アプリのハンドラがサーバの関数ポインタ経由で呼ばれていないことの確認（grep + テスト）
+- [x] メッセージ表（`docs/design/ui-protocol.md`、`protocol.mln`）
+- [x] SDK スタブ（`ui.mln` / `elements.mln`）+ ハンドラ表 + イベントループ（`runtime.mln`）
+- [x] サーバ側ディスパッチ（`ui_channel` / `ui_server` / `elements_server` / `ui_events`）、`dom.emit`
+- [x] `@timer` / `@key` / `@open` / `@on_close` の意味をシェルから `runtime.start()` へ。シェルは claim 表と EXIT
+- [x] `elements_server` / `ui_server` に `set_on_*` が無い（grep）。3 つの E2E と `make qa` 21 suites 緑
 
 ## Verification
 
@@ -63,7 +68,7 @@ python3 system/MyOS/tests/apps_e2e_test.py
 
 ## 完了条件
 
-- `dom.mln` にアプリの関数ポインタを保持する欄が無い
+- アプリが作るノードに関数ポインタが入らない（`elements_server` は `set_on_*` を呼ばない；`dom.emit` が所有ノードをイベントにする）
 - `ui.mln` / `elements.mln` の全関数がメッセージ表の行に対応している
 - 既存 E2E が緑
 

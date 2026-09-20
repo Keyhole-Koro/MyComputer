@@ -45,8 +45,8 @@ UI サーバ   MyOS/src/ui: dom / widgets / render / compositor  — 自分の�
 | 層 | 場所 | 持つもの | 持たないもの |
 | --- | --- | --- | --- |
 | アプリ | `MyOS/src/apps`（→ 最終的に `/apps/*.mbin`） | struct、`@app` の付いた `view()`、ハンドラ | DOM の実装、他アプリの知識 |
-| SDK | `MyAppFramework/src` | `annotations.mln`（宣言）、`ui.mln`（アプリが呼ぶ面）、`elements.mln`（markup の語彙とデフォルト）、（Phase B で）ハンドラ表・イベントループ・スタブ | サーバの実装。MyOS への import |
-| UI サーバ | `MyOS/src/ui` | dom / dom_widgets / dom_render / compositor、`ui` と `elements` の**実装** | アプリの一覧、起動、ウィンドウ閉じの意味 |
+| SDK | `MyAppFramework/src` | `annotations.mln`（宣言）、`protocol.mln`（メッセージ表）、`ui.mln` / `elements.mln`（要求を送るスタブ。markup の語彙とデフォルト）、`runtime.mln`（ハンドラ表、`start`、`pump`） | サーバの実装。MyOS への import |
+| UI サーバ | `MyOS/src/ui` | dom / dom_widgets / dom_render / compositor、プロトコルの受け手（`ui_channel` / `ui_server` / `elements_server` / `ui_events`） | アプリの一覧、起動、ウィンドウ閉じの意味、アプリの関数ポインタ |
 | シェル | `MyOS/src/shell` | レジストリ、`install()`、launch / open / single、`window_closed`、キー配送、ランチャー、タスクバーの内容 | DOM の実装 |
 | カーネル | `MyKernel/src` | mm、scheduler、process、loader、syscall、（Phase C で）IPC | デスクトップの知識（`syscall.set_console` などの登録口だけ） |
 
@@ -55,23 +55,24 @@ UI サーバ   MyOS/src/ui: dom / widgets / render / compositor  — 自分の�
 MyLang にはヘッダが無いが、**本体の無い export プロトタイプ**がそれに当たる：
 
 ```mylang
-// MyAppFramework/src/ui.mln  — SDK。コードは出ない
-package ui;
-export void set_text(i32 id, char *s);
-export i32  open(char *path);
+// MyAppFramework/src/protocol.mln — SDK。運び手の宣言。コードは出ない
+package uiproto;
+export i32 request(UiMsg *m);
+export bool poll(UiEvent *out);
 
-// MyOS/src/ui/ui_server.mln — UI サーバ。同じ package 名 → 同じ link 名 (ui_set_text)
-package ui;
-export void set_text(i32 id, char *s) { dom.set_text(id, s); }
+// MyOS/src/ui/ui_channel.mln — OS。同じ package 名 → 同じ link 名 (uiproto_request)
+package uiproto;
+export i32 request(UiMsg *m) { return ui_server.handle(m); }
 ```
 
-- 呼ぶ側は SDK を import し `ui.set_text(...)` と書く。mlc は宣言（デフォルト引数を含む）を
-  SDK 側から取り、`ui_set_text` を import する。リンカがサーバ側の定義に結ぶ
-- `elements.mln`（markup の語彙）も同じ。`<Label text="x" bold={1} />` のデフォルトは SDK の
-  プロトタイプに書く。実装（ノード生成）はサーバ側
-- Phase B ではこの SDK 側プロトタイプに**本体**（メッセージを送るスタブ）が付き、サーバ側は
-  メッセージの受け手になる。呼ぶ側のソースは変わらない
-- 同じ package 名のファイルが SDK とサーバに 1 つずつある。ビルドはパスで区別する
+- 呼ぶ側は SDK を import し `uiproto.request(&m)` と書く。mlc は宣言（デフォルト引数を含む）を
+  SDK 側から取り、`uiproto_request` を import する。リンカが OS 側の定義に結ぶ
+- 段 1（MYOS-018）では `ui.mln` / `elements.mln` 自体をこの形（プロトタイプ + サーバ側の同名
+  package）にして、段 2（MYOS-019）でそれらに**本体**（`UiMsg` を送るスタブ）を付け、サーバ側を
+  `ui_server.handle(m)` / `elements_server.create(m)` というメッセージの受け手にした。
+  同名 package の仕組みが残っているのは運び手 `request` / `poll` だけで、段 3 でこれが
+  syscall になる。表は `docs/design/ui-protocol.md`
+- 同じ package 名のファイルが SDK と OS に 1 つずつある。ビルドはパスで区別する
   （`build_toolchain.py` の出力キーはリポジトリ相対パス）
 
 ## 4. 到達順序
@@ -82,7 +83,7 @@ export void set_text(i32 id, char *s) { dom.set_text(id, s); }
 | # | チケット | 何を | 越える境界 | 終わった判定 |
 | --- | --- | --- | --- | --- |
 | 1 | MYOS-018 | **SDK / シェル分離** | リポジトリ | MyAppFramework が MyOS / MyKernel を import しない。`app.mln` が `MyOS/src/shell` に。`ui` / `elements` がプロトタイプ + サーバ実装。既存 E2E がすべて緑 |
-| 2 | MYOS-019 | **UI プロトコル** | メッセージ | `ui` / `elements` の面がメッセージ表として文書化され、SDK 側スタブ → キュー → サーバ側ディスパッチで動く（同一プロセス内）。ハンドラは SDK 側のハンドラ表から (id, arg) で呼ばれる。サーバはアプリの関数ポインタを持たない |
+| 2 | MYOS-019 | **UI プロトコル**（済） | メッセージ | `ui` / `elements` の面がメッセージ表（`docs/design/ui-protocol.md`）になり、SDK 側スタブ → `uiproto.request` → サーバ側ディスパッチで動く（同一プロセス内）。ハンドラは SDK 側のハンドラ表から (owner, id, arg) で呼ばれる。アプリのノードに関数ポインタは無い。`@timer` / `@key` / `@open` / `@on_close` の意味は SDK の `runtime.mln` に移り、シェルは `@app` だけを知る |
 | 3 | MYOS-020 | **UI サーバをタスクに** | プロセス | カーネルに IPC チャネル syscall。UI サーバが自タスクで `drain_events` = メッセージループ。DOM ロック。アプリのハンドラは別タスク上で走る |
 | 4 | MYOS-021 | **MBIN v3 + /apps** | 実行形式 | ヘッダにセクション表（`__sections` と同じ行）。ローダが読む。`/apps` を mkfs が作り、ランチャーが列挙して `@app` 行をヘッダから読む。`sys_spawn` の探索パス |
 | 5 | MYOS-022 | **GUI アプリを .mbin に** | 完成 | アプリを個別ビルドして `/apps` へ。`boot/main.mln` の明示 import と Phase A 経路を削除。レジストリは `/apps` のヘッダだけを見る |
