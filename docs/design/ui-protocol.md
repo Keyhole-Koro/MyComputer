@@ -10,8 +10,9 @@ SDK とサーバの**両方がこれを import** し、互いを import しな�
 アプリ ◀──fn(owner,id,arg)── runtime.pump ◀──UiEvent── ipc チャネル ◀── ui_events ◀── dom.emit / shell
 ```
 
-アプリのコードは**アプリのタスク**でしか走らず、DOM は**UI サーバのタスク**でしか触らない
-（段 3、MYOS-020）。
+アプリは**プロセス**（段 5、MYOS-022）：運び手は `OS_CALL` syscall で、カーネルの
+`os_calls` がユーザメモリをコピーしてチャネルへ渡す。DOM は**UI サーバのタスク**でしか
+触らない。
 
 ## 1. 形
 
@@ -19,32 +20,38 @@ SDK とサーバの**両方がこれを import** し、互いを import しな�
 
 ```mylang
 struct UiMsg { i32 op; i32 owner; i32 a0..a5; char *s0; char *s1; };
-i32 request(UiMsg *m);          // uiproto — チャネルに積み、返事が来るまで sleep。段 5 で syscall
+i32 request(UiMsg *m);          // uiproto — OS_CALL(UI_REQUEST) → OS_CALL(UI_REPLY) を sys_yield しながら待つ
 ```
 
-- `owner` は送ったインスタンス。要求が作るノードはすべてこれに所有される
-  （サーバは `handle()` の間だけ `dom.current_owner` をこれにする）
-- 文字列と出力バッファ（TEXT_COPY / LIST_ITEM の `out`）は今はポインタのまま渡る（同じアドレス
-  空間）。プロセス境界を越えるときは syscall がコピーする（段 5）。**サーバのポインタを
-  アプリに返す要求は無い**：テキストはアプリが名指ししたバッファへ書く
+- `owner`：アプリは自分のインスタンスを書くが、カーネル（`os_calls`）が **pid** に書き換える。
+  要求が作るノードはすべて pid に所有される（サーバは `handle()` の間だけ `dom.current_owner`
+  をこれにする）。イベントの `owner` も pid
+- 文字列（`s0` ≤ 1024、`s1` ≤ 128）はカーネルがプロセスごとのバッファにコピーし、サーバは
+  さらに自分のコピー（`dom.set_text_copy`、node の name）を持つ。出力バッファ（TEXT_COPY /
+  LIST_ITEM の `out`、≤ 4096）はカーネル側のバッファに書かせ、返事のときにユーザメモリへ
+  コピーバックする。**サーバのポインタをアプリに返す要求は無い**
+- `SET_TEXT_FMT` は使われない：`ui.set_text_fmt` はアプリ側で整形して SET_TEXT を送る
+  （`%s` の引数はプロセスのポインタで、サーバには読めない）
 
 **イベント**（サーバ → アプリ、非同期）
 
 ```mylang
 struct UiEvent { i32 owner; i32 id; i32 kind; i32 arg; i32 token; char *text; };
-bool poll(UiEvent *out);        // uiproto — チャネルから取る。段 5 で syscall
-void idle();                    // 次の tick まで CPU を手放す（runtime.run のループ）
+bool poll(UiEvent *out);        // uiproto — OS_CALL(UI_POLL)：プロセスのチャネルから 1 つ、text はアプリのバッファへコピー
+void idle();                    // sys_yield：次の tick まで CPU を手放す（runtime.run のループ）
+void exit();                    // sys_exit：EXIT を送ったあと
 ```
 
 **運び手：カーネルのチャネル**（`MyKernel/src/kernel/ipc.mln`）
 
 - チャネル = 16 ワード固定長メッセージ × 32 スロットのリング。producer / consumer が 1 タスクずつ
   なのでロック不要（index はそれぞれ片側だけが書く）。`create / send / recv / pending / wait`
-- UI プロトコルは 3 本使う：要求（アプリ → サーバ）、返事（サーバ → アプリ、要求と同順に
-  i32 1 つ）、イベント（サーバ → アプリ）。`ui_channel.mln` の `request()` は要求を積んで
-  返事を `ipc.wait`（1 tick ずつ sleep）、サーバは `serve()` を 1 パスに 1 回呼んで全要求に答える
-- 共有リングではなくチャネル + 固定長にしたのは、段 5 で syscall にするとき「カーネルがメッセージ
-  をコピーする」だけで済ませるため。ポインタを含む語はそのときコピーの対象になる
+- UI プロトコルは要求チャネル 1 本（全プロセス → サーバ。語 10 に返事先のチャネル id）と、
+  プロセスごとに返事チャネルとイベントチャネル 1 本ずつ（`os_calls` が最初の UI 呼び出しで作り、
+  `ui_events.bind(pid, ch)` で結ぶ）。サーバは `ui_channel.serve()` を 1 パスに 1 回呼んで
+  全要求に答える
+- 共有リングではなくチャネル + 固定長にしたのは、syscall 化で「カーネルがメッセージをコピーする」
+  だけで済ませるため。実際そうなった（`os_calls.svc_ui_request`）
 
 ## 2. 要求の表（`UiOp`）
 
@@ -81,9 +88,9 @@ void idle();                    // 次の tick まで CPU を手放す（runtime
 | CREATE_TEXT_AREA | s0=name, x, y, w, h, capacity, readonly, s1 | id | `<TextArea>` |
 | CREATE_LIST | s0=name, x, y, w, h, capacity, s1 | id | `<List>` |
 | APPEND_CHILD | a0=parent, a1=child | – | markup の子 |
-| CLAIM_KEY | s0="Ctrl+S" | token | `@key`（runtime.start） |
+| CLAIM_KEY | s0="Ctrl+S" | token | `@key`（runtime.start）。シェルは spec を自分の表にコピーする |
 | MAIN_WINDOW | a0=win | – | `@app` の view の戻り（runtime.start）。シェルがデスクトップに載せる |
-| EXIT | – | – | CLOSE への返事（runtime） |
+| EXIT | – | – | CLOSE への返事（runtime）。このあとプロセスは `sys_exit` |
 
 `x, y, w, h` は `a0..a3`。`(id)` は `a0`。ハンドラ（`onClick` 等）は**表に無い**：
 アプリの外へ出ない（§4）。
@@ -123,19 +130,22 @@ void idle();                    // 次の tick まで CPU を手放す（runtime
 - `ui_server.mln`：op で分岐して DOM を触る。CLAIM_KEY / MAIN_WINDOW / EXIT / OPEN はシェルへ
 - `elements_server.mln`：CREATE_\*。`dom/dom_elements.mln` の `create_*` を呼ぶ
 - `ui_events.mln`：イベントチャネルへの `push` / `poll`
-- `shell/host.mln`：**アプリのタスク**。`start(self, type)` はキューに積むだけで、タスク側が
-  `runtime.start()` を走らせる（view() → MAIN_WINDOW → シェルが `window_ready` でデスクトップへ）。
-  ループは `start_pending(); runtime.pump(); sleep(1)`。段 5 で消える唯一の「OS → SDK」依存
+- `proc/os_calls.mln`：`OS_CALL` のハンドラ。UI_REQUEST は UiMsg をコピーして owner を pid に
+  し、文字列と出力バッファをカーネル側へ差し替えて要求チャネルへ。UI_REPLY は返事チャネルを
+  見てコピーバック。UI_POLL はイベントチャネルから 1 つ。ほかに `FS_*` / `PROC_*` / `LOG`
+- `shell/app.mln`：`mount()` = `console.spawn_file`。プロセスの view() → MAIN_WINDOW →
+  `window_ready` でデスクトップへ。CLOSE → EXIT → `instance_exited`、`reap_exited` タイマが
+  終わったプロセスを回収（クラッシュしたものは所有ノードごと）
+- 「OS → SDK」の呼び出しは無い。`app_main.mln`（SDK）がプロセスの `main`
 - **DOM ロック**（`dom.lock` / `unlock`）：サーバのタスクが 1 パスの間持ち、sleep の前に手放す。
   automation のダンプが取る。待ちがいれば unlock はロックを**手渡す**（サーバがすぐ取り直して
   ダンプが飢えないように）。アプリのタスクは DOM に触らないので取らない
 - **描画の間引き**：要求に答えたパスは描画を保留（view() の十数個の CREATE が 1 パスずつ
   来るので、毎パス描くと十数回描いてしまう）。8 パス続いたら描く
 
-## 5. 段 5 で変わるもの
+## 5. まだのもの
 
-- `request` / `poll` / `idle` が syscall になる。`UiMsg` はユーザ空間のポインタ、文字列と
-  出力バッファはカーネルがコピー（TEXT_COPY / LIST_ITEM は返事でコピーバック）
-- チャネルはアプリ（プロセス）ごとに。`host.mln` は消え、各プロセスの `main` が
-  `runtime.start()` と `runtime.run()` を呼ぶ
-- ノード id はサーバが払い出す（今もそう）。owner ごとの上限と id の再利用はここで
+- ノード id はサーバが払い出す（今もそう）が、256 で尽きる。owner（pid）ごとの上限と id の
+  再利用
+- 1 プロセス 1 インスタンス。`app_main.mln` の struct 領域は 4 KiB 固定
+- イベントチャネルは 16 スロット。あふれたイベントは落ちる（TIMER が溜まるアプリで起こり得る）

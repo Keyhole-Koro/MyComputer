@@ -45,10 +45,11 @@ UI サーバ   MyOS/src/ui: dom / widgets / render / compositor  — 自分の�
 | 層 | 場所 | 持つもの | 持たないもの |
 | --- | --- | --- | --- |
 | アプリ | `MyOS/src/apps`（→ 最終的に `/apps/*.mbin`） | struct、`@app` の付いた `view()`、ハンドラ | DOM の実装、他アプリの知識 |
-| SDK | `MyAppFramework/src` | `annotations.mln`（宣言）、`protocol.mln`（メッセージ表）、`ui.mln` / `elements.mln`（要求を送るスタブ。markup の語彙とデフォルト）、`runtime.mln`（ハンドラ表、`start`、`pump`） | サーバの実装。MyOS への import |
+| SDK | `MyAppFramework/src` | `annotations.mln`（宣言）、`protocol.mln`（メッセージ表）、`uiproto.mln` + `os_call.masm` + `os_services.mln`（`OS_CALL` の運び手）、`ui.mln` / `elements.mln`（要求を送るスタブ。markup の語彙とデフォルト）、`runtime.mln`（ハンドラ表、`start`、`run`）、`app_main.mln`（プロセスのエントリ）、`fs.mln` / `console.mln` | サーバの実装。MyOS への import |
 | UI サーバ | `MyOS/src/ui` | dom / dom_widgets / dom_render / compositor、プロトコルの受け手（`ui_channel` / `ui_server` / `elements_server` / `ui_events`） | アプリの一覧、起動、ウィンドウ閉じの意味、アプリの関数ポインタ |
-| シェル | `MyOS/src/shell` | レジストリ、`install()`、launch / open / single、`window_closed`、キー配送、ランチャー、タスクバーの内容 | DOM の実装 |
-| カーネル | `MyKernel/src` | mm、scheduler、process、loader、syscall、（Phase C で）IPC | デスクトップの知識（`syscall.set_console` などの登録口だけ） |
+| シェル | `MyOS/src/shell` | レジストリ（ディスクの `.mbin` のヘッダから）、`install()`、launch（spawn）/ open / single、`window_ready` / `window_closed` / EXIT、キー claim、ランチャー、reap | DOM の実装、アプリのコード |
+| OS サービス | `MyOS/src/proc/os_calls.mln` | `OS_CALL` のハンドラ：UI 要求・返事・イベント（per-pid チャネル、ユーザメモリのコピー）、`FS_*`、`PROC_*`、`LOG` | ポリシー（意味はサーバ／シェル／fs が決める） |
+| カーネル | `MyKernel/src` | mm、scheduler、process、loader、syscall（`OS_CALL` は登録されたハンドラへ）、`ipc.mln` チャネル | デスクトップの知識（`syscall.set_console` / `set_os_handler` などの登録口だけ） |
 
 ## 3. インターフェイスの書き方
 
@@ -86,21 +87,21 @@ export i32 request(UiMsg *m) { return ui_server.handle(m); }
 | 2 | MYOS-019 | **UI プロトコル**（済） | メッセージ | `ui` / `elements` の面がメッセージ表（`docs/design/ui-protocol.md`）になり、SDK 側スタブ → `uiproto.request` → サーバ側ディスパッチで動く（同一プロセス内）。ハンドラは SDK 側のハンドラ表から (owner, id, arg) で呼ばれる。アプリのノードに関数ポインタは無い。`@timer` / `@key` / `@open` / `@on_close` の意味は SDK の `runtime.mln` に移り、シェルは `@app` だけを知る |
 | 3 | MYOS-020 | **UI サーバをタスクに**（済） | タスク | カーネルにチャネル（`ipc.mln`）。要求・返事・イベントがチャネルを通り、UI サーバのタスクが `serve()` で答える。アプリのコードはアプリのタスクでしか走らず、DOM はサーバのタスク（+ ロックを取った automation）でしか触らない。`text_of` → `text_copy`（サーバのポインタを返さない）。syscall 化は段 5 |
 | 4 | MYOS-021 | **MBIN ヘッダ v2 + ディスク上のアプリ**（済） | 実行形式 | ヘッダに `sections_offset`（`__sections` と同じディレクトリ）。MyStdLib `format/mbin.mln` / `annotations.in_image()` がファイルから表を読む。シェルは起動時にディスクの MBIN ファイルのヘッダから `@app` 行を読んでランチャーに載せ、起動はプロセス spawn。MFS は平坦なので「`/apps` ディレクトリ」ではなく「`@app` 行を持つ実行形式」が installed の定義 |
-| 5 | MYOS-022 | **GUI アプリを .mbin に** | 完成 | アプリを個別ビルドして `/apps` へ。`boot/main.mln` の明示 import と Phase A 経路を削除。レジストリは `/apps` のヘッダだけを見る |
+| 5 | MYOS-022 | **GUI アプリを .mbin に**（済） | 完成 | 5 アプリを個別ビルド（`build_user_apps.py`：`.dom.mln` + SDK の `app_main`）してディスクへ。`OS_CALL` syscall（UI / fs / プロセス）、per-pid チャネル、ユーザメモリのコピー、`text_of` 廃止（`text_copy`）。`boot/main.mln` の明示 import と in-process 経路（`host.mln`）を削除。レジストリはディスクのヘッダだけを見る。副産物：mlc がグローバルを `.data` に出し、ユーザプロセスのテキストが RX に戻った |
 
 ### 二系統の期間
 
-3 が終わるまで、GUI アプリは image にリンクされたまま動く（Phase A）。5 でも「組み込み
-（image にリンク）」と「インストール済み（`/apps`）」をレジストリが束ねる形を一度通る。
-移行が終わったら前者を消す。
+3 が終わるまで GUI アプリは image にリンクされたまま動いた（Phase A）。5 で 5 本まとめて
+プロセスに移し、in-process 経路は同じコミットで消した（二系統を束ねる期間は結局置かなかった）。
 
 ## 5. 決めていないこと
 
 - ~~**IPC の形**~~（3 で決めた）：チャネル + 16 ワード固定長メッセージ（`docs/design/ui-protocol.md` §1）
-- **文字列の渡し方**（5）：同一アドレス空間では `char*` で足りるが、プロセス境界では
-  syscall がコピーする。長さは NUL 終端 + 上限で決める
-- **ノード id 空間**：256 で尽きる既知の制限と、owner ごとの上限。2 で id の払い出しを
-  サーバに寄せるときに直す
+- ~~**文字列の渡し方**~~（5 で決めた）：`os_calls` が NUL 終端 + 上限（s0 1024 / s1 128 /
+  TEXT_COPY 4096 / イベント 64）でコピーする
+- **ノード id 空間**：256 で尽きる既知の制限と、owner ごとの上限。プロセスが増えたので
+  そのうち当たる。次の課題
+- **FS のディレクトリ**：MFS は平坦なので `/apps` は「`@app` 行を持つ実行形式」の意味
 - **`<Canvas>`**：自前描画の逃げ道。必要になるまで作らない
 
 ## 6. やらないこと

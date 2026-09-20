@@ -45,9 +45,9 @@ Each user process is assigned its own **Page Directory (PDBR)**. All user proces
 | `0x1F00_0000 .. 0x1FFF_FFFF` | 16 MB | **Kernel Stack** | `V \| W` (`U=0`) | Kernel interrupt/trap stack space. Inaccessible to User Mode. |
 | `0x2400_0000 .. 0x2400_1FFF` | 8 KB | **Hardware MMIO** | `V \| W` (`U=0`) | UART, SSD, MMU, DMA2D registers. Trapped if accessed in User Mode. |
 | `0x3000_0000 .. 0x302F_FFFF` | 3 MB | **VRAM Framebuffer** | `V \| W` (`U=0`) | Display buffer (User draws via Syscall or shared mapping). |
-| `0x4000_0000 .. 0x40FF_FFFF` | 16 MB | **User Code & Static Data** | `V \| W \| X \| U` | Loaded from `.mbin` executable on MFS. |
+| `0x4000_0000 .. 0x40FF_FFFF` | 16 MB | **User Code & Static Data** | text `V \| X \| U`, data `V \| W \| U` | Loaded from `.mbin` executable on MFS (in practice linked at `0x20000`: MyLang materializes addresses with a 21-bit immediate, so an image must sit below 2 MB; its pages replace the kernel identity mapping of that range in the process's own directory). Text is read-only; globals, strings and constant pools are in the data segment (the compiler's `.data`). |
 | `0x4100_0000 .. 0x4FFF_FFFF` | 240 MB | **User Dynamic Heap** | `V \| W \| U` | User dynamic memory, grown upward via `sys_sbrk()`. |
-| `0x7F00_0000 .. 0x7FFF_FFFF` | 16 MB | **User Stack** | `V \| W \| U` | Process stack, starting at `0x7FFF_FFFC` and growing downward. |
+| `0x7F00_0000 .. 0x7FFF_FFFF` | 16 MB | **User Stack** | `V \| W \| U` | Process stack: 4 pages (`0x7FFF_C000..`), starting at `0x7FFF_FFE0` and growing downward. |
 
 ---
 
@@ -103,6 +103,13 @@ Syscalls leverage the standard MyLang register convention.
 | `7` | `SYS_SBRK` | `i32 sys_sbrk(i32 increment)` | Extends or shrinks user heap break. |
 | `8` | `SYS_YIELD` | `void sys_yield()` | Voluntarily yields remaining time slice to scheduler. |
 | `9` | `SYS_SPAWN` | `i32 sys_spawn(char *path)` | Loads and executes a `.mbin` binary as a new process. |
+| `10` | `SYS_OS_CALL` | `i32 os_call(i32 service, i32 args)` | An OS service outside the kernel (MYOS-022): the UI protocol, the filesystem, process control. The kernel hands `(pid, service, args)` to the handler MyOS registers with `syscall.set_os_handler` (`MyOS/src/proc/os_calls.mln`); the service numbers are the SDK's (`MyAppFramework/src/os_services.mln`). `args` is a user address; the handler copies in and out through the process's page tables. |
+
+`SYS_YIELD` puts the calling task to sleep until the next timer tick
+(`scheduler.yield_until_tick`) rather than merely rescheduling it: a
+polling loop (an app waiting for a UI reply) would otherwise take every
+slice the CPU has. `SYS_OPEN` / `SYS_CLOSE` / `SYS_SEEK` are numbers only;
+files are reached through `SYS_OS_CALL` (`FS_*` services).
 
 ---
 

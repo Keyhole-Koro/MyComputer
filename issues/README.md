@@ -42,7 +42,7 @@
 | MYOS-019 | [UI プロトコル](completed/MYOS-019_ui-protocol.md) | Done | アプリ ↔ UI サーバをメッセージ表に。段 2。 |
 | MYOS-020 | [UI サーバを自タスクに](completed/MYOS-020_ui-server-task.md) | Done | カーネルのチャネル、アプリのタスク、DOM ロック。段 3。 |
 | MYOS-021 | [MBIN ヘッダ v2 とディスク上のアプリ](completed/MYOS-021_mbin-v3-and-apps-dir.md) | Done | ヘッダにセクション表のオフセット、シェルがディスクの MBIN から @app を読んでランチャーに。段 4。 |
-| MYOS-022 | [GUI アプリを .mbin に](tickets/MYOS-022_gui-apps-as-processes.md) | Proposed | アプリをプロセスに、main.mln の明示 import を削除。段 5。 |
+| MYOS-022 | [GUI アプリを .mbin に](completed/MYOS-022_gui-apps-as-processes.md) | Done | 5 アプリがディスク上のプロセスに。OS_CALL syscall、.data セクション。段 5。 |
 | MYOS-010 | [MyKernel / MyOS 相互依存の解消](completed/MYOS-010_submodule-dependency-cycle.md) | Done | テストと起動処理を MyOS へ移し、MyKernel から MyOS への参照をゼロにした。 |
 | MYOS-011 | [`dom_click_test.py` control-stdio タイムアウト](completed/MYOS-011_dom-click-test-control-stdio-timeout.md) | Stale/Partial | バグ自体は現存。記載の原因（文字インターリーブ）は再現せず、別症状（起動直後ハング）に変化。要再調査。 |
 | MYOS-012 | [DOM Inspector CLI（MyDOMTester 拡張）](tickets/MYOS-012_dom-inspector-cli.md) | In Progress | フェーズ1（`make dom-inspect`、watch/diff/node詳細）・フェーズ3（`make dom-script`）実装済み。フェーズ2（prop書き込み）は未着手。 |
