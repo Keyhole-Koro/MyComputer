@@ -45,6 +45,11 @@
     ],
     "grammars": [
       {
+        "language": "mylang",
+        "scopeName": "source.mylang",
+        "path": "./syntaxes/mylang.tmLanguage.json"
+      },
+      {
         "language": "mymasm",
         "scopeName": "source.mymasm",
         "path": "./syntaxes/mymasm.tmLanguage.json"
@@ -59,6 +64,9 @@
           ],
           "resultVariant": [
             "entity.name.function.result-variant.mylang"
+          ],
+          "docTag": [
+            "entity.name.tag.documentation.mylang"
           ]
         }
       }
@@ -70,7 +78,8 @@
             "enum": "#C75632",
             "enumMember": "#B84A2C",
             "result": "#D65D3A",
-            "resultVariant": "#B84A2C"
+            "resultVariant": "#B84A2C",
+            "docTag": "#D3381C"
           }
         }
       }

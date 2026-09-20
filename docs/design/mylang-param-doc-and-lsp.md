@@ -72,6 +72,10 @@ Unknown tags are retained as unrendered text in the extracted comment so a
 future server version can support them, but they do not affect Hover or
 Signature Help.
 
+All `@name` annotations inside `/** ... */` and `///` documentation comments are
+emitted as the `docTag` semantic token. The VS Code extension colors `docTag`
+vermilion (`#D3381C`); surrounding documentation remains comment-colored.
+
 ### 3.3 Attachment
 
 A `/** ... */` block or contiguous `///` block attaches only to the immediately
@@ -203,6 +207,13 @@ The returned LSP `Hover.range` covers the callee identifier or the argument
 expression selected by the frontend metadata. Markdown is treated as untrusted;
 command links and raw HTML are not enabled.
 
+Documentation indexing is lazy. If the current document or the selected import
+has not been indexed yet, the first Hover response contains `Loading...`; the
+server then indexes only that target and sends
+`mylang/hoverReady`. The VS Code extension re-requests Hover automatically when
+the request position is also the cursor position. Mouse-only Hover keeps the
+loading message until VS Code requests the position again.
+
 ---
 
 ## 7. Signature Help
@@ -311,6 +322,7 @@ and LSP-to-editor behavior before `completionProvider` is advertised.
 - `@return`, `@returns`, and `void` behavior.
 - Blank-line attachment break.
 - Ordinary `//` and reserved tags are not partially parsed.
+- Documentation annotation names use `docTag`; ordinary comments do not.
 - Declarations with `export`, `extern`, generics, receivers, arrays, ownership
   modifiers, and rest parameters.
 

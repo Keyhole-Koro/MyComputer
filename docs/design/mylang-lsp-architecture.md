@@ -94,6 +94,8 @@ Responsibilities:
 
 - Start and stop the Python language server.
 - Provide the document selector and extension configuration.
+- Apply lightweight TextMate highlighting immediately while semantic analysis
+  is still pending.
 - Let the language client manage document synchronization, cancellation,
   capability negotiation, provider registration, and protocol type conversion.
 - Keep VS Code-only presentation settings out of the language server.
@@ -124,6 +126,7 @@ feature milestone adds:
 {
   "textDocumentSync": 1,
   "hoverProvider": true,
+  "definitionProvider": true,
   "signatureHelpProvider": {
     "triggerCharacters": ["(", ","]
   }
@@ -227,6 +230,14 @@ The local-document milestone can use the same interface with an index containing
 only the current document. Later workspace support therefore changes index
 population, not Hover or Signature Help APIs.
 
+Opening or changing a document indexes that document only. Interactive
+features first attempt local resolution; if it fails, the server maps the
+pointer's callee or argument context to one source import, loads only that
+file, and retries. It does not index unrelated direct or transitive imports on
+the request path. Diagnostics, feature analysis, and semantic
+tokens share a bounded content-addressed cache of raw frontend results so the
+same snapshot is not sent through the native parser repeatedly.
+
 Index entries are invalidated when:
 
 - an open document version changes;
@@ -240,6 +251,7 @@ The service exposes editor operations independent of JSON-RPC:
 
 ```text
 hover(snapshot, position) -> HoverResult?
+definition(snapshot, position) -> Location?
 signature_help(snapshot, position) -> SignatureHelpResult?
 document_symbols(snapshot) -> list[Symbol]
 completion(snapshot, position) -> list[CompletionCandidate]
@@ -258,9 +270,14 @@ created only in the protocol layer.
 1. The language client sends full-text `didOpen` or `didChange`.
 2. `DocumentStore` creates a snapshot and its `LineMap`.
 3. The previous analysis result for that URI is superseded.
-4. `FrontendBackend` analyzes the snapshot.
-5. Diagnostics are published only if the analyzed version is still current.
-6. Declaration and import changes update `WorkspaceIndex`.
+4. When semantic highlighting is enabled, diagnostics are marked pending
+   instead of starting analysis in the update notification.
+5. The semantic-token request runs the frontend and flushes its response first.
+6. Pending diagnostics reuse that raw frontend result and are published after
+   the highlighting response, only if the analyzed version is still current.
+7. Documentation and declaration indexing remain lazy until Hover or Signature
+   Help needs them; direct dependencies are loaded only if local resolution
+   fails.
 
 ### Interactive request
 
@@ -274,6 +291,9 @@ created only in the protocol layer.
 The stdio reader must not wait synchronously for a long compiler operation. A
 first implementation may use one serialized analysis worker, provided the
 protocol loop can still receive cancellation and lifecycle messages.
+Within one document generation, interactive requests and semantic highlighting
+run ahead of background document-symbol work. Document updates define ordering
+barriers so prioritization never analyzes a request against a later snapshot.
 
 ---
 
@@ -352,3 +372,5 @@ protocol loop can still receive cancellation and lifecycle messages.
 - Existing diagnostics, semantic tokens, and document symbols continue to work.
 - Hover and Signature Help can consume stable `FunctionInfo` without parsing
   function declarations themselves.
+- Go to Definition resolves local and directly imported functions, structs,
+  enums, type aliases, and enum members from frontend declaration spans.

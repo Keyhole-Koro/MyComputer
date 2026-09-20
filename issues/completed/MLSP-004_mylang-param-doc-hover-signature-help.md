@@ -61,6 +61,7 @@ methodに対する Hover と Signature Help を提供する。Completionはworks
 
 - [x] function declaration metadataへdoc-comment spanを追加する
 - [x] `/** ... */` / `///` / `@param` / `@return` extractorを実装する
+- [x] doc annotation名を朱色の`docTag` semantic tokenとして表示する
 - [x] local-document `SymbolId` resolutionを実装する
 - [x] Hoverを実装する
 - [x] token-aware Signature Helpを実装する

@@ -53,6 +53,20 @@ async function activate(context) {
   );
   context.subscriptions.push(client);
   await client.start();
+
+  context.subscriptions.push(client.onNotification('mylang/hoverReady', async (params) => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor || editor.document.uri.toString() !== params.uri) return;
+    if (editor.document.version !== params.version) return;
+
+    // VS Code has no standard LSP hover-refresh notification. If the request
+    // came from the cursor position, close the loading hover and ask providers
+    // again now that the server-side documentation cache is ready.
+    const cursor = editor.selection.active;
+    if (cursor.line !== params.position.line || cursor.character !== params.position.character) return;
+    await vscode.commands.executeCommand('editor.action.hideHover');
+    await vscode.commands.executeCommand('editor.action.showHover', { focus: 'noAutoFocus' });
+  }));
 }
 
 async function deactivate() {

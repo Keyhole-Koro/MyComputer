@@ -4,7 +4,15 @@ VS Code extension for the MyLang sources in this repo. It uses the standard
 `vscode-languageclient` package to connect to the Python language server.
 
 Current editor features include syntax diagnostics, semantic tokens, document
-symbols, function Hover, and Signature Help with `///` parameter documentation.
+symbols, Go to Definition, function Hover, and Signature Help with
+`/** ... */` or `///` parameter documentation. Ctrl+click resolves local and
+imported functions, structs, enums, type aliases, and enum members. Annotation
+names such as `@param` and `@return` use a dedicated vermilion `docTag` token.
+
+A lightweight TextMate grammar colors comments, strings, keywords, built-in
+types, literals, numbers, functions, and operators immediately. Semantic
+tokens then refine those colors; documentation/index analysis stays lazy until
+Hover or Signature Help requests it.
 
 Ownership-oriented tokens are exposed through semantic tokens:
 - `ownershipRef` for `ref` and `&`
@@ -12,8 +20,8 @@ Ownership-oriented tokens are exposed through semantic tokens:
 
 Generic declarations and named imports are supported by the LSP. In particular,
 `Vec<Node>` type arguments are highlighted as types, and uses such as
-`vec_init<i32>(...)` do not produce syntax diagnostics. Hover and go-to-
-definition and Completion are not implemented yet.
+`vec_init<i32>(...)` do not produce syntax diagnostics. Completion is not
+implemented yet.
 
 `mymasm` files use a TextMate grammar and highlight:
 - `import ...`

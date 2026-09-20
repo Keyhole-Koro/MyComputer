@@ -1,0 +1,138 @@
+{
+  "scopeName": "source.mylang",
+  "name": "MyLang",
+  "patterns": [
+    { "include": "#documentation" },
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#literals" },
+    { "include": "#numbers" },
+    { "include": "#functions" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "documentation": {
+      "patterns": [
+        {
+          "name": "comment.block.documentation.mylang",
+          "begin": "/\\*\\*",
+          "end": "\\*/",
+          "patterns": [
+            {
+              "name": "entity.name.tag.documentation.mylang",
+              "match": "@[A-Za-z_][A-Za-z0-9_]*"
+            }
+          ]
+        },
+        {
+          "name": "comment.line.documentation.mylang",
+          "begin": "///",
+          "end": "$",
+          "patterns": [
+            {
+              "name": "entity.name.tag.documentation.mylang",
+              "match": "@[A-Za-z_][A-Za-z0-9_]*"
+            }
+          ]
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.mylang",
+          "begin": "/\\*",
+          "end": "\\*/"
+        },
+        {
+          "name": "comment.line.double-slash.mylang",
+          "match": "//.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.mylang",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.mylang",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.mylang",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.mylang",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.mylang",
+          "match": "\\b(if|else|while|do|for|switch|case|default|break|continue|return|yield|of)\\b"
+        },
+        {
+          "name": "keyword.declaration.mylang",
+          "match": "\\b(package|import|from|export|extern|typedef|struct|union|enum)\\b"
+        },
+        {
+          "name": "storage.modifier.mylang",
+          "match": "\\b(const|static|auto|register|unchecked|ref|mut|rest)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.mylang",
+          "match": "\\b(bool|u8|u16|i32|u32|char|float|double|void|long|short)\\b"
+        }
+      ]
+    },
+    "literals": {
+      "patterns": [
+        {
+          "name": "constant.language.mylang",
+          "match": "\\b(true|false)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.mylang",
+          "match": "\\b(?:0[xX][0-9A-Fa-f]+|0[bB][01]+|[0-9]+(?:\\.[0-9]+)?)\\b"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "name": "entity.name.function.mylang",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*(?=\\s*(?:<[^;{}()]*>)?\\s*\\()"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.mylang",
+          "match": "(?:==|!=|<=|>=|&&|\\|\\||<<|>>|\\+\\+|--|->|[+\\-*/%=&|^~!<>?:])"
+        }
+      ]
+    }
+  }
+}
