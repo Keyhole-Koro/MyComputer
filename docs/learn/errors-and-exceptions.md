@@ -139,7 +139,7 @@ Located in `system/MyKernel/src/` and `system/MyOS/src/`.
   ```
   and sets `g_enabled = 0`, preventing further file system operations.
 * **File Creation Failures (`fs.create`):** Returns `-1` under any of these error conditions:
-  - File already exists (`find_entry_by_name != -1`).
+  - File already exists (`find_entry_by_path` is `Some`).
   - Directory table full (`MAX_FILES = 2048` reached).
   - Disk full (`alloc_block()` returns `0` when bitmap has no free data blocks).
 * **File Descriptor Faults:** Operations on invalid file descriptors (`fd < 0`, `fd >= FD_MAX (8)`, or `g_fd_table[fd].entry_idx == -1`) return `0` for read/write or `-1` for open/create.

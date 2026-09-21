@@ -120,7 +120,7 @@ Linux の `ulimit -n`（プロセスが同時に持てる fd 数）と同じ思�
 ### create(name)
 
 ```
-1. find_entry_by_name → 同名があればエラー（重複禁止）
+1. find_entry_by_path → 同名があればエラー（重複禁止）
 2. find_free_entry    → 空きエントリ番号（first_block==0）を得る
 3. alloc_block        → 空きデータブロックを 1 つ確保（ビットマップを更新）
 4. そのブロックを空(next=0)で初期化して書く
@@ -131,7 +131,7 @@ Linux の `ulimit -n`（プロセスが同時に持てる fd 数）と同じ思�
 ### open(name)
 
 ```
-1. find_entry_by_name でディスクの目録からエントリ番号を探す
+1. find_entry_by_path でディスクの目録からエントリ番号を探す
 2. find_free_fd で g_fd_table の空きスロットを探す
 3. エントリ情報(first_block, file_size)を g_fd_table[fd] にコピー、offset=0
 4. fd（テーブル添字）を返す

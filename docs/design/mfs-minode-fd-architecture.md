@@ -155,7 +155,7 @@ Input: "/docs/readme.txt"
 - `fs.create(path)` needs every directory on the way; `fs.mkdir(path)` makes one
 - `fs.remove(path)` on a directory requires it to be empty
 - `fs.dir_next_at(dir, start, out, cap)` lists one directory (`""` / `"/"`: the root);
-  `fs.dir_next` is the root; `fs.is_dir(idx)` tells the two apart
+  `fs.is_dir(idx)` tells a directory entry from a file
 - `tools/mkfs.py`: `--dir PATH`, and a `--file a/b/c=...` creates the directories on the way.
   The system image puts console programs in `/bin` and desktop apps in `/apps`; the
   shell lists `/apps`, and `console.spawn_file("hello")` searches `/bin` then `/apps`
@@ -166,7 +166,7 @@ Input: "/docs/readme.txt"
 ## 6. System Call Operations
 
 ### 6.1 `sys_open(char *path, i32 flags)`
-1. Sanitize `path` via `path_clean_name(path)` $\rightarrow$ search entry in Block 1.
+1. Resolve `path` via `find_entry_by_path(path)` (§5) $\rightarrow$ entry index in Block 1.
 2. If not found, return `-1`.
 3. Allocate lowest free slot in `g_fd_table` (starting from `mfd = 3`).
 4. Acquire in-memory inode: `minode_idx = minode_get(entry_idx)`.
