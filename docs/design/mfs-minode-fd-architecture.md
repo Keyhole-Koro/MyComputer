@@ -135,17 +135,31 @@ At boot, the first three slots in `g_mfile_table` are reserved for standard I/O:
 
 ---
 
-## 5. Path Resolution (`path_clean_name` / `mfs_lookup_path`)
+## 5. Path Resolution (`split_path` / `find_entry_in`)
 
-Paths are resolved by stripping leading `/` delimiters and sanitizing filenames to match on-disk entries:
+MFS has directories (2026-09-21). An entry's `flags` bit 0 marks a directory
+and its fourth word (`parent`) is the parent entry's index + 1, 0 for the
+root -- so an image written before directories existed reads as all-root. A
+directory owns one empty data block, so "in use" stays `first_block != 0`
+everywhere. Paths are `/a/b/c` or `a/b/c`; each component is at most
+`NAME_MAX - 1` (15) characters.
 
 ```
-Input: "/docs/readme.txt" or "/readme.txt"
+Input: "/docs/readme.txt"
   │
-  ├─ 1. Strip leading '/'
-  ├─ 2. Truncate to NAME_MAX - 1 (15 characters)
-  └─ 3. Search MFS Block 1 for matching filename -> return minode_get(entry_idx)
+  ├─ 1. Strip leading '/'; walk the components
+  ├─ 2. For each directory on the way: find_entry_in(parent, name), must have FLAG_DIR
+  └─ 3. The last component: find_entry_in(parent, name) -> entry index (fs.open / remove)
 ```
+
+- `fs.create(path)` needs every directory on the way; `fs.mkdir(path)` makes one
+- `fs.remove(path)` on a directory requires it to be empty
+- `fs.dir_next_at(dir, start, out, cap)` lists one directory (`""` / `"/"`: the root);
+  `fs.dir_next` is the root; `fs.is_dir(idx)` tells the two apart
+- `tools/mkfs.py`: `--dir PATH`, and a `--file a/b/c=...` creates the directories on the way.
+  The system image puts console programs in `/bin` and desktop apps in `/apps`; the
+  shell lists `/apps`, and `console.spawn_file("hello")` searches `/bin` then `/apps`
+  for a bare name
 
 ---
 

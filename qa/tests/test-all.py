@@ -150,6 +150,11 @@ SUITES = {
          str(MYKERNEL_DIR / "tests" / "mmu" / "mmu.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
+    "fs-directories": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"),
+         str(MYOS_DIR / "tests" / "fs" / "directories.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
     "fs-smoke": (
         [str(MYLANGTESTER_DIR / "build" / "mytest"),
          str(MYOS_DIR / "tests" / "fs" / "fs_smoke.test.mln")],

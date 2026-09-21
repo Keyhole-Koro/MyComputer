@@ -158,9 +158,21 @@ def main():
     # firmware to load. Built even under --no-run: a caller that wants a
     # launchable image without running it here (e.g. MyDOMTester driving
     # myemu --control-stdio itself) needs disk.img to exist.
-    mkfs_cmd = [sys.executable, REPO_ROOT / "tools" / "mkfs.py", disk_img, "--kernel", kernel_bin]
+    # Console programs go to /bin, desktop apps to /apps (the shell lists
+    # the executables in /apps at boot; the spawn path searches both).
+    # The firmware loads KERNEL_BLOCKS blocks of the kernel image (see
+    # system/MyFirmware/src/fw/main.mln); a bigger image boots half-loaded.
+    KERNEL_BLOCKS = 16
+    kernel_size = kernel_bin.stat().st_size
+    if kernel_size > KERNEL_BLOCKS * 65536:
+        status_line("FAIL", f"kernel image is {kernel_size} bytes, more than the firmware loads ({KERNEL_BLOCKS} x 64 KB)", RED)
+        sys.exit(1)
+    mkfs_cmd = [sys.executable, REPO_ROOT / "tools" / "mkfs.py", disk_img, "--kernel", kernel_bin,
+                "--dir", "bin", "--dir", "apps"]
+    gui_apps = {p.name[: -len(".dom.mln")] for p in (MYOS_DIR / "src" / "apps").glob("*.dom.mln")}
     for mbin in sorted((build_dir / "user").glob("*.mbin")):
-        mkfs_cmd += ["--file", f"{mbin.stem}={mbin}"]
+        folder = "apps" if mbin.stem in gui_apps else "bin"
+        mkfs_cmd += ["--file", f"{folder}/{mbin.stem}={mbin}"]
     mkfs_cmd += [
         "--text", "readme.txt=Welcome to MyOS.\n\nThis file lives on the MFS disk image.\n"
                   "Open it from Files, edit it in the editor, and run the user\n"

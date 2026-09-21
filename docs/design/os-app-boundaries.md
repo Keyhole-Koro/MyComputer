@@ -99,9 +99,11 @@ export i32 request(UiMsg *m) { return ui_server.handle(m); }
 - ~~**IPC の形**~~（3 で決めた）：チャネル + 16 ワード固定長メッセージ（`docs/design/ui-protocol.md` §1）
 - ~~**文字列の渡し方**~~（5 で決めた）：`os_calls` が NUL 終端 + 上限（s0 1024 / s1 128 /
   TEXT_COPY 4096 / イベント 64）でコピーする
-- **ノード id 空間**：256 で尽きる既知の制限と、owner ごとの上限。プロセスが増えたので
-  そのうち当たる。次の課題
-- **FS のディレクトリ**：MFS は平坦なので `/apps` は「`@app` 行を持つ実行形式」の意味
+- ~~**ノード id 空間**~~（済）：id は `remove_node` で free list に戻り再利用される。owner
+  （pid）ごとに `NODES_PER_OWNER` = 96 まで、超えると CREATE は 0 を返す（panic しない）
+- ~~**FS のディレクトリ**~~（済）：MFS にディレクトリが入り、`/bin` にコンソールプログラム、
+  `/apps` にデスクトップアプリ。シェルは `/apps` を列挙し、`spawn_file` は裸の名前を
+  `/bin` → `/apps` の順に探す
 - **`<Canvas>`**：自前描画の逃げ道。必要になるまで作らない
 
 ## 6. やらないこと
