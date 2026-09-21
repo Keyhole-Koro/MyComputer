@@ -1,7 +1,7 @@
 # UI プロトコル — アプリと UI サーバの間を越えるもの
 
 2026-09-20（MYOS-019）。`docs/design/os-app-boundaries.md` の段 2。定義は
-`system/MyAppFramework/src/protocol.mln`（`UiMsg` / `UiEvent` / `UiOp` / `UiEventKind`）で、
+`system/MyAppFramework/src/protocol/ui.mln`（`UiMsg` / `UiEvent` / `UiOp` / `UiEventKind`）で、
 SDK とサーバの**両方がこれを import** し、互いを import しない。
 
 ```
@@ -117,7 +117,8 @@ void exit();                    // sys_exit：EXIT を送ったあと
 
 **SDK**（`MyAppFramework/src`）
 - `ui.mln` / `elements.mln`：1 関数 = 1 要求。`runtime.send(op, a0..a5, s0, s1)`
-- `runtime.mln`：
+- `protocol/ui.mln` が契約（両端が import）、`os/syscall.masm` + `os/uiproto.mln` が運び手（`request` / `poll` / `idle` / `exit`）
+- `runtime/runtime.mln`：
   - ハンドラ表 `(owner, key, kind) → fn`。`elements` のスタブが `onClick` 等を `on(id, kind, fn)` で登録
   - `start(self, type)`：`@app` の view を呼び、`@timer` → CREATE_TIMER + 登録、`@key` → CLAIM_KEY + 登録、
     `@open` / `@on_close` → 登録。**アノテーションの意味はここ**（シェルが知るのは `@app` と「`@open` を持つか」だけ）
@@ -125,7 +126,7 @@ void exit();                    // sys_exit：EXIT を送ったあと
     `run()` = `pump(); idle();` のループ = アプリのイベントループ
 
 **サーバ**（`MyOS/src/ui`, `MyOS/src/shell`）
-- `ui_channel.mln`（package `uiproto`）：`request` → 要求チャネル → `serve()`（サーバのパス内）→
+- `ui_channel.mln`：`request` → 要求チャネル → `serve()`（サーバのパス内）→
   `ui_server.handle` → 返事チャネル。`poll` → イベントチャネル
 - `ui_server.mln`：op で分岐して DOM を触る。CLAIM_KEY / MAIN_WINDOW / EXIT / OPEN はシェルへ
 - `elements_server.mln`：CREATE_\*。`dom/dom_elements.mln` の `create_*` を呼ぶ
@@ -136,7 +137,7 @@ void exit();                    // sys_exit：EXIT を送ったあと
 - `shell/app.mln`：`mount()` = `console.spawn_file`。プロセスの view() → MAIN_WINDOW →
   `window_ready` でデスクトップへ。CLOSE → EXIT → `instance_exited`、`reap_exited` タイマが
   終わったプロセスを回収（クラッシュしたものは所有ノードごと）
-- 「OS → SDK」の呼び出しは無い。`app_main.mln`（SDK）がプロセスの `main`
+- 「OS → SDK」の呼び出しは無い。`runtime/app_main.mln`（SDK）がプロセスの `main`
 - **DOM ロック**（`dom.lock` / `unlock`）：サーバのタスクが 1 パスの間持ち、sleep の前に手放す。
   automation のダンプが取る。待ちがいれば unlock はロックを**手渡す**（サーバがすぐ取り直して
   ダンプが飢えないように）。アプリのタスクは DOM に触らないので取らない

@@ -23,7 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from tools.project_paths import MYOS_DIR, QA_DIR, REPO_ROOT
 
 USER_DIR = MYOS_DIR / "user"
-APP_MAIN = REPO_ROOT / "system" / "MyAppFramework" / "src" / "app_main.mln"
+APP_MAIN = REPO_ROOT / "system" / "MyAppFramework" / "src" / "runtime" / "app_main.mln"
 # MyLang materializes symbol addresses with a 21-bit immediate, so a
 # compiled program must be linked below 2 MB. 0x20000..0xFFFFF is RAM the
 # kernel never touches (the firmware stub sits at 0, the kernel image at

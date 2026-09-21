@@ -103,7 +103,7 @@ Syscalls leverage the standard MyLang register convention.
 | `7` | `SYS_SBRK` | `i32 sys_sbrk(i32 increment)` | Extends or shrinks user heap break. |
 | `8` | `SYS_YIELD` | `void sys_yield()` | Voluntarily yields remaining time slice to scheduler. |
 | `9` | `SYS_SPAWN` | `i32 sys_spawn(char *path)` | Loads and executes a `.mbin` binary as a new process. |
-| `10` | `SYS_OS_CALL` | `i32 os_call(i32 service, i32 args)` | An OS service outside the kernel (MYOS-022): the UI protocol, the filesystem, process control. The kernel hands `(pid, service, args)` to the handler MyOS registers with `syscall.set_os_handler` (`MyOS/src/proc/os_calls.mln`); the service numbers are the SDK's (`MyAppFramework/src/os_services.mln`). `args` is a user address; the handler copies in and out through the process's page tables. |
+| `10` | `SYS_OS_CALL` | `i32 os_call(i32 service, i32 args)` | An OS service outside the kernel (MYOS-022): the UI protocol, the filesystem, process control. The kernel hands `(pid, service, args)` to the handler MyOS registers with `syscall.set_os_handler` (`MyOS/src/proc/os_calls.mln`); the service numbers are the SDK's (`MyAppFramework/src/protocol/services.mln`). `args` is a user address; the handler copies in and out through the process's page tables. |
 
 `SYS_SPAWN(path)` / the `PROC_SPAWN` service resolve a bare name through the
 search path `/bin`, then `/apps` (`console.open_executable`); a path with a
