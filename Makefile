@@ -3,7 +3,7 @@ QA_DIR := qa
 
 .PHONY: help run system build system-build screenshot kernel kernel-build emulator qa test qa-no-build \
 	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom qa-graphics \
-	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test apps-test framework-test dom-inspect font profile clean-qa
+	qa-boundaries mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test apps-test framework-test dom-inspect font profile clean-qa
 
 help:
 	@printf '%s\n' \
@@ -14,6 +14,7 @@ help:
 		'  make font             Regenerate system/MyOS/src/ui/font_sans.mln from a system TTF (tools/gen_font.py)' \
 		'  make kernel           Build and run the kernel ROM path' \
 		'  make qa               Run all QA suites' \
+		'  make qa-boundaries    Check MyStdLib / MyAppFramework / MyOS dependencies' \
 		'  make qa-compiler      Run compiler QA suite' \
 		'  make qa-assembler     Run assembler QA suite' \
 		'  make qa-linker        Run linker QA suite' \
@@ -56,6 +57,9 @@ qa test:
 
 qa-no-build:
 	$(PYTHON) $(QA_DIR)/tests/test-all.py --no-build $(ARGS)
+
+qa-boundaries:
+	$(PYTHON) $(QA_DIR)/tests/test-layer-boundaries.py $(ARGS)
 
 qa-compiler:
 	$(PYTHON) $(QA_DIR)/tests/test-all.py compiler $(ARGS)

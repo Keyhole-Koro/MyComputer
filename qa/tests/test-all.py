@@ -106,6 +106,10 @@ def build_component(name, verbose):
 
 # name -> (runner argv, [required components])
 SUITES = {
+    "boundaries": (
+        [sys.executable, str(REPO_ROOT / "qa" / "tests" / "test-layer-boundaries.py")],
+        [],
+    ),
     "compiler": (
         ["make", "-C", str(MYLANGCOMPILER_DIR), "test-component"],
         ["mlc"],
