@@ -1,0 +1,17 @@
+package process_types;
+
+/** Process termination result stored in the Zombie lifecycle state.
+ * Ordinary programs may return any i32 through Code; the kernel uses the
+ * reason variants when it terminates a process for a synchronous fault.
+ */
+export enum ProcessExitStatus {
+    Code(i32),            // Arbitrary exit code supplied by the application.
+    PageFault,            // The kernel terminated the process after a page fault.
+    PrivilegeViolation,   // The kernel terminated the process after a privilege fault.
+}
+
+// Errors returned by process lifecycle queries and collection.
+export enum ProcessControlError {
+    InvalidPid(i32),
+    NotExited(i32),
+}

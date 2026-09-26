@@ -1,0 +1,26 @@
+package fs_types;
+
+// Filesystem errors shared by implementations and clients. This is a semantic
+// contract, not a MyOS wire-code table: Result values cross the process
+// boundary with this error payload intact.
+export enum FsError {
+    Disabled,
+    InvalidName,
+    AlreadyExists,
+    NoFreeSlot,
+    AllocFailed,
+    NotFound,
+    BadFd(i32),
+    WrongType(i32),
+    BadWhence(i32),
+    Closed(i32),
+    InvalidSize(i32),
+    IoError,
+    InvalidEntry(i32),
+}
+
+export enum SeekWhence {
+    Set,
+    Cur,
+    End,
+}

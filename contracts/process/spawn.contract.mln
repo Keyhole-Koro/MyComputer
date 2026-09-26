@@ -1,0 +1,32 @@
+package process_types;
+
+import { FsError } from "../io/fs.contract.mln";
+import { LoaderError } from "loader.contract.mln";
+
+export enum SpawnFsOperation {
+    Open,
+    Measure,
+    Rewind,
+    Read,
+}
+
+export struct SpawnFilesystemError {
+    SpawnFsOperation operation;
+    FsError cause;
+};
+
+export struct SpawnReadMismatch {
+    i32 expected;
+    i32 actual;
+};
+
+// Launch adds search/read context, but keeps the filesystem and loader causes
+// intact instead of collapsing them into generic status values.
+export enum SpawnError {
+    NotFound,
+    Filesystem(SpawnFilesystemError),
+    EmptyExecutable,
+    ShortRead(SpawnReadMismatch),
+    BufferAllocationFailed(i32),
+    Loader(LoaderError),
+}

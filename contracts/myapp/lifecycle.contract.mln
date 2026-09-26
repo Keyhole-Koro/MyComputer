@@ -1,0 +1,10 @@
+package app_protocol;
+
+// Operations owned by the application host/shell rather than the UI server.
+export enum AppOp {
+    NONE,
+    OPEN,
+    CLAIM_KEY,
+    MAIN_WINDOW,
+    EXIT,
+}

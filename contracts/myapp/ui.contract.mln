@@ -1,0 +1,51 @@
+package ui_protocol;
+
+// Operations owned by the UI service. The request/event envelope is
+// message.contract.mln; app lifecycle operations are lifecycle.contract.mln.
+
+export enum UiOp {
+    NONE,
+    // ui.mln --- text
+    SET_TEXT,          // (id, s0)
+    TEXT_COPY,         // (id, a1 = out, a2 = cap) -> len; the text copied into the app's buffer
+    SET_TEXT_FMT,      // unused: set_text_fmt formats in the app and sends SET_TEXT
+    // ui.mln --- widgets
+    IS_CHECKED,        // (id) -> 0/1
+    SET_CHECKED,       // (id, a1 = on)
+    INPUT_SET,         // (id, s0)
+    AREA_APPEND,       // (id, s0)
+    AREA_CLEAR,        // (id)
+    AREA_LINES,        // (id) -> count
+    LIST_SET_ITEMS,    // (id, s0 = "\n"-joined)
+    LIST_COUNT,        // (id) -> count
+    LIST_SELECTED,     // (id, a4 = Result<Option<i32>, UiError>* out)
+    LIST_ITEM,         // (id, a1 = row, a2 = text out, a3 = cap, a4 = Result<i32, UiError>* out)
+    // ui.mln --- focus and windows
+    FOCUS,             // (id)
+    FOCUS_WINDOW,      // (id)
+    CLOSE,             // (id) -- a window the app opened itself
+    WINDOW_OF,         // (id) -> Result<Option<i32>, UiError>
+    WINDOW_X,          // (id) -> Result<i32, UiError>
+    WINDOW_Y,          // (id) -> Result<i32, UiError>
+    SHOW,              // (id) -- mount a window on the desktop
+    TEST_ID,           // (id, s0)
+    SEND_KEY,          // (a0 = type, a1 = code, a2 = mods)
+    RGB,               // (a0, a1, a2) -> colour
+    // elements.mln --- creation writes Result<i32, UiError> to result_out
+    CREATE_WINDOW,     // (s0 = title, x, y, w, h, s1 = testId)
+    CREATE_BUTTON,     // (s0 = text, x, y, w, h, s1)
+    CREATE_PRIMARY_BUTTON,
+    CREATE_TEXT,       // (s0 = text, x, y, s1)
+    CREATE_LABEL,      // (s0 = text, x, y, color, bold, s1)
+    CREATE_BOX,        // (x, y, w, h, background, border)
+    CREATE_PANEL,      // (x, y, w, h, radius)
+    CREATE_COLUMN,     // (x, y, w, h, padding, gap)
+    CREATE_ROW,        // (x, y, w, h, padding, gap)
+    CREATE_TEXT_INPUT, // (s0 = placeholder, x, y, w, h, capacity, s1)
+    CREATE_CHECKBOX,   // (s0 = text, x, y, checked, s1)
+    CREATE_SEPARATOR,  // (x, y, w)
+    CREATE_TIMER,      // (a0 = interval) -- ticks are TIMER events
+    CREATE_TEXT_AREA,  // (s0 = name, x, y, w, h, capacity, readonly, s1)
+    CREATE_LIST,       // (s0 = name, x, y, w, h, capacity, s1)
+    APPEND_CHILD,      // (a0 = parent, a1 = child)
+};

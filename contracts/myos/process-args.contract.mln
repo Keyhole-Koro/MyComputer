@@ -1,0 +1,35 @@
+package myos_process_args;
+
+// OS_CALL argument records for the hosted process API.
+// Output types are supplied by the client as Result<_, ProcessControlError>
+// or Result<i32, SpawnError>; their pointers address caller memory.
+
+export struct ProcSpawnArgs<Out> {
+    char *path;
+    i32 stdout_node;
+    Out *result_out;
+};
+
+export struct ProcExitedArgs<Out> {
+    i32 pid;
+    Out *result_out;
+};
+
+export struct ProcReapArgs<Out> {
+    i32 pid;
+    Out *result_out;
+};
+
+export struct ProcFeedArgs {
+    i32 pid;
+    char *line;
+};
+
+export struct ProcBindArgs {
+    i32 pid;
+    i32 output_node;
+};
+
+export struct ProcUnbindArgs {
+    i32 pid;
+};

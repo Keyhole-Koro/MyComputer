@@ -1,0 +1,18 @@
+package loader_types;
+
+// Stable process-loading failures shared by the kernel implementation and
+// callers that need to retain the original launch failure.
+export enum MmuError {
+    AllocFailed,
+    InvalidDirectory,
+    UnalignedAddress(i32),
+}
+
+export enum LoaderError {
+    ProcSlotFull,
+    OutOfMemory,
+    Mmu(MmuError),
+    InvalidHeader(i32),
+    InvalidBounds(i32),
+    SpawnTaskFailed,
+}

@@ -1,0 +1,70 @@
+package myos_fs_args;
+
+import { SeekWhence } from "../io/fs.contract.mln";
+
+// OS_CALL argument records for the hosted filesystem API.
+// Each Out type is the caller's Result<_, FsError>; its address points into
+// caller memory and must only be written through the OS user-memory helpers.
+
+export struct FsOpenArgs<Out> {
+    char *path;
+    Out *result_out;
+};
+
+export struct FsCreateArgs<Out> {
+    char *path;
+    Out *result_out;
+};
+
+export struct FsMkdirArgs<Out> {
+    char *path;
+    Out *result_out;
+};
+
+export struct FsRemoveArgs<Out> {
+    char *path;
+    Out *result_out;
+};
+
+export struct FsReadArgs<Out> {
+    i32 fd;
+    char *buffer;
+    i32 size;
+    Out *result_out;
+};
+
+export struct FsWriteArgs<Out> {
+    i32 fd;
+    char *buffer;
+    i32 size;
+    Out *result_out;
+};
+
+export struct FsSeekArgs<Out> {
+    i32 fd;
+    i32 offset;
+    SeekWhence whence;
+    Out *result_out;
+};
+
+export struct FsCloseArgs {
+    i32 fd;
+};
+
+export struct FsDirNextArgs<Out> {
+    char *path;
+    i32 start;
+    char *name_out;
+    i32 name_cap;
+    Out *result_out;
+};
+
+export struct FsEntrySizeArgs<Out> {
+    i32 entry;
+    Out *result_out;
+};
+
+export struct FsIsDirArgs<Out> {
+    i32 entry;
+    Out *result_out;
+};

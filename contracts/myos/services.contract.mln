@@ -1,0 +1,44 @@
+package os_services;
+
+// MyOS's hosted-program ABI. Client libraries send these service numbers
+// through OS_CALL; MyOS implements them. This file defines wire constants
+// only -- no kernel, filesystem, UI, or application policy belongs here.
+
+export enum OsService {
+    NONE,
+    // Application request/event transport.
+    REQUEST,        // (Request*) -> 1 queued, 0 if full (retry)
+    REPLY,          // (i32 *out) -> 1 with the request result, else 0
+    POLL,           // (Event*) -> 1 with an event (inline text), else 0
+    // Filesystem. Every args pointer refers to its corresponding Fs*Args
+    // record in myos/fs-args.contract.mln; Result values are written through
+    // result_out in caller memory. FS_CLOSE is fire-and-forget.
+    FS_OPEN,        // FsOpenArgs<Out>
+    FS_CREATE,      // FsCreateArgs<Out>
+    FS_READ,        // FsReadArgs<Out>
+    FS_WRITE,       // FsWriteArgs<Out>
+    FS_SEEK,        // FsSeekArgs<Out>
+    FS_CLOSE,       // FsCloseArgs
+    FS_REMOVE,      // FsRemoveArgs<Out>
+    FS_ENTRY_SIZE,  // FsEntrySizeArgs<Out>
+    FS_MKDIR,       // FsMkdirArgs<Out>
+    FS_DIR_NEXT_AT, // FsDirNextArgs<Out>
+    FS_IS_DIR,      // FsIsDirArgs<Out>
+    // Processes. Argument pointers refer to the corresponding Proc*Args
+    // records in myos/process-args.contract.mln. Spawn's stdout_node is zero
+    // for no TextArea binding; typed results are written through result_out.
+    PROC_SPAWN,     // ProcSpawnArgs<Out>
+    PROC_BIND,      // ProcBindArgs
+    PROC_UNBIND,    // ProcUnbindArgs
+    PROC_EXITED,    // ProcExitedArgs<Out>
+    PROC_REAP,      // ProcReapArgs<Out>
+    PROC_FEED,      // ProcFeedArgs
+    // Diagnostics.
+    LOG,
+};
+
+// Internal OS_CALL routing failure. The raw syscall trampoline maps this to
+// the legacy negative status at the i32 ABI boundary.
+export enum OsServiceError {
+    UnknownService(i32),
+}

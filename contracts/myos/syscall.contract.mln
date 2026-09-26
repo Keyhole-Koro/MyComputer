@@ -1,0 +1,16 @@
+package myos_syscall;
+
+// User-visible syscall numbers shared by process stubs and the kernel.
+export enum Syscall {
+    EXIT = 1,
+    READ,
+    WRITE,
+    OPEN,
+    CLOSE,
+    SEEK,
+    SBRK,
+    YIELD,
+    SPAWN,
+    OS_CALL,   // (service, args): an OS service outside the kernel.
+    WAIT_NOTIFICATION, // (mask): block until an armed kernel notification arrives.
+}

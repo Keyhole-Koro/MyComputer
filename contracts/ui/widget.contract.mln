@@ -1,0 +1,17 @@
+package ui_types;
+
+// Semantic UI errors shared by the DOM implementation and application API.
+// Transport-specific status codes do not belong here: these values cross the
+// application boundary inside Result without being translated to sentinels.
+export enum UiError {
+    NodeNotFound(i32),
+    WrongNodeKind(i32),
+    InvalidIndex(i32),
+    InvalidCapacity(i32),
+    OwnerTableFull(i32),
+    OwnerNodeLimit(i32),
+    NodeIdLimit,
+    AllocationFailed(i32),
+    TimerLimit,
+    UnknownOperation(i32),
+}
