@@ -79,7 +79,7 @@ repo growing the shared library for its siblings was backwards):
 word-level absolute-address accessor for RAM and MMIO.
 
 Callers moved onto them: `serial.mln`'s keystroke queue (ringbuf),
-`MyOS/src/fs/fs.mln`'s block bitmap (bitset), `MyOS/src/apps/shell.mln`'s
+`MyOS/src/fs/fs.mln`'s block bitmap (bitset), `MyOS/src/shell/serial.mln`'s
 private `str_eq` (str.eq), `MyOS/src/apps/counter.dom.mln`'s hand-written
 decimal bytes (strbuf).
 
@@ -135,6 +135,5 @@ Ranked by what the OS already open-codes.
 7. Intrusive list -- `heap.mln`'s free list and the scheduler's task list are
    the same structure written twice.
 8. `Slice<T>` -- nearly free once `str` exists.
-9. `Option<T>` / `Result<T, E>` -- would unify the `-1` / panic / status-flag
-   mix `docs/learn/errors-and-exceptions.md` describes. Needs generics and
-   payload-carrying enums, so it is last.
+9. `Option<T>` / `Result<T, E>` -- payload enums now distinguish absence from
+   typed failure across filesystem and UI boundaries. **done**

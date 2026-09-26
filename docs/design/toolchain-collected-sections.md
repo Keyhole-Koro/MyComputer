@@ -145,7 +145,7 @@ import { Annotations } from ".../MyStdLib/meta/annotations.mln";
 
 Annotations it = annotations.named("app");         // all() / named(n) / of_type(t) / where(n, t)
 while (it.next()) {
-    register_app(it.type(), it.size(), it.fn(), it.arg(0), it.text(1));
+    inspect(it.type(), it.size(), it.arg(0), it.text(1));
 }
 annotations.count();                               // 全行数
 ```
@@ -155,8 +155,10 @@ annotations.count();                               // 全行数
   `arg(k)`、`text(k)`（`char*` として）、`flag(k)`
 - 知らない名前の行は `named()` で頼まれなければ見えない。他のフレームワークが自分の
   アノテーションを同じ表に混ぜても互いに干渉しない
-- MyAppFramework の `app.install()` はこれで `"app"` / `"timer"` / `"key"` / `"open"` /
-  `"on_close"` を型名キーのレジストリに振り分ける。`meta.mln` は無くなった
+- MyAppFramework の `app_main` / `runtime` は実行中 image の `"app"` / `"timer"` / `"key"` /
+  `"open"` / `"on_close"` を読む。MyOS の `shell/app.mln` は `in_image()` でディスク上の
+  executable から `"app"` / `"open"` の公開メタデータだけを読む。MyStdLib はどの名前にも
+  意味を与えない。`meta.mln` は無くなった
 
 ## 5. 重複定義の検出
 

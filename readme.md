@@ -98,6 +98,13 @@ windows in `.dom.mln` markup (see `src/apps/`); colours and metrics live in
 `theme.mln`. Details: [`system/MyOS/docs/DOM_SPEC.md`](system/MyOS/docs/DOM_SPEC.md),
 [`runtime/MyEmulator/readme.md`](runtime/MyEmulator/readme.md).
 
+The source boundaries are intentionally not a linear three-layer stack:
+applications use MyAppFramework and MyStdLib hosted APIs, MyOS provides the
+services, and both sides consume data-only definitions from the root
+`contracts/` directory. MyOS does not import the framework. See
+[MyStdLib / MyAppFramework / MyOS boundaries](docs/design/os-app-boundaries.md)
+and run `make qa-boundaries` to check the allowed imports.
+
 ## User-space programs
 
 The kernel runs isolated user processes (own page tables, W^X, syscalls) — see
@@ -146,6 +153,7 @@ files. See the design notes for the LR(1) engine and frontend integration:
 ```text
 .
 ├── architecture/             # Architecture notes and design docs
+├── contracts/                # Data-only semantic and wire contracts
 ├── docs/                     # Project-wide documentation
 ├── hardware/
 │   └── verilator/            # Verilog/Verilator hardware model
@@ -156,6 +164,7 @@ files. See the design notes for the LR(1) engine and frontend integration:
 ├── system/
 │   ├── MyFirmware/           # Boot firmware (ROM)
 │   ├── MyKernel/             # Core OS kernel
+│   ├── MyAppFramework/       # App SDK and process runtime
 │   └── MyOS/                 # OS services, file system, UI, and apps
 ├── toolchain/
 │   ├── MyAssembler/          # Assembler

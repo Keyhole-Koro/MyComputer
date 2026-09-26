@@ -88,7 +88,10 @@ Syscalls leverage the standard MyLang register convention.
 * **`r5` : Argument 1**
 * **`r6` : Argument 2**
 * **`r7` : Argument 3**
-* Return value: Non-negative integer on success; negative error code (`-1` to `-255`) on error.
+* Return value: kernel syscalls use a non-negative success value or a negative
+  `SyscallError`. `SYS_OS_CALL` uses this register only for transport status;
+  typed service results such as `Result<T, FsError>` are copied through the
+  caller-provided result address and do not use negative domain-error codes.
 
 ### Syscall Table Definition
 
@@ -103,17 +106,19 @@ Syscalls leverage the standard MyLang register convention.
 | `7` | `SYS_SBRK` | `i32 sys_sbrk(i32 increment)` | Extends or shrinks user heap break. |
 | `8` | `SYS_YIELD` | `void sys_yield()` | Voluntarily yields remaining time slice to scheduler. |
 | `9` | `SYS_SPAWN` | `i32 sys_spawn(char *path)` | Loads and executes a `.mbin` binary as a new process. |
-| `10` | `SYS_OS_CALL` | `i32 os_call(i32 service, i32 args)` | An OS service outside the kernel (MYOS-022): the UI protocol, the filesystem, process control. The kernel hands `(pid, service, args)` to the handler MyOS registers with `syscall.set_os_handler` (`MyOS/src/proc/os_calls.mln`); the service numbers are the SDK's (`MyAppFramework/src/protocol/services.mln`). `args` is a user address; the handler copies in and out through the process's page tables. |
+| `10` | `SYS_OS_CALL` | `i32 os_call(i32 service, i32 args)` | An OS service outside the kernel (MYOS-022): the UI protocol, the filesystem, process control. The kernel hands `(pid, service, args)` to the router MyOS registers with `syscall.set_os_handler` (`MyOS/src/syscall/router.mln`); the ABI service numbers live in `contracts/myos/services.contract.mln`, while MyOS owns domain-local endpoints such as `fs/syscall.mln` and `ui/protocol.mln`. `args` is a user address; the endpoint copies in and out through the process's page tables. |
+| `11` | `SYS_WAIT_NOTIFICATION` | `void sys_wait_notification(i32 mask)` | Consumes an armed sticky notification or blocks the current task until one arrives. Used by the application request/reply/event transport. |
 
 `SYS_SPAWN(path)` / the `PROC_SPAWN` service resolve a bare name through the
 search path `/bin`, then `/apps` (`console.open_executable`); a path with a
 `/` is taken as is.
 
 `SYS_YIELD` puts the calling task to sleep until the next timer tick
-(`scheduler.yield_until_tick`) rather than merely rescheduling it: a
-polling loop (an app waiting for a UI reply) would otherwise take every
-slice the CPU has. `SYS_OPEN` / `SYS_CLOSE` / `SYS_SEEK` are numbers only;
-files are reached through `SYS_OS_CALL` (`FS_*` services).
+(`scheduler.yield_until_tick`) rather than merely rescheduling it. The
+application transport uses `SYS_WAIT_NOTIFICATION` for request, reply, and
+event readiness instead of polling with `SYS_YIELD`. `SYS_OPEN` / `SYS_CLOSE` /
+`SYS_SEEK` are numbers only; files are reached through `SYS_OS_CALL` (`FS_*`
+services).
 
 ---
 

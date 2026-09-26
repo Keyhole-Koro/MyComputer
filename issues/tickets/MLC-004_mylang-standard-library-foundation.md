@@ -111,7 +111,7 @@ package 名はフラットなままで、`std.` prefix という当初案まで�
 
 呼び出し側の回収も済んでいる: `serial.mln` の入力キュー（ringbuf）、
 `MyOS/src/fs/fs.mln` のブロックビットマップ（bitset）、
-`MyOS/src/apps/shell.mln` の私的な `str_eq`（str.eq）、
+`MyOS/src/shell/serial.mln` の私的な `str_eq`（str.eq）、
 `MyOS/src/apps/counter.dom.mln` の手書き10進バイト列（strbuf）。
 いずれも `toolchain/MyStdLib/...` への相対パスに更新済み。
 
