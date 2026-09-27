@@ -7,39 +7,27 @@ Companion to `issues/tickets/MLC-004_mylang-standard-library-foundation.md`.
 
 ## 1. What a string is today
 
-A string is a `char*` pointing at NUL-terminated bytes. A literal is interned
-into the data section by the compiler (`codegen_strings.c`, one `.byte`
-sequence per distinct literal) and its address loaded with `movi`.
+Since 2026-09-26, MyLang has a compiler-known borrowed `str` value. Its ABI
+layout is two words, `{ char* data; i32 length; }`, and it is `Copy`. Literals
+are interned once as NUL-terminated bytes and also have a `{data, length}` view,
+so they can be used as `str` without losing compatibility with legacy C-style
+APIs. The length is a byte count and may include embedded NUL bytes.
 
-There is no length word, so `len` is an O(n) walk, a substring cannot be taken
-without copying, and a string cannot contain a NUL. Reads have to be masked
-with `0xFF` because `char` sign-extends into `i32`, which makes any byte
->= 0x80 compare as negative.
+`char*` remains the FFI/MMIO representation: it points to NUL-terminated bytes
+and `len(char*)` scans. Use `pointer.as_str()` or `str.from_c(pointer)` to make
+a view, and `view.as_c_str()` when calling an API that requires `char*` (a
+sliced view is not guaranteed to have a terminator at its logical end).
 
 ## 2. Three compiler limits that shape every API
 
 These were each confirmed against the compiler, not inferred.
 
-### 2.1 Struct types do not cross a package boundary
+### 2.1 Struct types cross package boundaries
 
-The importing file never learns an imported typedef. Both of these fail to
-parse:
-
-```mylang
-import sb from "sb.mln";
-sb.SB b;                    // error: expected ';' after expression
-
-import { SB } from "sb.mln";
-SB b;                       // error: expected ';' after expression
-```
-
-`parser_dom_sig.c` says the same thing from the other side: "imports only
-register a package namespace".
-
-Consequence: no public std API takes or returns a struct. State that has to
-persist lives in a caller-owned array handed over as an `i32*` or `char*`
-handle, with named offsets inside the package -- the shape `heap.mln` already
-uses for its block headers.
+Imported structs, enums, typedefs, and their transitive field types are now
+staged into the importing unit. This is what lets `str`, `Option<str>`, and
+the filesystem argument contracts cross module boundaries. Generic imports
+also carry concrete plain-type dependencies such as `SeekWhence`.
 
 ### 2.2 Exported constants do not survive linking
 
@@ -83,39 +71,36 @@ Callers moved onto them: `serial.mln`'s keystroke queue (ringbuf),
 private `str_eq` (str.eq), `MyOS/src/apps/counter.dom.mln`'s hand-written
 decimal bytes (strbuf).
 
-### Phase 1 -- `str` as a language type
+### Phase 1 -- `str` as a language type -- done
 
-Requires compiler work, in dependency order:
-
-1. **Struct values passed and returned.** Structs are pointer-only today;
-   nothing can return a two-word `{ptr, len}`. This is the gating item.
-2. **Aggregate initializers** (MLC-001), to construct one.
-3. **Cross-package types** (MLC-003), or `str` is unusable outside the package
-   that declares it -- see 2.1.
-4. **Literals typed as `str`**, with `==` lowered to a byte compare.
+The compiler now supports aggregate values in locals, globals, fields,
+arguments, returns, assignments, and call chains. `str` literals, content
+equality (`==`/`!=`), embedded NULs, and cross-package methods are covered by
+the compiler and system E2E suites. The standard module provides:
+`len`, `is_empty`, `compare`, `starts_with`, `ends_with`, `find`, `slice`,
+`byte_at`, `as_c_str`, and the `char*` bridge `as_str`/`from_c`.
 
 The intended shape is three layers:
 
 | layer | representation | ownership |
 | --- | --- | --- |
 | `char*` | NUL-terminated pointer | none; FFI and MMIO |
-| `str` | `{u8* ptr; i32 len;}`, Copy | borrowed |
+| `str` | `{char* data; i32 length;}`, Copy | borrowed |
 | `String` | `{u8* ptr; i32 len; i32 cap;}` | owned, heap |
 
-Literals should keep their trailing NUL *and* gain a length, so the same
-literal is valid as both `str` and `char*` and no existing kernel call site
-has to change. The cost is one byte per literal.
-
-`len` is in bytes and the encoding is UTF-8; a `chars()` iterator can wait,
-since `font8x8.mln` is ASCII.
+Literals keep their trailing NUL and gain a length, so the same literal is
+valid as both `str` and `char*`. A literal may be implicitly passed to legacy
+`char*`/`char[]` parameters; an arbitrary `str` requires an explicit
+`as_c_str()` conversion. `len` is in bytes and the encoding is UTF-8; a
+`chars()` iterator can wait, since `font8x8.mln` is ASCII.
 
 ### Phase 2 -- owned types
 
-`String`, `Vec<T>` and friends need two more things: monomorphization
-(generics parse today but instantiation is rejected outright, in
-`parser_type.c` and `parser_expr_primary.c`), and a drop hook so the
-ownership checker's move tracking can free heap memory at scope end. The
-checker already tracks moves; nothing runs on the way out.
+`String`, `Vec<T>` and friends need a drop hook so the ownership checker's move
+tracking can free heap memory at scope end. Generic type/function
+monomorphization is already available; the remaining work is ownership-aware
+cleanup and allocator integration. The checker already tracks moves, but
+nothing runs on the way out of a scope yet.
 
 ## 4. Collections worth having, in payoff order
 
