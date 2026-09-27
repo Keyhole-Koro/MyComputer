@@ -8,15 +8,14 @@ Companion to `issues/tickets/MLC-004_mylang-standard-library-foundation.md`.
 ## 1. What a string is today
 
 Since 2026-09-26, MyLang has a compiler-known borrowed `str` value. Its ABI
-layout is two words, `{ char* data; i32 length; }`, and it is `Copy`. Literals
-are interned once as NUL-terminated bytes and also have a `{data, length}` view,
-so they can be used as `str` without losing compatibility with legacy C-style
-APIs. The length is a byte count and may include embedded NUL bytes.
+layout is two words, `{ char* data; i32 length; }`, and it is `Copy`. The
+length is a byte count and may include embedded NUL bytes. `str` never owns or
+provides writable storage.
 
-`char*` remains the FFI/MMIO representation: it points to NUL-terminated bytes
-and `len(char*)` scans. Use `pointer.as_str()` or `str.from_c(pointer)` to make
-a view, and `view.as_c_str()` when calling an API that requires `char*` (a
-sliced view is not guaranteed to have a terminator at its logical end).
+`char*` remains the low-level FFI/MMIO representation. New bounded text uses
+`InlineString<N>`; code that must expose a NUL-terminated pointer uses the
+separate `InlineCString<N>` boundary type. This keeps the terminator slot and
+embedded-NUL restriction out of normal MyLang strings.
 
 ## 2. Three compiler limits that shape every API
 
@@ -57,19 +56,20 @@ repo growing the shared library for its siblings was backwards):
 
 | package | role |
 | --- | --- |
-| `str` | NUL-terminated string helpers |
+| `str` | borrowed length-aware string algorithms and legacy boundary helpers |
 | `bytes` | memset / memcpy / memmove / memcmp over byte buffers |
 | `bitset` | bit array over a caller-owned buffer |
 | `ringbuf` | fixed-capacity i32 FIFO |
-| `strbuf` | append-only builder that truncates rather than overruns |
+| `InlineString<N>` | inline owned string; atomic mutation, no NUL slot |
+| `InlineCString<N>` | inline NUL-terminated storage for system boundaries |
 
 `bytes` rather than `mem` because `package mem` is already the kernel's
 word-level absolute-address accessor for RAM and MMIO.
 
 Callers moved onto them: `serial.mln`'s keystroke queue (ringbuf),
-`MyOS/src/fs/fs.mln`'s block bitmap (bitset), `MyOS/src/shell/serial.mln`'s
-private `str_eq` (str.eq), `MyOS/src/apps/counter.dom.mln`'s hand-written
-decimal bytes (strbuf).
+`MyOS/src/fs/fs.mln`'s block bitmap (bitset), and MyOS application/syscall
+scratch strings (`InlineString` / `InlineCString`). The old truncating
+`strbuf` and borrowed-storage `StringBuilder` APIs were removed.
 
 ### Phase 1 -- `str` as a language type -- done
 
@@ -80,19 +80,20 @@ the compiler and system E2E suites. The standard module provides:
 `len`, `is_empty`, `compare`, `starts_with`, `ends_with`, `find`, `slice`,
 `byte_at`, `as_c_str`, and the `char*` bridge `as_str`/`from_c`.
 
-The intended shape is three layers:
+The intended shape is four explicit layers:
 
 | layer | representation | ownership |
 | --- | --- | --- |
-| `char*` | NUL-terminated pointer | none; FFI and MMIO |
-| `str` | `{char* data; i32 length;}`, Copy | borrowed |
-| `String` | `{u8* ptr; i32 len; i32 cap;}` | owned, heap |
+| `str` | `{char* data; i32 length;}`, Copy | borrowed view |
+| `InlineString<N>` | `{u8 data[N]; i32 length;}` | owned, inline |
+| `InlineCString<N>` | `{char data[N]; i32 length;}` | owned inline FFI boundary |
+| `String` | `{u8* ptr; i32 len; i32 cap;}` | owned, heap (planned) |
 
-Literals keep their trailing NUL and gain a length, so the same literal is
-valid as both `str` and `char*`. A literal may be implicitly passed to legacy
-`char*`/`char[]` parameters; an arbitrary `str` requires an explicit
-`as_c_str()` conversion. `len` is in bytes and the encoding is UTF-8; a
-`chars()` iterator can wait, since `font8x8.mln` is ASCII.
+Const generics use explicit declarations such as `struct InlineString<const
+N>` and uses such as `InlineString<128>`. An `i32.to_string()` returns an
+owned `InlineString<12>`; formatting no longer borrows a caller-provided
+temporary array. `len` is in bytes and the encoding is UTF-8; a `chars()`
+iterator can wait, since `font8x8.mln` is ASCII.
 
 ### Phase 2 -- owned types
 
@@ -109,7 +110,8 @@ Ranked by what the OS already open-codes.
 1. `ringbuf` -- serial RX, mouse and keyboard events. **done**
 2. `bitset` -- MFS block allocation, and the page-frame allocator EMU-003
    will need. **done**
-3. `strbuf` -- every label and log line. **done**
+3. `InlineString<N>` / `InlineCString<N>` -- labels, log lines, and explicit
+   C-style system boundaries. **done**
 4. Arena / bump allocator -- per-frame DOM layout, per-syscall scratch;
    avoids fragmenting the first-fit heap. No new language feature needed.
 5. `Vec<T>` -- DOM child lists, dirents, the run queue. Needs generics; until
