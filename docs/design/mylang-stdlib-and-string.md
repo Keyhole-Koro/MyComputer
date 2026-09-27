@@ -87,7 +87,7 @@ The intended shape is four explicit layers:
 | `str` | `{char* data; i32 length;}`, Copy | borrowed view |
 | `InlineString<N>` | `{u8 data[N]; i32 length;}` | owned, inline |
 | `InlineCString<N>` | `{char data[N]; i32 length;}` | owned inline FFI boundary |
-| `String` | `{u8* ptr; i32 len; i32 cap;}` | owned, heap (planned) |
+| `String` | `{u8* data; i32 length; i32 capacity;}` | owned, growable heap |
 
 Const generics use explicit declarations such as `struct InlineString<const
 N>` and uses such as `InlineString<128>`. An `i32.to_string()` returns an
@@ -95,13 +95,19 @@ owned `InlineString<12>`; formatting no longer borrows a caller-provided
 temporary array. `len` is in bytes and the encoding is UTF-8; a `chars()`
 iterator can wait, since `font8x8.mln` is ASCII.
 
-### Phase 2 -- owned types
+### Phase 2 -- owned types -- in progress
 
-`String`, `Vec<T>` and friends need a drop hook so the ownership checker's move
-tracking can free heap memory at scope end. Generic type/function
-monomorphization is already available; the remaining work is ownership-aware
-cleanup and allocator integration. The checker already tracks moves, but
-nothing runs on the way out of a scope yet.
+The compiler now recognizes `void (T *self) drop()` as deterministic cleanup,
+tracks ownership at runtime across branch-dependent initialization and moves,
+and recursively drops owned fields. Cleanup covers normal scope exit,
+`break`, `continue`, and function return. `memory/allocator.mln` separates the
+container API from its runtime allocator; MyOS uses the kernel heap and
+MyAppFramework supplies a process-local first-fit heap over `sbrk`.
+
+`text/string.mln` is the first heap-owned container. It provides atomic
+`reserve`, `append`, and `push`, returns allocation failure as `false`, and is
+freed automatically. `Vec<T>` still needs element-aware construction and move
+semantics before it should migrate to the same mechanism.
 
 ## 4. Collections worth having, in payoff order
 
