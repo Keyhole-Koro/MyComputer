@@ -7,7 +7,6 @@ Supports recursive source discovery with exclusions.
 
 import argparse
 import os
-import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -18,13 +17,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from tools.project_paths import MYASSEMBLER_DIR, MYLANGCOMPILER_DIR, MYLINKER_DIR, REPO_ROOT
 
-IMPORT_FROM_RE = re.compile(
-    r'import\s+(?:[A-Za-z_][A-Za-z0-9_]*|\{[^}]*\})\s+from\s+"([^"]+)"\s*;'
-)
-MASM_IMPORT_FROM_RE = re.compile(
-    r'^\s*import\s+(?:\{\s*[A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*\s*\}|[A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*)\s+from\s+"([^"]+)"\s*$',
-    re.MULTILINE,
-)
+
+class BuildError(RuntimeError):
+    pass
 
 
 def run(cmd, cwd=None):
@@ -71,26 +66,7 @@ def source_relpath(path: Path) -> Path:
         return Path(path.name)
 
 
-def discover_import_from_paths(src_path: Path):
-    if src_path.suffix not in {".mln", ".masm"}:
-        return []
-
-    try:
-        text = src_path.read_text(encoding="utf-8")
-    except OSError:
-        return []
-
-    discovered = []
-    src_dir = src_path.parent
-    pattern = IMPORT_FROM_RE if src_path.suffix == ".mln" else MASM_IMPORT_FROM_RE
-    for rel in pattern.findall(text):
-        imported = (src_dir / rel).resolve()
-        if imported.exists():
-            discovered.append(imported)
-    return discovered
-
-
-def add_source_with_imports(path: Path, sources, seen_paths):
+def add_source(path: Path, sources, seen_paths):
     path = path.resolve()
     if path in seen_paths:
         return
@@ -102,11 +78,8 @@ def add_source_with_imports(path: Path, sources, seen_paths):
     seen_paths.add(path)
     sources.append((path, source_relpath(path), stype))
 
-    for imported in discover_import_from_paths(path):
-        add_source_with_imports(imported, sources, seen_paths)
 
-
-def collect_sources(paths, excludes, include_masm):
+def collect_root_sources(paths, excludes, include_masm):
     sources = []
     seen_paths = set()
 
@@ -133,17 +106,52 @@ def collect_sources(paths, excludes, include_masm):
                         continue
                     fpath = root_path / name
                     if fpath.suffix == ".mln":
-                        add_source_with_imports(fpath, dir_sources, seen_paths)
+                        add_source(fpath, dir_sources, seen_paths)
                     elif fpath.suffix == ".masm" and include_masm:
-                        add_source_with_imports(fpath, dir_sources, seen_paths)
+                        add_source(fpath, dir_sources, seen_paths)
             dir_sources.sort(key=lambda item: (0 if item[2] == "ml" else 1, str(item[1]).replace("\\", "/")))
             sources.extend(dir_sources)
         else:
             if p.suffix in {".mln", ".masm"}:
-                add_source_with_imports(p, sources, seen_paths)
+                add_source(p, sources, seen_paths)
             else:
                 print(f"[WARN] Skip unsupported file: {p}")
-    return sources
+    return sources, seen_paths
+
+
+def read_dependency_file(path: Path):
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError as exc:
+        raise BuildError(f"Failed to read dependency file {path}: {exc}") from exc
+    if not lines or lines[0] != "MYDEPS 1":
+        raise BuildError(f"Invalid dependency file header: {path}")
+
+    dependencies = []
+    for line_number, line in enumerate(lines[1:], start=2):
+        if not line:
+            continue
+        try:
+            kind, raw_path = line.split("\t", 1)
+        except ValueError as exc:
+            raise BuildError(
+                f"Invalid dependency entry at {path}:{line_number}"
+            ) from exc
+        expected_suffix = {"mln": ".mln", "masm": ".masm"}.get(kind)
+        if expected_suffix is None:
+            raise BuildError(
+                f"Unknown dependency kind '{kind}' at {path}:{line_number}"
+            )
+        dependency = Path(raw_path)
+        if not dependency.is_absolute() or dependency.suffix != expected_suffix:
+            raise BuildError(
+                f"Invalid {kind} dependency path at {path}:{line_number}: {raw_path}"
+            )
+        dependency = dependency.resolve()
+        if not dependency.is_file():
+            raise BuildError(f"Dependency does not exist: {dependency}")
+        dependencies.append(dependency)
+    return dependencies
 
 
 def main():
@@ -175,32 +183,25 @@ def main():
     build_dir.mkdir(parents=True, exist_ok=True)
 
     src_paths = [Path(p).resolve() for p in args.sources]
-    sources = collect_sources(src_paths, args.exclude, args.masm)
+    sources, seen_sources = collect_root_sources(src_paths, args.exclude, args.masm)
 
     if not sources:
         print("[ERROR] No sources found.")
         return 1
 
-    # Prevent output collisions
     out_map = {}
-    for src, rel, stype in sources:
-        if stype == "ml":
-            out_masm = build_dir / rel.with_suffix(".masm")
-        else:
-            out_masm = build_dir / rel
-        
-        if out_masm in out_map and out_map[out_masm] != src:
-            print(f"[ERROR] Output collision: {out_masm} from {src} and {out_map[out_masm]}")
-            return 1
-        out_map[out_masm] = src
+    mobj_paths = []
+    source_index = 0
 
-    masm_outputs = []
-
-    # Compile/Copy to .masm
-    for src, rel, stype in sources:
+    # Tools own import parsing and path resolution. The builder consumes their
+    # dependency manifests and expands this work queue without reading source.
+    while source_index < len(sources):
+        src, rel, stype = sources[source_index]
+        source_index += 1
         if stype == "ml":
             out_masm = build_dir / rel.with_suffix(".masm")
             out_masm.parent.mkdir(parents=True, exist_ok=True)
+            ml_depfile = Path(str(out_masm) + ".ml-deps")
             cmd = [mlc]
             if args.entry:
                 cmd += ["-entry", args.entry]
@@ -209,23 +210,43 @@ def main():
             # MyAssembler resolves it before the linker can redirect it.
             for redirect in args.redirect:
                 cmd += ["--redirect-call", redirect]
-            cmd += [src, out_masm]
-            run(cmd, cwd=repo)
-            masm_outputs.append(out_masm)
-        elif stype == "masm":
+            cmd += ["--depfile", ml_depfile, src, out_masm]
+            dependency_files = [ml_depfile]
+        else:
             out_masm = build_dir / rel
             out_masm.parent.mkdir(parents=True, exist_ok=True)
+            cmd = None
+            dependency_files = []
+
+        if out_masm in out_map and out_map[out_masm] != src:
+            raise BuildError(
+                f"Output collision: {out_masm} from {src} and {out_map[out_masm]}"
+            )
+        out_map[out_masm] = src
+
+        if cmd:
+            run(cmd, cwd=repo)
+            asm_input = out_masm
+        else:
             if src.resolve() != out_masm.resolve():
                 shutil.copy2(src, out_masm)
-            masm_outputs.append(out_masm)
+            # Resolve assembly `from` paths against the source location, not
+            # against its copied build artifact.
+            asm_input = src
 
-    # Assemble .masm -> .mobj
-    mobj_paths = []
-    for masm in masm_outputs:
-        out_mbin = masm.with_suffix(".mbin")
-        out_mobj = masm.with_suffix(".mobj")
-        run([myas, masm, out_mbin, "--obj", out_mobj], cwd=repo)
+        out_mbin = out_masm.with_suffix(".mbin")
+        out_mobj = out_masm.with_suffix(".mobj")
+        asm_depfile = Path(str(out_masm) + ".asm-deps")
+        run([myas, asm_input, out_mbin, "--obj", out_mobj,
+             "--depfile", asm_depfile], cwd=repo)
         mobj_paths.append(out_mobj)
+        dependency_files.append(asm_depfile)
+
+        for dependency_file in dependency_files:
+            for dependency in read_dependency_file(dependency_file):
+                if dependency in seen_sources:
+                    continue
+                add_source(dependency, sources, seen_sources)
 
     if not mobj_paths:
         print("[ERROR] No .mobj outputs generated.")
@@ -281,3 +302,6 @@ if __name__ == "__main__":
             file=sys.stderr,
         )
         raise SystemExit(exc.returncode)
+    except BuildError as exc:
+        print(f"[ERROR] {exc}", file=sys.stderr)
+        raise SystemExit(1)
