@@ -97,6 +97,9 @@ iterator can wait, since `font8x8.mln` is ASCII.
 
 ### Phase 2 -- owned types -- in progress
 
+The normative behavior and current limitations are specified in
+[MyLang Owned Values, Automatic Drop, and `String`](mylang-owned-values-and-drop.md).
+
 The compiler now recognizes `void (T *self) drop()` as deterministic cleanup,
 tracks ownership at runtime across branch-dependent initialization and moves,
 and recursively drops owned fields. Cleanup covers normal scope exit,
