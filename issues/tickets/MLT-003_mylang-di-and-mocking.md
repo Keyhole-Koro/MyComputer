@@ -8,7 +8,7 @@ In progress.
 
 - `MyLangTestKit` submodule と ABI v1 marker。
 - `TEST_PASS:<name>` / `TEST_FAIL:<reason>` verdict bridge。
-- `MyStdLib/assert.mln` の `assert_fail` adapter。
+- `MyStdLib/testing/assert.mln` の `assert_fail` adapter。
 - `Matcher<T>`、`ReturnSequence<T>`、`CallHistory<Args, Ret>`。
 - `Mock<Args, Ret>`、`Rule<Args, Ret>`、Mock/Spy mode、rule hit count、
   return sequence、call history、`clear_calls()`、`reset()`。

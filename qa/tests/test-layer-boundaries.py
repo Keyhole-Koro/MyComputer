@@ -3,6 +3,7 @@
 
 import re
 import sys
+import tomllib
 from pathlib import Path
 
 
@@ -71,6 +72,22 @@ NONE_TO_NEGATIVE_RE = re.compile(r'\bNone\s*->\s*-\d+')
 FUNCTION_BODY_RE = re.compile(r'^\s*(?:export\s+)?[A-Za-z_][^;{}]*\([^;{}]*\)\s*\{', re.MULTILINE)
 
 
+def load_aliases():
+    config_path = REPO_ROOT / "mylang.toml"
+    with config_path.open("rb") as config_file:
+        config = tomllib.load(config_file)
+    aliases = {}
+    for name, raw_target in config.get("alias", {}).items():
+        target = Path(raw_target)
+        if not target.is_absolute():
+            target = config_path.parent / target
+        aliases[name] = target.resolve()
+    return aliases
+
+
+ALIASES = load_aliases()
+
+
 def is_within(path: Path, root: Path) -> bool:
     return path == root or root in path.parents
 
@@ -87,7 +104,16 @@ def imports(source: Path):
     for line_number, line in enumerate(source.read_text().splitlines(), 1):
         match = IMPORT_RE.match(line)
         if match:
-            yield line_number, match.group(1), (source.parent / match.group(1)).resolve()
+            import_path = match.group(1)
+            target = None
+            for alias in sorted(ALIASES, key=len, reverse=True):
+                if import_path == alias or import_path.startswith(alias + "/"):
+                    remainder = import_path[len(alias):].lstrip("/")
+                    target = ALIASES[alias] / remainder
+                    break
+            if target is None:
+                target = source.parent / import_path
+            yield line_number, import_path, target.resolve()
 
 
 def check_import(source: Path, target: Path) -> str | None:

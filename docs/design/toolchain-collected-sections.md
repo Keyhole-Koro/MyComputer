@@ -112,8 +112,8 @@ MyStdLib に置いた：
 ### `memory/section.mln` — セクションを名前で
 
 ```mylang
-import section from ".../MyStdLib/memory/section.mln";
-import { as_slice } from ".../MyStdLib/memory/section.mln";
+import section from "@std/memory/section.mln";
+import { as_slice } from "@std/memory/section.mln";
 
 section.exists("annotations");             // bool
 section.start("annotations");              // 先頭アドレス（無ければ 0）
@@ -140,8 +140,8 @@ mlc は `@a(args)` を検査したうえで、モジュールごとに `annotati
 | 5–7 | 引数（数値／bool は 0・1／文字列は `char*`） |
 
 ```mylang
-import annotations from ".../MyStdLib/meta/annotations.mln";
-import { Annotations } from ".../MyStdLib/meta/annotations.mln";
+import annotations from "@std/meta/annotations.mln";
+import { Annotations } from "@std/meta/annotations.mln";
 
 Annotations it = annotations.named("app");         // all() / named(n) / of_type(t) / where(n, t)
 while (it.next()) {
@@ -191,7 +191,7 @@ DESIGN.md には「Detect Duplicate Definitions (Error)」とあったが、実�
 | `MyLangCompiler/src/frontend/parser/parser_expr_unary.c`, `codegen_expr.c` | `sizeof(型)`（generic の `T` を含む） |
 | `MyStdLib/memory/section.mln`, `meta/annotations.mln` | 読み手の API（§4） |
 | `MyOS/src/shell/app.mln`（当時 `MyAppFramework/src/app.mln`） | `install()` をイテレータで。`meta.mln` 削除 |
-| `MyLangTester/src/CompilerTestRunner.java` | e2e ケースが `../../MyStdLib/...` をリンクできるように |
+| `MyLangTester/src/CompilerTestRunner.java` | e2e ケースが `@std/...` をリンクできるように |
 
 ## 7. 検証
 
