@@ -8,7 +8,7 @@
 
 MYOS-019 のキューをカーネルの IPC チャネルに置き換え、UI サーバ（dom + compositor）を
 自分のタスクで動かす。アプリのハンドラは別タスク上で走り、DOM はサーバのタスクだけが
-触る。`docs/design/os-app-boundaries.md` の段 3。
+触る。
 
 ## Background
 

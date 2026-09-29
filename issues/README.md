@@ -7,7 +7,7 @@
 | ID | Ticket | Status | Notes |
 | --- | --- | --- | --- |
 | MYOS-002 | [割り込み機構（ISA拡張 + タイマー割り込み）](completed/MYOS-002_interrupts.md) | Done | 最小仕様どころか複数割込み原因対応の本格 IRQ ディスパッチャまで実装済み。 |
-| MYOS-003 | [Kernel Heap Improvements](completed/MYOS-003_kernel-heap.md) | Stale/Partial | 隣接ブロック統合・アドレス順 free list・exhaustion panic は実装済み。統計・整合性チェックのみ未実装。要再検証。 |
+| MYOS-003 | [Kernel Heap Improvements](completed/MYOS-003_kernel-heap.md) | Stale/Partial | 隣接ブロック統合・アドレス順 free list は実装済み。OOM は panic ではなく `AllocationError` を返す。統計・整合性チェックは未実装。要再検証。 |
 | MLSP-002 | [MyLang LSP Syntax Diagnostics Follow-ups](tickets/MLSP-002_mylang-lsp-syntax-diagnostics.md) | Proposed | LSP 診断・ハイライト周辺の品質改善。 |
 | MLSP-003 | [MyLang LSP Architecture Refactor](completed/MLSP-003_mylang-lsp-architecture-refactor.md) | Done | standard Language Client、versioned snapshot、frontend adapter、symbol indexへLSP基盤を分割済み。 |
 | MLSP-004 | [MyLang Parameter Documentation, Hover, and Signature Help](completed/MLSP-004_mylang-param-doc-hover-signature-help.md) | Done | frontend由来の関数metadataへdoc commentを結び、HoverとSignature Helpを実装済み。 |
@@ -38,7 +38,7 @@
 | MLC-015 | [MyLang Native String (`str` / `String`)](completed/MLC-015_mylang-native-string.md) | Stale/Partial | フェーズ1（struct値渡し・値返し）は実装済み。フェーズ2以降未着手。要再検証。 |
 | MLC-016 | [Cross-Package Types And Constants](completed/MLC-016_cross-package-types-and-constants.md) | Stale/Partial | 定数の越境利用は解決済み。型（struct/typedef）の越境は未解決。要再検証。 |
 | MLC-017 | [パーサ状態のコンテキスト化とモジュール解決層](completed/MLC-017_parser-context-and-module-resolution.md) | Stale/Partial | グローバル23→実質1個、4つのハックは置換済み。型の解決層越境のみ未達。要再検証。 |
-| MYOS-018 | [SDK / シェル分離](completed/MYOS-018_sdk-shell-separation.md) | Done | MyAppFramework を SDK だけに。`app.mln` を MyOS/src/shell へ、`ui` / `elements` をプロトタイプ + サーバ実装に。`docs/design/os-app-boundaries.md` 段 1。 |
+| MYOS-018 | [SDK / シェル分離](completed/MYOS-018_sdk-shell-separation.md) | Done | MyAppFramework を SDK だけに。`app.mln` を MyOS/src/shell へ、`ui` / `elements` をプロトタイプ + サーバ実装に。 |
 | MYOS-019 | [UI プロトコル](completed/MYOS-019_ui-protocol.md) | Done | アプリ ↔ UI サーバをメッセージ表に。段 2。 |
 | MYOS-020 | [UI サーバを自タスクに](completed/MYOS-020_ui-server-task.md) | Done | カーネルのチャネル、アプリのタスク、DOM ロック。段 3。 |
 | MYOS-021 | [MBIN ヘッダ v2 とディスク上のアプリ](completed/MYOS-021_mbin-v3-and-apps-dir.md) | Done | ヘッダにセクション表のオフセット、シェルがディスクの MBIN から @app を読んでランチャーに。段 4。 |

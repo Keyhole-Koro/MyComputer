@@ -9,7 +9,6 @@
 MyAppFramework を「アプリがリンクする SDK」だけにする。アプリを管理する側の
 `app.mln`（レジストリ・起動・終了・キー配送）を `MyOS/src/shell/` へ移し、`ui.mln` と
 markup の語彙（`dom_elements`）を「SDK 側のプロトタイプ + UI サーバ側の実装」に分ける。
-`docs/design/os-app-boundaries.md` の段 1。
 
 ## Background
 
@@ -87,5 +86,4 @@ make qa
 
 ## 関連
 
-- `docs/design/os-app-boundaries.md`
 - MYOS-019（次の段）、MYOS-017（アノテーション）

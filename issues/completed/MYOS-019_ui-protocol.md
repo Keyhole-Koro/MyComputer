@@ -9,7 +9,7 @@
 SDK の `ui` / `elements` の面を**メッセージ表**として定義し、SDK 側スタブ → キュー →
 UI サーバ側ディスパッチで動かす。サーバがアプリの関数ポインタを持つのをやめ、イベントは
 (node id, arg) で SDK 側のハンドラ表に返す。同一プロセス内で動かし、段 3 でプロセス境界へ
-持ち出せる形にする。`docs/design/os-app-boundaries.md` の段 2。
+持ち出せる形にする。
 
 ## Background
 
@@ -74,4 +74,4 @@ python3 system/MyOS/tests/apps_e2e_test.py
 
 ## 関連
 
-- `docs/design/os-app-boundaries.md`、MYOS-018（前段）、MYOS-020（次段）
+- MYOS-018（前段）、MYOS-020（次段）

@@ -128,14 +128,15 @@ The callbacks use the current freestanding ABI:
 - a successful allocation remains valid until passed to the matching free
   callback.
 
-If no allocator is configured, `allocator.alloc()` returns zero and
-`allocator.free()` is a no-op. Owned constructors therefore report allocation
-failure instead of dereferencing an absent runtime service.
+If no allocator is configured, `allocator.alloc()` returns
+`Err(AllocationError::NotConfigured)` and `allocator.free()` is a no-op. Owned
+constructors therefore report allocation failure instead of dereferencing an
+absent runtime service.
 
 Runtime installation currently works as follows:
 
-- MyOS configures the standard allocator with `heap.alloc` / `heap.free`
-  immediately after `heap.init()`.
+- MyOS configures the standard allocator with the result-returning
+  `heap.alloc` / `heap.free` immediately after `heap.init()`.
 - MyAppFramework installs a per-process first-fit allocator before creating
   the application instance.
 - Compiler E2E tests install an explicit test allocator.

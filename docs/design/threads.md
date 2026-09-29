@@ -4,7 +4,7 @@
 **チケット:** 未作成（§10 の段ごとに切る）
 
 関連: `docs/design/user-space-processes-and-syscalls.md`（PCB・syscall ABI）、
-`docs/design/os-app-boundaries.md`（層の定義）、`contracts/README.md`（ABI の追加規則）。
+`contracts/README.md`（ABI の追加規則）。
 
 1 つのプロセス（1 つのアドレス空間）の中で複数の実行の流れを走らせるための、
 ISA・カーネル ABI・stdlib API の定義。実装順は §10。

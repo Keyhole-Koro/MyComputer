@@ -3,7 +3,7 @@
 **Status:** 最小構成を実装済み（2026-09-25）。ユーザースレッド対応と非同期 RPC は未実装。
 
 関連: `docs/design/threads.md`、`docs/design/ui-protocol.md`、
-`docs/design/os-app-boundaries.md`、`contracts/myapp/message.contract.mln`、
+`contracts/myapp/message.contract.mln`、
 `contracts/myos/syscall.contract.mln`。
 
 ## 1. 実装した範囲

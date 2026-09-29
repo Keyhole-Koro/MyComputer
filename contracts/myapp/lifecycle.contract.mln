@@ -8,3 +8,20 @@ export enum AppOp {
     MAIN_WINDOW,
     EXIT,
 }
+
+/** Failure while launching an app or routing a path to an app. */
+export enum AppError {
+    InvalidIndex(i32),
+    NotFound,
+    PathTooLong(i32),
+    NoOpenHandler,
+    NoFreeSlot,
+    SpawnFailed,
+    InstanceUnavailable,
+}
+
+/** Failure while registering an app keyboard shortcut. */
+export enum KeyClaimError {
+    KeySpecTooLong(i32),
+    TableFull,
+}

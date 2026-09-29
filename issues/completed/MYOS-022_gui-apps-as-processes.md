@@ -8,7 +8,7 @@
 
 デスクトップアプリを個別にビルドして `/apps` に置き、プロセスとして起動する。
 `boot/main.mln` の明示 import と Phase A（image にリンク）経路を消す。
-`docs/design/os-app-boundaries.md` の段 5。MYOS-020 と MYOS-021 の後。
+MYOS-020 と MYOS-021 の後。
 
 ## Design
 

@@ -9,7 +9,7 @@
 実行形式にセクション表を足し（リンカが image に出している `__sections` と同じ行）、
 ローダとシェルがファイルから読めるようにする。`/apps` ディレクトリを mkfs が作り、
 ランチャーはそれを列挙して `@app` 行をヘッダから読む。`sys_spawn` に探索パスを足す。
-`docs/design/os-app-boundaries.md` の段 4。MYOS-018（Done）とは独立。
+MYOS-018（Done）とは独立。
 
 ## Background
 
