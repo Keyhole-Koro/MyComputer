@@ -64,18 +64,18 @@ void exit();                    // sys_exit：EXIT を送ったあと
 | op | 引数 | 戻り値 | SDK 側の入口 |
 | --- | --- | --- | --- |
 | SET_TEXT | id, s0 | – | `ui.set_text` |
-| TEXT_COPY | id, a1=out, a2=cap | len | `ui.text_copy`（サーバのポインタは返さない。`text_of` は無い） |
+| TEXT_COPY | id, a1=out, a2=cap, result_out | `Result<i32, UiError>` | `ui.text_copy`（サーバのポインタは返さない。`text_of` は無い） |
 | SET_TEXT_FMT | id, s0=fmt, a1, a2 | – | `ui.set_text_fmt` |
-| IS_CHECKED | id | 0/1 | `ui.is_checked` |
+| IS_CHECKED | id, result_out | `Result<bool, UiError>` | `ui.is_checked` |
 | SET_CHECKED | id, a1 | – | `ui.set_checked` |
 | INPUT_SET | id, s0 | – | `ui.input_set` |
-| AREA_APPEND / AREA_CLEAR / AREA_LINES | id, (s0) | (count) | `ui.area_*` |
-| LIST_SET_ITEMS / LIST_COUNT | id, (s0) | (– / count) | `ui.list_set_items` / `ui.list_count` |
-| LIST_SELECTED | id, a4=result out, a5=size | `Result<Option<i32>, UiError>` | `ui.list_selected` |
-| LIST_ITEM | id, a1=row, a2=text out, a3=cap, a4=result out, a5=size | `Result<i32, UiError>` | `ui.list_item` |
+| AREA_APPEND / AREA_CLEAR / AREA_LINES | id, (s0), result_out for AREA_LINES | (– / `Result<i32, UiError>`) | `ui.area_*` |
+| LIST_SET_ITEMS / LIST_COUNT | id, (s0), result_out for LIST_COUNT | (– / `Result<i32, UiError>`) | `ui.list_set_items` / `ui.list_count` |
+| LIST_SELECTED | id, result_out | `Result<Option<i32>, UiError>` | `ui.list_selected` |
+| LIST_ITEM | id, a1=row, a2=text out, a3=cap, result_out | `Result<i32, UiError>` | `ui.list_item` |
 | FOCUS / FOCUS_WINDOW | id | – | `ui.focus*` |
 | CLOSE | id | – | `ui.close`（自分で開いたダイアログ） |
-| WINDOW_OF / WINDOW_X / WINDOW_Y | id | id / 論理座標 | `ui.window_*` |
+| WINDOW_OF / WINDOW_X / WINDOW_Y | id, result_out | `Result<Option<i32>, UiError>` / `Result<i32, UiError>` | `ui.window_*` |
 | SHOW | id | – | `ui.show`（ダイアログをデスクトップへ） |
 | TEST_ID | id, s0 | – | `ui.test_id` |
 | SEND_KEY | a0=type, a1=code, a2=mods | – | `ui.send_key` |

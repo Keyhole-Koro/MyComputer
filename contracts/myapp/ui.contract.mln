@@ -7,19 +7,19 @@ export enum UiOp {
     NONE,
     // ui.mln --- text
     SET_TEXT,          // (id, s0)
-    TEXT_COPY,         // (id, a1 = out, a2 = cap) -> len; the text copied into the app's buffer
+    TEXT_COPY,         // (id, a1 = out, a2 = cap, result_out = Result<i32, UiError>*)
     SET_TEXT_FMT,      // unused: set_text_fmt formats in the app and sends SET_TEXT
     // ui.mln --- widgets
-    IS_CHECKED,        // (id) -> 0/1
+    IS_CHECKED,        // (id, result_out = Result<bool, UiError>*)
     SET_CHECKED,       // (id, a1 = on)
     INPUT_SET,         // (id, s0)
     AREA_APPEND,       // (id, s0)
     AREA_CLEAR,        // (id)
-    AREA_LINES,        // (id) -> count
+    AREA_LINES,        // (id, result_out = Result<i32, UiError>*)
     LIST_SET_ITEMS,    // (id, s0 = "\n"-joined)
-    LIST_COUNT,        // (id) -> count
-    LIST_SELECTED,     // (id, a4 = Result<Option<i32>, UiError>* out)
-    LIST_ITEM,         // (id, a1 = row, a2 = text out, a3 = cap, a4 = Result<i32, UiError>* out)
+    LIST_COUNT,        // (id, result_out = Result<i32, UiError>*)
+    LIST_SELECTED,     // (id, result_out = Result<Option<i32>, UiError>*)
+    LIST_ITEM,         // (id, a1 = row, a2 = text out, a3 = cap, result_out = Result<i32, UiError>*)
     // ui.mln --- focus and windows
     FOCUS,             // (id)
     FOCUS_WINDOW,      // (id)
