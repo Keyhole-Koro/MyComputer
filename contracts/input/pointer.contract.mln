@@ -1,0 +1,8 @@
+package pointer_contract;
+
+/** Button bits carried by pointer state and pointer events. */
+export enum PointerButton {
+    LEFT = 1,
+    RIGHT = 2,
+    MIDDLE = 4,
+}

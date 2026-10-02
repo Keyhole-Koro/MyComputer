@@ -38,6 +38,9 @@
 | MLC-015 | [MyLang Native String (`str` / `String`)](completed/MLC-015_mylang-native-string.md) | Stale/Partial | フェーズ1（struct値渡し・値返し）は実装済み。フェーズ2以降未着手。要再検証。 |
 | MLC-016 | [Cross-Package Types And Constants](completed/MLC-016_cross-package-types-and-constants.md) | Stale/Partial | 定数の越境利用は解決済み。型（struct/typedef）の越境は未解決。要再検証。 |
 | MLC-017 | [パーサ状態のコンテキスト化とモジュール解決層](completed/MLC-017_parser-context-and-module-resolution.md) | Stale/Partial | グローバル23→実質1個、4つのハックは置換済み。型の解決層越境のみ未達。要再検証。 |
+| MLC-018 | [型付き関数値とコールバック](tickets/MLC-018_typed-function-values.md) | Proposed | `i32`関数アドレスをシグネチャ付きの1ワード関数値へ置き換える。 |
+| MLC-019 | [`defer`によるスコープ終了処理](tickets/MLC-019_defer-cleanup.md) | Proposed | `return`、`?`、loop退出でも実行されるcleanupを既存drop機構へ統合する。 |
+| MLC-020 | [ABI透過な不透明newtype](tickets/MLC-020_opaque-newtypes.md) | Proposed | Pid、Fd、NodeId等を基底scalarと同じABIのnominal typeにする。 |
 | MYOS-018 | [SDK / シェル分離](completed/MYOS-018_sdk-shell-separation.md) | Done | MyAppFramework を SDK だけに。`app.mln` を MyOS/src/shell へ、`ui` / `elements` をプロトタイプ + サーバ実装に。 |
 | MYOS-019 | [UI プロトコル](completed/MYOS-019_ui-protocol.md) | Done | アプリ ↔ UI サーバをメッセージ表に。段 2。 |
 | MYOS-020 | [UI サーバを自タスクに](completed/MYOS-020_ui-server-task.md) | Done | カーネルのチャネル、アプリのタスク、DOM ロック。段 3。 |

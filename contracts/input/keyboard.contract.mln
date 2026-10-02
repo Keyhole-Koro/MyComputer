@@ -1,0 +1,40 @@
+package keyboard_contract;
+
+/** Keyboard event kinds carried by the input and UI protocols. */
+export enum KeyEventType {
+    DOWN = 1,
+    UP = 2,
+    CHAR = 3,
+}
+
+/** Modifier bits attached to keyboard events. */
+export enum KeyModifier {
+    SHIFT = 1,
+    CTRL = 2,
+    ALT = 4,
+}
+
+/**
+ * Stable keyboard codes shared by the kernel, OS, and application protocol.
+ * Printable keys use lowercase ASCII. Non-printable keys start at 0x100.
+ */
+export enum KeyCode {
+    BACKSPACE = 8,
+    TAB = 9,
+    ENTER = 13,
+    ESCAPE = 27,
+    SPACE = 32,
+    DELETE = 127,
+    LEFT = 0x101,
+    RIGHT = 0x102,
+    UP = 0x103,
+    DOWN = 0x104,
+    HOME = 0x105,
+    END = 0x106,
+    PAGE_UP = 0x107,
+    PAGE_DOWN = 0x108,
+    SHIFT = 0x110,
+    CTRL = 0x111,
+    ALT = 0x112,
+    F1 = 0x121,
+}

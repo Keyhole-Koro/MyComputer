@@ -165,9 +165,8 @@ export i32 pixel_size(i32 face) { return face_px[face]; }
 
 // Characters outside 0x20..0x7E draw as '?'.
 i32 glyph_index(i32 face, i32 ch) {
-    if (ch < 0x20) { ch = '?'; }
-    if (ch > 0x7E) { ch = '?'; }
-    return face * GLYPH_COUNT + (ch - 0x20);
+    if (ch < ' ' || ch > '~') { ch = '?'; }
+    return face * GLYPH_COUNT + (ch - ' ');
 }
 
 export i32 advance(i32 face, i32 ch) { return g_adv[glyph_index(face, ch)]; }

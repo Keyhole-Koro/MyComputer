@@ -8,7 +8,6 @@ export enum UiOp {
     // ui.mln --- text
     SET_TEXT,          // (id, s0)
     TEXT_COPY,         // (id, a1 = out, a2 = cap, result_out = Result<i32, UiError>*)
-    SET_TEXT_FMT,      // unused: set_text_fmt formats in the app and sends SET_TEXT
     // ui.mln --- widgets
     IS_CHECKED,        // (id, result_out = Result<bool, UiError>*)
     SET_CHECKED,       // (id, a1 = on)
@@ -30,7 +29,6 @@ export enum UiOp {
     SHOW,              // (id) -- mount a window on the desktop
     TEST_ID,           // (id, s0)
     SEND_KEY,          // (a0 = type, a1 = code, a2 = mods)
-    RGB,               // (a0, a1, a2) -> colour
     // elements.mln --- creation writes Result<i32, UiError> to result_out
     CREATE_WINDOW,     // (s0 = title, x, y, w, h, s1 = testId)
     CREATE_BUTTON,     // (s0 = text, x, y, w, h, s1)

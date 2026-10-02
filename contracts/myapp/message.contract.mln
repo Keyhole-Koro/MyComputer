@@ -10,8 +10,16 @@ export enum RequestDomain {
     APP,
 }
 
+/** Outcome of dispatching one request envelope to its owning service. */
+export enum RequestStatus {
+    OK,
+    INVALID_DOMAIN,
+    INVALID_OPERATION,
+    MISSING_RESULT,
+}
+
 export struct Request {
-    i32 domain;
+    RequestDomain domain;
     i32 op;
     i32 owner;
     i32 a0;
@@ -27,18 +35,6 @@ export struct Request {
     // with the reply. This is operation-independent.
     i32 result_out;
     i32 result_size;
-};
-
-// All asynchronous notifications delivered to the application runtime.
-export struct Event {
-    i32 owner;
-    i32 id;
-    i32 kind;
-    i32 arg;
-    i32 token;
-    // Inline storage gives each dequeued event its own text lifetime. It also
-    // keeps a queued OPEN path independent from the shell's scratch buffer.
-    char text[64];
 };
 
 // Sticky wake reasons used by the application transport. A failed nonblocking
@@ -60,3 +56,15 @@ export enum EventKind {
     CLOSE,
     OPEN,
 }
+
+// All asynchronous notifications delivered to the application runtime.
+export struct Event {
+    i32 owner;
+    i32 id;
+    EventKind kind;
+    i32 arg;
+    i32 token;
+    // Inline storage gives each dequeued event its own text lifetime. It also
+    // keeps a queued OPEN path independent from the shell's scratch buffer.
+    char text[64];
+};
