@@ -32,6 +32,12 @@ run():       while (1) {
 - `system/MyOS/src/ipc/channel.mln`: request slot と reply の通知
 - `system/MyOS/src/ipc/events.mln`: event の通知
 - `system/MyAppFramework/src/runtime/transport.mln`: tick 単位の `sys_yield` を通知待ちへ変更
+- `system/MyAppFramework/src/runtime/runtime.mln` と `system/MyOS/src/ui/dom/dom.mln`:
+  アプリのイベントハンドラを `i32` アドレスではなく、呼び出し規約を含む型付き関数値で保持
+
+アノテーション表の関数アドレスは `CodeAddress` で扱い、登録時に対応する
+`fn(...) -> ...` 型へ変換する。実行時の handler table と DOM callback queue は型付き値を呼び出す。
+構造体や配列を受け渡す関数値も、通常の関数と同じ aggregate ABI を使う。
 
 既存の `REQUEST` / `REPLY` / `POLL` は、データが無ければ 0 を返す操作のままにした。
 待機だけをカーネル syscall に分けたため、返信の user-memory copy は従来どおり
