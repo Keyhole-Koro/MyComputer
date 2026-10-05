@@ -1,6 +1,6 @@
 package myos_fs_args;
 
-import { SeekWhence } from "../io/fs.contract.mln";
+import { SeekWhence } from "@contracts/io/fs.contract.mln";
 
 // OS_CALL argument records for the hosted filesystem API.
 // Each Out type is the caller's Result<_, FsError>; its address points into

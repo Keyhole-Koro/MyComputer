@@ -1,6 +1,6 @@
 package process_types;
 
-import { FsError } from "../io/fs.contract.mln";
+import { FsError } from "@contracts/io/fs.contract.mln";
 import { LoaderError } from "loader.contract.mln";
 
 export enum SpawnFsOperation {

@@ -1,5 +1,8 @@
 # Project-level import aliases. Paths are relative to this file.
 [alias]
 "@std" = "toolchain/MyStdLib"
+"@contracts" = "contracts"
+"@kernel" = "system/MyKernel/src"
 "@os" = "system/MyOS/src"
 "@app" = "system/MyAppFramework/src"
+"@emulator" = "runtime/MyEmulator"
