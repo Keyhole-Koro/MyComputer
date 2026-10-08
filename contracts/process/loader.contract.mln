@@ -1,5 +1,7 @@
 package loader_types;
 
+import { From } from "@std/core/convert.mln";
+
 // Stable process-loading failures shared by the kernel implementation and
 // callers that need to retain the original launch failure.
 export enum MmuError {
@@ -15,4 +17,15 @@ export enum LoaderError {
     InvalidHeader(i32),
     InvalidBounds(i32),
     SpawnTaskFailed,
+}
+
+// A page-mapping failure reaches a loader caller as OutOfMemory when the MMU
+// ran out of frames, and with its MMU cause otherwise.
+export impl From<MmuError> for LoaderError {
+    LoaderError from(MmuError e) {
+        return case e of {
+            MmuError::AllocFailed -> LoaderError::OutOfMemory;
+            _ -> LoaderError::Mmu(e);
+        };
+    }
 }

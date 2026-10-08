@@ -166,6 +166,9 @@ def main():
     parser.add_argument("--clean", action="store_true", help="Clean build directory before build")
     parser.add_argument("--base", type=str, help="Base address for linking in hex (default: 0)")
     parser.add_argument("--header", action="store_true", help="Emit MBIN v2 executable header")
+    parser.add_argument("--error-trace", action="store_true",
+                        default=os.environ.get("MYLANG_ERROR_TRACE") == "1",
+                        help="Compile with mlc --error-trace (also MYLANG_ERROR_TRACE=1)")
     parser.add_argument("--redirect", action="append", default=[],
                         help="Redirect direct calls: <original>=<entry> (repeatable)")
     args = parser.parse_args()
@@ -210,6 +213,8 @@ def main():
             # MyAssembler resolves it before the linker can redirect it.
             for redirect in args.redirect:
                 cmd += ["--redirect-call", redirect]
+            if args.error_trace:
+                cmd += ["--error-trace"]
             cmd += ["--depfile", ml_depfile, src, out_masm]
             dependency_files = [ml_depfile]
         else:

@@ -21,20 +21,34 @@ Pointers, references, primitive values, enums, and borrowed `str` values do
 not participate in automatic drop. Their ordinary Copy/borrow rules still
 apply.
 
+Small struct values may opt into the same Copy behaviour with `impl Copy`.
+The compiler accepts that marker only when the struct has no `drop()` method
+and every field is itself Copy; it is therefore never a way to duplicate an
+owning `String`, Vec, or resource handle.
+
 ## 2. Declaring deterministic cleanup
 
-A struct opts into deterministic cleanup with a method named `drop`:
+A struct opts into deterministic cleanup by implementing the `Drop` trait
+(`@std/core/drop.mln`; see the compiler's `docs/traits.md`):
 
 ```mln
+import { Drop } from "@std/core/drop.mln";
+
 struct Resource {
     i32 handle;
 };
 
-void (Resource *self) drop() {
-    release(self->handle);
-    self->handle = 0;
+impl Drop for Resource {
+    void (Resource *self) drop() {
+        release(self->handle);
+        self->handle = 0;
+    }
 }
 ```
+
+The impl's `drop` is the method `Resource__drop`. A method named `drop`
+declared without the impl is still recognised, for code written before the
+trait existed; new code uses `impl Drop`.
 
 The compiler recognizes the method only when all of the following are true:
 

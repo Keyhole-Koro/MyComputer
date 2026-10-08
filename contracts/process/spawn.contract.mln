@@ -2,6 +2,7 @@ package process_types;
 
 import { FsError } from "@contracts/io/fs.contract.mln";
 import { LoaderError } from "loader.contract.mln";
+import { From } from "@std/core/convert.mln";
 
 export enum SpawnFsOperation {
     Open,
@@ -29,4 +30,11 @@ export enum SpawnError {
     ShortRead(SpawnReadMismatch),
     BufferAllocationFailed(i32),
     Loader(LoaderError),
+}
+
+// A loader failure is a launch failure that keeps its cause.
+export impl From<LoaderError> for SpawnError {
+    SpawnError from(LoaderError e) {
+        return SpawnError::Loader(e);
+    }
 }
