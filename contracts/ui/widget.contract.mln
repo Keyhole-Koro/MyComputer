@@ -1,4 +1,5 @@
 package ui_types;
+import { Describe } from "@std/core/describe.mln";
 
 // Semantic UI errors shared by the DOM implementation and application API.
 // Transport-specific status codes do not belong here: these values cross the
@@ -14,4 +15,21 @@ export enum UiError {
     AllocationFailed(i32),
     TimerLimit,
     UnknownOperation(i32),
+}
+
+export impl Describe for UiError {
+    char *(Self *self) describe() {
+        return case *self of {
+            UiError::NodeNotFound(_) -> "no such element";
+            UiError::WrongNodeKind(_) -> "wrong kind of element";
+            UiError::InvalidIndex(_) -> "index out of range";
+            UiError::InvalidCapacity(_) -> "invalid capacity";
+            UiError::OwnerTableFull(_) -> "too many apps";
+            UiError::OwnerNodeLimit(_) -> "too many elements for this app";
+            UiError::NodeIdLimit -> "too many elements";
+            UiError::AllocationFailed(_) -> "out of memory";
+            UiError::TimerLimit -> "too many timers";
+            UiError::UnknownOperation(_) -> "unknown UI operation";
+        };
+    }
 }

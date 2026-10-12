@@ -3,6 +3,7 @@ package process_types;
 import { FsError } from "@contracts/io/fs.contract.mln";
 import { LoaderError } from "loader.contract.mln";
 import { From } from "@std/core/convert.mln";
+import { Describe } from "@std/core/describe.mln";
 
 export enum SpawnFsOperation {
     Open,
@@ -36,5 +37,18 @@ export enum SpawnError {
 export impl From<LoaderError> for SpawnError {
     SpawnError from(LoaderError e) {
         return SpawnError::Loader(e);
+    }
+}
+
+export impl Describe for SpawnError {
+    char *(Self *self) describe() {
+        return case *self of {
+            SpawnError::NotFound -> "file not found";
+            SpawnError::Filesystem(failure) -> failure.cause.describe();
+            SpawnError::EmptyExecutable -> "not an executable";
+            SpawnError::ShortRead(_) -> "incomplete executable";
+            SpawnError::BufferAllocationFailed(_) -> "out of memory";
+            SpawnError::Loader(cause) -> cause.describe();
+        };
     }
 }

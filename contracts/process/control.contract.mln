@@ -1,4 +1,5 @@
 package process_types;
+import { Describe } from "@std/core/describe.mln";
 
 /** Process termination result stored in the Zombie lifecycle state.
  * Ordinary programs may return any i32 through Code; the kernel uses the
@@ -14,4 +15,13 @@ export enum ProcessExitStatus {
 export enum ProcessControlError {
     InvalidPid(i32),
     NotExited(i32),
+}
+
+export impl Describe for ProcessControlError {
+    char *(Self *self) describe() {
+        return case *self of {
+            ProcessControlError::InvalidPid(_) -> "no such process";
+            ProcessControlError::NotExited(_) -> "process is still running";
+        };
+    }
 }

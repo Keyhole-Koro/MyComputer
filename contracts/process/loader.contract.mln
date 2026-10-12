@@ -1,6 +1,7 @@
 package loader_types;
 
 import { From } from "@std/core/convert.mln";
+import { Describe } from "@std/core/describe.mln";
 
 // Stable process-loading failures shared by the kernel implementation and
 // callers that need to retain the original launch failure.
@@ -26,6 +27,29 @@ export impl From<MmuError> for LoaderError {
         return case e of {
             MmuError::AllocFailed -> LoaderError::OutOfMemory;
             _ -> LoaderError::Mmu(e);
+        };
+    }
+}
+
+export impl Describe for MmuError {
+    char *(Self *self) describe() {
+        return case *self of {
+            MmuError::AllocFailed -> "out of memory";
+            MmuError::InvalidDirectory -> "invalid page directory";
+            MmuError::UnalignedAddress(_) -> "misaligned executable segment";
+        };
+    }
+}
+
+export impl Describe for LoaderError {
+    char *(Self *self) describe() {
+        return case *self of {
+            LoaderError::ProcSlotFull -> "too many processes";
+            LoaderError::OutOfMemory -> "out of memory";
+            LoaderError::Mmu(cause) -> cause.describe();
+            LoaderError::InvalidHeader(_) -> "not an executable";
+            LoaderError::InvalidBounds(_) -> "invalid executable layout";
+            LoaderError::SpawnTaskFailed -> "could not start a task";
         };
     }
 }

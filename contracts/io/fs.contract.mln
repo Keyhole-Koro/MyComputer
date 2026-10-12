@@ -1,4 +1,5 @@
 package fs_types;
+import { Describe } from "@std/core/describe.mln";
 
 // Filesystem errors shared by implementations and clients. This is a semantic
 // contract, not a MyOS wire-code table: Result values cross the process
@@ -23,4 +24,24 @@ export enum SeekWhence {
     Set,
     Cur,
     End,
+}
+
+export impl Describe for FsError {
+    char *(Self *self) describe() {
+        return case *self of {
+            FsError::Disabled -> "filesystem not available";
+            FsError::InvalidName -> "invalid name";
+            FsError::AlreadyExists -> "already exists";
+            FsError::NoFreeSlot -> "no free directory entry";
+            FsError::AllocFailed -> "disk full";
+            FsError::NotFound -> "no such file or directory";
+            FsError::BadFd(_) -> "bad file descriptor";
+            FsError::WrongType(_) -> "wrong kind of entry";
+            FsError::BadWhence(_) -> "invalid seek origin";
+            FsError::Closed(_) -> "file is closed";
+            FsError::InvalidSize(_) -> "invalid size";
+            FsError::IoError -> "disk error";
+            FsError::InvalidEntry(_) -> "corrupt directory entry";
+        };
+    }
 }

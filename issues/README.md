@@ -41,7 +41,7 @@
 | MLC-018 | [型付き関数値とコールバック](tickets/MLC-018_typed-function-values.md) | Proposed | `i32`関数アドレスをシグネチャ付きの1ワード関数値へ置き換える。 |
 | MLC-019 | [`defer`によるスコープ終了処理](tickets/MLC-019_defer-cleanup.md) | Proposed | `return`、`?`、loop退出でも実行されるcleanupを既存drop機構へ統合する。 |
 | MLC-020 | [ABI透過な不透明newtype](tickets/MLC-020_opaque-newtypes.md) | Proposed | Pid、Fd、NodeId等を基底scalarと同じABIのnominal typeにする。 |
-| MLC-021 | [trait と `?` のエラー変換](completed/MLC-021_traits-and-try-conversion.md) | Done | trait/impl/境界、`?`→From、`==`→Eq、for-in→Iterator、`impl Drop`、デフォルト実装、ジェネリック impl、struct/enum の境界、`dyn Trait` を実装済み。 |
+| MLC-021 | [trait と `?` のエラー変換](completed/MLC-021_traits-and-try-conversion.md) | Done | trait/impl/境界、`?`→From、`==`→Eq、for-in→Iterator、`impl Drop`、デフォルト実装、ジェネリック impl、struct/enum の境界を実装済み（`dyn Trait` は実装後に削除）。 |
 | MLC-022 | [Result エラーの伝播経路トレース](completed/MLC-022_error-return-trace.md) | Done | `mlc --error-trace` で `return Err` の起点と `?` の各地点（From 変換を含む）を `@std/debug/error_trace.mln` に記録する。フラグなしではコードを出さない。 |
 | MYOS-018 | [SDK / シェル分離](completed/MYOS-018_sdk-shell-separation.md) | Done | MyAppFramework を SDK だけに。`app.mln` を MyOS/src/shell へ、`ui` / `elements` をプロトタイプ + サーバ実装に。 |
 | MYOS-019 | [UI プロトコル](completed/MYOS-019_ui-protocol.md) | Done | アプリ ↔ UI サーバをメッセージ表に。段 2。 |
