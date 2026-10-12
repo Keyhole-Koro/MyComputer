@@ -12,7 +12,9 @@ names such as `@param` and `@return` use a dedicated vermilion `docTag` token.
 A lightweight TextMate grammar colors comments, strings, keywords, built-in
 types, literals, numbers, functions, and operators immediately. Semantic
 tokens then refine those colors; documentation/index analysis stays lazy until
-Hover or Signature Help requests it.
+Hover or Signature Help requests it. Identifiers without a semantic role stay
+on the TextMate layer instead of being forced to the generic variable color,
+so a temporary syntax error does not recolor the rest of the file.
 
 Ownership-oriented tokens are exposed through semantic tokens:
 - `ownershipRef` for `ref` and `&`

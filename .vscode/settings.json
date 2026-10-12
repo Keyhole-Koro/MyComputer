@@ -22,9 +22,10 @@
       "namespace": "#91D7E3",
       "function": "#F5C2A5",
       "method": "#F5C2A5",
-      "variable": "#9CDCFE",
-      "parameter": "#91D7E3",
-      "property": "#A6DAF8"
+      "variable": "#B7BDF8",
+      "parameter": "#EED49F",
+      "property": "#A6DA95",
+      "decorator": "#F5BDE6"
     }
   },
   "editor.tokenColorCustomizations": {
