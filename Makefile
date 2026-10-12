@@ -1,7 +1,7 @@
 PYTHON ?= python3
 QA_DIR := qa
 
-.PHONY: help run system build system-build screenshot kernel kernel-build emulator qa test qa-no-build \
+.PHONY: help run system build system-build screenshot readme readme-check kernel kernel-build emulator qa test qa-no-build \
 	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom qa-graphics \
 	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test apps-test framework-test dom-inspect font profile clean-qa
 
@@ -11,6 +11,8 @@ help:
 		'  make run              Build and run the full system' \
 		'  make build            Build system images without running the emulator' \
 		'  make screenshot       Build, boot headless and save the desktop as build/screenshot.png (OUT=path to change)' \
+		'  make readme           Refresh readme.md code snippets and docs/images screenshots (needs make build)' \
+		'  make readme-check     Fail if readme.md code snippets no longer match their source files' \
 		'  make font             Regenerate system/MyOS/src/ui/font_sans.mln from a system TTF (tools/gen_font.py)' \
 		'  make kernel           Build and run the kernel ROM path' \
 		'  make qa               Run all QA suites' \
@@ -38,6 +40,14 @@ build system-build:
 OUT ?= build/screenshot.png
 screenshot:
 	$(PYTHON) $(QA_DIR)/runners/run_system.py --screenshot $(OUT) $(ARGS)
+
+# readme.md media: code blocks are copied from the files they name and the
+# screenshots are taken by driving the desktop (tools/readme_media.py).
+readme:
+	$(PYTHON) tools/readme_media.py $(ARGS)
+
+readme-check:
+	$(PYTHON) tools/readme_media.py --check
 
 font:
 	$(PYTHON) tools/gen_font.py $(ARGS)

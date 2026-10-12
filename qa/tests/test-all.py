@@ -209,6 +209,10 @@ SUITES = {
         [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYOS_DIR / "tests" / "ui" / "graphics.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
+    "readme": (
+        ["python3", str(REPO_ROOT / "tools" / "readme_media.py"), "--check"],
+        [],
+    ),
 }
 
 # These suites may incrementally build the same sibling repositories internally.

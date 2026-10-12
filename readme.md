@@ -1,5 +1,51 @@
 # MyComputer
 
+A computer built from scratch: an instruction set and its emulator, a kernel
+with isolated user processes, a windowed desktop OS, and MyLang with its own
+compiler, assembler, linker, standard library and language server.
+
+![The MyOS desktop: a Counter app, Notes, and a terminal that has just run a
+user-space program](docs/images/desktop.png)
+
+Desktop apps are MyLang code. The Counter window above is this `@app`: its
+markup builds the window, and the fields hold each launch's state.
+
+<!-- snippet: system/MyOS/src/apps/counter.dom.mln start="struct Counter {" end="}" -->
+```rust
+// system/MyOS/src/apps/counter.dom.mln
+struct Counter {
+    i32 clicks;
+    i32 step;
+    i32 label;
+};
+
+@app
+/** Builds the counter window and initializes its per-instance increment step.
+ * @return DOM node ID of the newly created window.
+ */
+i32 (ref mut Counter c) view() {
+    c.step = 1;
+    i32 muted = ui.rgb(0x6B, 0x72, 0x80);
+    return <Window title="Counter" x={96} y={72} w={400} h={272}>
+        <Panel x={20} y={20} w={360} h={140} radius={10}>
+            <Column x={20} y={16} w={320} h={110} gap={10}>
+                <Label text="A window, a panel, two buttons." color={muted} />
+                <Label ref={c.label} text="clicks: 0" bold={1} testId="counter" />
+                <Row w={320} h={36} gap={10}>
+                    <PrimaryButton text="Click me" w={120} h={36} onClick={c.click} />
+                    <Button text="Reset" w={90} h={36} onClick={c.reset} />
+                </Row>
+            </Column>
+        </Panel>
+        <Checkbox text="Count by two" x={24} y={180} onClick={c.step_changed} />
+    </Window>;
+}
+```
+<!-- /snippet -->
+
+The code block and screenshot are regenerated with `make readme` (after
+`make build`); `make qa` fails if the code block drifts from its source.
+
 ## Build And Run
 
 Build the full system (MyFirmware + MyKernel/MyOS) and run it in the emulator:
