@@ -9,6 +9,7 @@ export enum ProcessExitStatus {
     Code(i32),            // Arbitrary exit code supplied by the application.
     PageFault,            // The kernel terminated the process after a page fault.
     PrivilegeViolation,   // The kernel terminated the process after a privilege fault.
+    IllegalInstruction,   // The kernel terminated the process after an illegal instruction.
 }
 
 // Errors returned by process lifecycle queries and collection.

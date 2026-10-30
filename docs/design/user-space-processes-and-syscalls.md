@@ -1,5 +1,10 @@
 # Design Document: User-Space Processes & Syscall Subsystem
 
+> **Boundary note (2026-10-08):** この文書のPCBとprocess stateは、初期の
+> 「1 process = 1 schedulable context」を説明している。複数Thread導入後の
+> Process / Thread / Scheduler境界、TCB、状態遷移、stack所有権については
+> `docs/design/threads.md` を優先する。
+
 ## 1. Overview & Objectives
 
 With the Virtual Memory Management Unit (MMU), 2-level paging, and CPU privilege rings (`SR_USER`) in place, `MyComputer` is ready to transition from single-privilege flat execution to **protected user-space multiprocessing**.
@@ -84,30 +89,40 @@ typedef struct {
 Syscalls leverage the standard MyLang register convention.
 
 ### Register Assignments
-* **`r1` : Syscall Number** (Input) / **Return Value** (Output)
+* **`r1` : Syscall Number** (Input) / **`SyscallStatus`** (Output)
+* **`r2` : Success Value or Error Payload** (Output)
 * **`r5` : Argument 1**
 * **`r6` : Argument 2**
 * **`r7` : Argument 3**
-* Return value: kernel syscalls use a non-negative success value or a negative
-  `SyscallError`. `SYS_OS_CALL` uses this register only for transport status;
-  typed service results such as `Result<T, FsError>` are copied through the
-  caller-provided result address and do not use negative domain-error codes.
+* `SyscallStatus::Ok` is zero. Failures are positive stable enum values, so a
+  valid negative application value cannot be mistaken for an error. On success
+  `r2` contains the byte count, PID, TID, address, exit code, or other scalar
+  result. On failure it contains status-specific context such as the rejected
+  TID or address.
+* MyLang assembly stubs copy `r2` through an explicit final out parameter and
+  return the `r1` status. Higher-level stdlib adapters turn the pair into
+  `Result<T, E>`; for example thread adapters use
+  `From<SyscallFailure> for ThreadError`.
+* `SYS_OS_CALL` uses the same register envelope only for routing. Typed service
+  results such as `Result<T, FsError>` remain copied through the service's
+  caller-provided result address.
 
 ### Syscall Table Definition
 
 | Number (`r1`) | Name | Signature | Description |
 |---|---|---|---|
 | `1` | `SYS_EXIT` | `void sys_exit(i32 code)` | Terminates current process with return code. |
-| `2` | `SYS_READ` | `i32 sys_read(i32 fd, char *buf, i32 count)` | Reads bytes from descriptor (stdin or file). |
-| `3` | `SYS_WRITE` | `i32 sys_write(i32 fd, char *buf, i32 count)` | Writes bytes to descriptor (stdout or file). |
+| `2` | `SYS_READ` | `SyscallStatus sys_read(i32 fd, char *buf, i32 count, i32 *value_out)` | Reads bytes; writes the byte count to `value_out`. |
+| `3` | `SYS_WRITE` | `SyscallStatus sys_write(i32 fd, char *buf, i32 count, i32 *value_out)` | Writes bytes; writes the byte count to `value_out`. |
 | `4` | `SYS_OPEN` | `i32 sys_open(char *path, i32 flags)` | Opens a file from MFS and returns process `fd`. |
 | `5` | `SYS_CLOSE` | `i32 sys_close(i32 fd)` | Closes an open process descriptor. |
 | `6` | `SYS_SEEK` | `i32 sys_seek(i32 fd, i32 offset, i32 whence)` | Moves file cursor position. |
-| `7` | `SYS_SBRK` | `i32 sys_sbrk(i32 increment)` | Extends or shrinks user heap break. |
+| `7` | `SYS_SBRK` | `SyscallStatus sys_sbrk(i32 increment, i32 *value_out)` | Extends the heap and writes the previous break to `value_out`. |
 | `8` | `SYS_YIELD` | `void sys_yield()` | Voluntarily yields remaining time slice to scheduler. |
-| `9` | `SYS_SPAWN` | `i32 sys_spawn(char *path)` | Loads and executes a `.mbin` binary as a new process. |
-| `10` | `SYS_OS_CALL` | `i32 os_call(i32 service, i32 args)` | An OS service outside the kernel (MYOS-022): the UI protocol, the filesystem, process control. The kernel hands `(pid, service, args)` to the router MyOS registers with `syscall.set_os_handler` (`MyOS/src/syscall/router.mln`); the ABI service numbers live in `contracts/myos/services.contract.mln`, while MyOS owns domain-local endpoints such as `fs/syscall.mln` and `ui/protocol.mln`. `args` is a user address; the endpoint copies in and out through the process's page tables. |
-| `11` | `SYS_WAIT_NOTIFICATION` | `void sys_wait_notification(i32 mask)` | Consumes an armed sticky notification or blocks the current task until one arrives. Used by the application request/reply/event transport. |
+| `9` | `SYS_SPAWN` | `SyscallStatus sys_spawn(char *path, i32 *value_out)` | Loads a `.mbin` binary and writes its PID to `value_out`. |
+| `10` | `SYS_OS_CALL` | `SyscallStatus os_call(i32 service, i32 args, i32 *value_out)` | Routes a MyOS service and writes its scalar routing value to `value_out`; domain results normally use the service args record. |
+| `11` | `SYS_WAIT_NOTIFICATION` | `SyscallStatus sys_wait_notification(i32 mask, i32 *value_out)` | Consumes or waits for notification bits and writes the delivered mask to `value_out`. |
+| `12..17` | thread/futex calls | See `docs/design/threads.md` | Thread lifecycle and process-local futex operations use the same status/value envelope. |
 
 `SYS_SPAWN(path)` / the `PROC_SPAWN` service resolve a bare name through the
 search path `/bin`, then `/apps` (`console.open_executable`); a path with a
@@ -119,6 +134,31 @@ application transport uses `SYS_WAIT_NOTIFICATION` for request, reply, and
 event readiness instead of polling with `SYS_YIELD`. `SYS_OPEN` / `SYS_CLOSE` /
 `SYS_SEEK` are numbers only; files are reached through `SYS_OS_CALL` (`FS_*`
 services).
+
+### Typed OS_CALL records
+
+An `OS_CALL` argument record names its own service. The contract declares the
+record and, directly below it, the service it travels under:
+
+```mylang
+export struct FsOpenArgs { char *path; Result<i32, FsError> *result_out; };
+export impl OsCall for FsOpenArgs = OsService::FS_OPEN;
+```
+
+The record's `result_out` field is the reply type, written out concretely
+rather than through a type parameter. A client sends a record with
+`send<FsOpenArgs>(&args)`, which takes the service number from the record's
+type. A provider reads it with `accept<FsOpenArgs>(service, args, &request)`,
+which copies the record only when `service` is the one bound to it, and
+writes the result with `reply<Result<i32, FsError>>(request.result_out, &r)`.
+Sending a record under another service number, or replying with another
+result type, is a compile error on either side.
+
+Type arguments stay explicit at every call, so a reader sees the record and
+reply types without following the trait. The helpers are module-local
+because exported generic functions cannot yet be package-qualified. The
+filesystem services use this binding; process, IPC, and log services still
+pass their records as raw addresses.
 
 ---
 
@@ -158,7 +198,7 @@ To jump into user space safely:
 1. User code executes `syscall`.
 2. Hardware swaps `sp` with `KERNEL_SP`, pushes user `PC` and `SR`, clears `SR[5]` (Kernel mode), and vectors to interrupt handler.
 3. Handler saves user registers (`r1..r7`).
-4. `syscall_dispatcher()` inspects `r1`, executes requested kernel service, and places the result in `r1`.
+4. `syscall_dispatcher()` inspects `r1`, executes the service, then writes status to the saved `r1` slot and value/payload to saved `r2`.
 5. Handler restores user registers (`r1..r7`).
 6. `iret` restores user stack and user mode `PC`.
 

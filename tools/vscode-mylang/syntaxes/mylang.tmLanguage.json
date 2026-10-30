@@ -90,7 +90,7 @@
         },
         {
           "name": "storage.modifier.mylang",
-          "match": "\\b(const|static|auto|register|unchecked|ref|mut|rest)\\b"
+          "match": "\\b(const|static|auto|register|borrow|mut|rest)\\b"
         }
       ]
     },

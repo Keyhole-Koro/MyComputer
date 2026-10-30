@@ -43,6 +43,7 @@
 | MLC-020 | [ABI透過な不透明newtype](tickets/MLC-020_opaque-newtypes.md) | Proposed | Pid、Fd、NodeId等を基底scalarと同じABIのnominal typeにする。 |
 | MLC-021 | [trait と `?` のエラー変換](completed/MLC-021_traits-and-try-conversion.md) | Done | trait/impl/境界、`?`→From、`==`→Eq、for-in→Iterator、`impl Drop`、デフォルト実装、ジェネリック impl、struct/enum の境界を実装済み（`dyn Trait` は実装後に削除）。 |
 | MLC-022 | [Result エラーの伝播経路トレース](completed/MLC-022_error-return-trace.md) | Done | `mlc --error-trace` で `return Err` の起点と `?` の各地点（From 変換を含む）を `@std/debug/error_trace.mln` に記録する。フラグなしではコードを出さない。 |
+| MLC-023 | [`.unsafe.mln` と生ポインタの分離](tickets/MLC-023_unsafe-sources.md) | In Progress | `.safe` を廃止し `.unsafe.mln` を導入。checked のファイルの生ポインタ操作は W0003（警告）。57 ファイル・約 2000 件の移行が残る。 |
 | MYOS-018 | [SDK / シェル分離](completed/MYOS-018_sdk-shell-separation.md) | Done | MyAppFramework を SDK だけに。`app.mln` を MyOS/src/shell へ、`ui` / `elements` をプロトタイプ + サーバ実装に。 |
 | MYOS-019 | [UI プロトコル](completed/MYOS-019_ui-protocol.md) | Done | アプリ ↔ UI サーバをメッセージ表に。段 2。 |
 | MYOS-020 | [UI サーバを自タスクに](completed/MYOS-020_ui-server-task.md) | Done | カーネルのチャネル、アプリのタスク、DOM ロック。段 3。 |

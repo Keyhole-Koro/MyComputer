@@ -1,70 +1,85 @@
 package myos_fs_args;
 
-import { SeekWhence } from "@contracts/io/fs.contract.mln";
+import { Result } from "@std/core/result.mln";
+import { Option } from "@std/core/option.mln";
+import { FsError, SeekWhence } from "@contracts/io/fs.contract.mln";
+import { OsService, OsCall } from "@contracts/myos/services.contract.mln";
 
 // OS_CALL argument records for the hosted filesystem API.
-// Each Out type is the caller's Result<_, FsError>; its address points into
-// caller memory and must only be written through the OS user-memory helpers.
+// Each record is followed by the OsService it travels under. result_out
+// points into caller memory and must only be written through the OS
+// user-memory helpers.
 
-export struct FsOpenArgs<Out> {
+export struct FsOpenArgs {
     char *path;
-    Out *result_out;
+    Result<i32, FsError> *result_out;
 };
+export impl OsCall for FsOpenArgs = OsService::FS_OPEN;
 
-export struct FsCreateArgs<Out> {
+export struct FsCreateArgs {
     char *path;
-    Out *result_out;
+    Result<i32, FsError> *result_out;
 };
+export impl OsCall for FsCreateArgs = OsService::FS_CREATE;
 
-export struct FsMkdirArgs<Out> {
+export struct FsMkdirArgs {
     char *path;
-    Out *result_out;
+    Result<i32, FsError> *result_out;
 };
+export impl OsCall for FsMkdirArgs = OsService::FS_MKDIR;
 
-export struct FsRemoveArgs<Out> {
+export struct FsRemoveArgs {
     char *path;
-    Out *result_out;
+    Result<_, FsError> *result_out;
 };
+export impl OsCall for FsRemoveArgs = OsService::FS_REMOVE;
 
-export struct FsReadArgs<Out> {
+export struct FsReadArgs {
     i32 fd;
     char *buffer;
     i32 size;
-    Out *result_out;
+    Result<i32, FsError> *result_out;
 };
+export impl OsCall for FsReadArgs = OsService::FS_READ;
 
-export struct FsWriteArgs<Out> {
+export struct FsWriteArgs {
     i32 fd;
     char *buffer;
     i32 size;
-    Out *result_out;
+    Result<i32, FsError> *result_out;
 };
+export impl OsCall for FsWriteArgs = OsService::FS_WRITE;
 
-export struct FsSeekArgs<Out> {
+export struct FsSeekArgs {
     i32 fd;
     i32 offset;
     SeekWhence whence;
-    Out *result_out;
+    Result<i32, FsError> *result_out;
 };
+export impl OsCall for FsSeekArgs = OsService::FS_SEEK;
 
 export struct FsCloseArgs {
     i32 fd;
 };
+export impl OsCall for FsCloseArgs = OsService::FS_CLOSE;
 
-export struct FsDirNextArgs<Out> {
+export struct FsDirNextArgs {
     char *path;
     i32 start;
     char *name_out;
     i32 name_cap;
-    Out *result_out;
+    Result<Option<i32>, FsError> *result_out;
 };
+export impl OsCall for FsDirNextArgs = OsService::FS_DIR_NEXT_AT;
 
-export struct FsEntrySizeArgs<Out> {
+export struct FsEntrySizeArgs {
     i32 entry;
-    Out *result_out;
+    Result<i32, FsError> *result_out;
 };
+export impl OsCall for FsEntrySizeArgs = OsService::FS_ENTRY_SIZE;
 
-export struct FsIsDirArgs<Out> {
+export struct FsIsDirArgs {
     i32 entry;
-    Out *result_out;
+    Result<bool, FsError> *result_out;
 };
+export impl OsCall for FsIsDirArgs = OsService::FS_IS_DIR;

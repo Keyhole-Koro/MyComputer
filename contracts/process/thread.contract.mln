@@ -1,0 +1,63 @@
+package process_types;
+
+import { From } from "@std/core/convert.mln";
+import { SyscallStatus, SyscallFailure } from "@contracts/myos/syscall.contract.mln";
+
+
+/**
+ * Raw kernel ABI copied by THREAD_SPAWN before any thread resource is allocated.
+ * @property entry Executable user virtual address used as the initial PC.
+ * @property arg0 First opaque argument, installed in r5 for the initial call.
+ * @property arg1 Second opaque argument, installed in r6 for the initial call.
+ * @property stack_bytes Requested mapped user-stack size; zero selects the 16 KiB default.
+ */
+export struct ThreadSpawnArgs {
+    i32 entry;
+    i32 arg0;
+    i32 arg1;
+    i32 stack_bytes;
+};
+
+/**
+ * Failures shared by kernel thread/futex syscalls and the hosted stdlib.
+ * Address and identifier variants retain the rejected input so callers can
+ * report the failure without depending on kernel-local state.
+ */
+export enum ThreadError {
+    NoFreeSlot,
+    OutOfMemory,
+    InvalidTid(i32),
+    JoinSelf,
+    AlreadyJoined(i32),
+    WouldBlock,
+    TimedOut,
+    BadAddress(i32),
+    ProcessExiting,
+    InvalidEntry(i32),
+    InvalidStackSize(i32),
+    UnexpectedStatus(i32),
+}
+
+/**
+ * Converts the common syscall failure envelope into the thread domain.
+ * Payload-carrying statuses preserve the detail supplied by the kernel in r2.
+ */
+export impl From<SyscallFailure> for ThreadError {
+    ThreadError from(SyscallFailure failure) {
+        return case failure.status of {
+            SyscallStatus::OutOfMemory -> ThreadError::OutOfMemory;
+            SyscallStatus::NoFreeThreadSlot -> ThreadError::NoFreeSlot;
+            SyscallStatus::InvalidThreadId -> ThreadError::InvalidTid(failure.payload);
+            SyscallStatus::JoinSelf -> ThreadError::JoinSelf;
+            SyscallStatus::AlreadyJoined -> ThreadError::AlreadyJoined(failure.payload);
+            SyscallStatus::WouldBlock -> ThreadError::WouldBlock;
+            SyscallStatus::TimedOut -> ThreadError::TimedOut;
+            SyscallStatus::BadAddress -> ThreadError::BadAddress(failure.payload);
+            SyscallStatus::ProcessExiting -> ThreadError::ProcessExiting;
+            SyscallStatus::InvalidEntry -> ThreadError::InvalidEntry(failure.payload);
+            SyscallStatus::InvalidStackSize -> ThreadError::InvalidStackSize(failure.payload);
+            _ -> ThreadError::UnexpectedStatus((i32)failure.status);
+        };
+    }
+}
+

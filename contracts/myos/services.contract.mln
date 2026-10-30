@@ -10,9 +10,9 @@ export enum OsService {
     REQUEST,        // (Request*) -> 1 queued, 0 if full (retry)
     REPLY,          // (i32 *out) -> 1 with the request result, else 0
     POLL,           // (Event*) -> 1 with an event (inline text), else 0
-    // Filesystem. Every args pointer refers to its corresponding Fs*Args
-    // record in myos/fs-args.contract.mln; Result values are written through
-    // result_out in caller memory. FS_CLOSE is fire-and-forget.
+    // Filesystem. Each service is bound to its Fs*Args record by an
+    // `impl OsCall` in myos/fs-args.contract.mln; Result values are written
+    // through result_out in caller memory. FS_CLOSE is fire-and-forget.
     FS_OPEN,        // FsOpenArgs<Out>
     FS_CREATE,      // FsCreateArgs<Out>
     FS_READ,        // FsReadArgs<Out>
@@ -37,8 +37,20 @@ export enum OsService {
     LOG,
 };
 
-// Internal OS_CALL routing failure. The raw syscall trampoline maps this to
-// the legacy negative status at the i32 ABI boundary.
+/**
+ * Binds an OS_CALL argument record to the one service that accepts it.
+ *
+ * Each record is followed by `impl OsCall for Record = OsService::X;`, so a
+ * client sends the record's own service number and the provider accepts the
+ * record only for that number. The reply type is the record's `result_out`
+ * field, not a trait parameter.
+ */
+export trait OsCall {
+    OsService service();
+}
+
+// Internal OS_CALL routing failure. The kernel maps it to the common
+// SyscallStatus plus r2 payload at the user/kernel ABI boundary.
 export enum OsServiceError {
     UnknownService(i32),
 }

@@ -137,7 +137,7 @@ annotation on_close          on method of app;
 | `@sizeof(T)` | 今は `T probe; sizeof(probe)` で回避しているもの |
 
 `@tramp` だけが「コンパイラの組み込み」として残る。呼び出し規約（引数レジスタ、
-`ref mut` が書き戻されない、等）はコンパイラの領分なので、これは正しい境界。
+`borrow mut` が書き戻されない、等）はコンパイラの領分なので、これは正しい境界。
 
 `@key("Ctrl+S")` の文字列→`(mods, code)` 変換は、テンプレート側では**文字列のまま表に
 入れ**、`app.mln` が起動時にパースする（`parse_key_spec` を `.mln` に移す）。コンパイル時に
@@ -236,9 +236,9 @@ Python の manifest 生成、`__annotations_init`、テンプレート、`annota
   テンプレート本体の export 名の link 名への書き換え（importer の TU で実体化しても同パッケージの
   export 関数を呼べる）。
 
-- **`ref mut` の書き戻しバグを修正**（`codegen_lvalue.c`）：参照型の変数への `s.v` が、参照を
+- **`borrow mut` の書き戻しバグを修正**（`codegen_lvalue.c`）：参照型の変数への `s.v` が、参照を
   deref せずに「ポインタが入っているスロット」をフィールドとして読み書きしていた。修正後は
-  `ref` / `ref mut` レシーバも handler に使える（Counter が `ref mut Counter c` で書かれている）。
+  `borrow` / `borrow mut` レシーバも handler に使える（Counter が `borrow mut Counter c` で書かれている）。
 - グローバルの `char *g[16]`（ポインタ配列）が誤コンパイルされる（未修正）。`i32` 配列で回避。
 - リンカは同名シンボルの重複を検出しない（黙って片方を選ぶ）。
 - `Ok(Some(idx))` を値の case で受ける struct コピー未対応（MYOS-016 で判明）は残っている。

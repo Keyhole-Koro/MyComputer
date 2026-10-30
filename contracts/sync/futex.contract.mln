@@ -1,0 +1,13 @@
+package futex_types;
+
+/**
+ * Stable integer states stored in a futex-backed Mutex word.
+ * @property Unlocked No thread owns the mutex.
+ * @property Locked A thread owns the mutex and no waiter is known.
+ * @property Contended A thread owns the mutex and a waiter may exist.
+ */
+export enum MutexState {
+    Unlocked = 0,
+    Locked,
+    Contended,
+}

@@ -13,4 +13,49 @@ export enum Syscall {
     SPAWN,
     OS_CALL,   // (service, args): an OS service outside the kernel.
     WAIT_NOTIFICATION, // (mask): block until an armed kernel notification arrives.
+    THREAD_SPAWN,
+    THREAD_EXIT,
+    THREAD_JOIN,
+    THREAD_SELF,
+    FUTEX_WAIT,
+    FUTEX_WAKE,
 }
+
+/**
+ * Transport status returned by every syscall that resumes its caller.
+ *
+ * The interrupt ABI writes this enum to r1. Zero is the only success value;
+ * failures are positive, stable wire values. The associated success value or
+ * error detail is written to r2, so valid negative application values never
+ * collide with failure signalling.
+ */
+export enum SyscallStatus {
+    Ok = 0,
+    NoProcess,
+    OutOfMemory,
+    HeapOverflow,
+    BadFileDescriptor,
+    UnknownSyscall,
+    SpawnFailed,
+    UnknownService,
+    NoFreeThreadSlot,
+    InvalidThreadId,
+    JoinSelf,
+    AlreadyJoined,
+    WouldBlock,
+    TimedOut,
+    BadAddress,
+    ProcessExiting,
+    InvalidEntry,
+    InvalidStackSize,
+}
+
+/**
+ * Typed copy of the two-register failure envelope used by stdlib adapters.
+ * @property status Non-Ok syscall transport status read from r1.
+ * @property payload Status-specific detail read from r2, such as a rejected TID or address.
+ */
+export struct SyscallFailure {
+    SyscallStatus status;
+    i32 payload;
+};

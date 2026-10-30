@@ -189,6 +189,11 @@ SUITES = {
          str(MYKERNEL_DIR / "tests" / "process" / "process.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
+    "thread": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"),
+         str(MYKERNEL_DIR / "tests" / "thread" / "thread.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
     "serial-rx": (
         [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "serial" / "serial_rx.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
