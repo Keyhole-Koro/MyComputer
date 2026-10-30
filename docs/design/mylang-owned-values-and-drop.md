@@ -175,7 +175,7 @@ struct String {
 
 `String` owns `data`; `length` and `capacity` are byte counts. Its contents may
 contain embedded NUL bytes, and no trailing NUL slot is reserved. Use
-`InlineCString<N>` when a `char *` boundary requires NUL termination.
+`Text<N>` when a `char *` boundary requires NUL termination.
 
 Construction uses package functions because MyLang does not yet provide
 associated-function syntax:
@@ -186,7 +186,7 @@ import { String } from "text/string.mln";
 
 String line = string.with_capacity(128);
 line.append("pid=");
-InlineString<12> pid = 42.to_string();
+Text<12> pid = 42.to_string();
 line.append(pid.as_str());
 ```
 

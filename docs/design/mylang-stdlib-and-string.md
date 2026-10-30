@@ -12,10 +12,10 @@ layout is two words, `{ char* data; i32 length; }`, and it is `Copy`. The
 length is a byte count and may include embedded NUL bytes. `str` never owns or
 provides writable storage.
 
-`char*` remains the low-level FFI/MMIO representation. New bounded text uses
-`InlineString<N>`; code that must expose a NUL-terminated pointer uses the
-separate `InlineCString<N>` boundary type. This keeps the terminator slot and
-embedded-NUL restriction out of normal MyLang strings.
+`char*` remains the low-level FFI/MMIO representation. Bounded text uses
+`Text<N>`, which keeps a NUL after its bytes so it can also be handed to an API
+that still takes `char *`; once those boundaries take `str`, the terminator
+slot can go.
 
 ## 2. Three compiler limits that shape every API
 
@@ -60,15 +60,14 @@ repo growing the shared library for its siblings was backwards):
 | `bytes` | memset / memcpy / memmove / memcmp over byte buffers |
 | `bitset` | bit array over a caller-owned buffer |
 | `ringbuf` | fixed-capacity i32 FIFO |
-| `InlineString<N>` | inline owned string; atomic mutation, no NUL slot |
-| `InlineCString<N>` | inline NUL-terminated storage for system boundaries |
+| `Text<N>` | inline owned text; atomic mutation, NUL-terminated for `char *` boundaries |
 
 `bytes` rather than `mem` because `package mem` is already the kernel's
 word-level absolute-address accessor for RAM and MMIO.
 
 Callers moved onto them: `serial.mln`'s keystroke queue (ringbuf),
 `MyOS/src/fs/fs.mln`'s block bitmap (bitset), and MyOS application/syscall
-scratch strings (`InlineString` / `InlineCString`). The old truncating
+scratch strings (`Text<N>`). The old truncating
 `strbuf` and borrowed-storage `StringBuilder` APIs were removed.
 
 ### Phase 1 -- `str` as a language type -- done
@@ -85,13 +84,11 @@ The intended shape is four explicit layers:
 | layer | representation | ownership |
 | --- | --- | --- |
 | `str` | `{char* data; i32 length;}`, Copy | borrowed view |
-| `InlineString<N>` | `{u8 data[N]; i32 length;}` | owned, inline |
-| `InlineCString<N>` | `{char data[N]; i32 length;}` | owned inline FFI boundary |
+| `Text<N>` | `{char data[N]; i32 length;}`, up to N - 1 bytes + NUL | owned, inline |
 | `String` | `{u8* data; i32 length; i32 capacity;}` | owned, growable heap |
 
-Const generics use explicit declarations such as `struct InlineString<const
-N>` and uses such as `InlineString<128>`. An `i32.to_string()` returns an
-owned `InlineString<12>`; formatting no longer borrows a caller-provided
+Const generics use explicit declarations such as `struct Text<const N>` and
+uses such as `Text<128>`. An `i32.to_string()` returns an owned `Text<12>`; formatting no longer borrows a caller-provided
 temporary array. `len` is in bytes and the encoding is UTF-8; a `chars()`
 iterator can wait, since `font8x8.mln` is ASCII.
 
@@ -119,8 +116,9 @@ Ranked by what the OS already open-codes.
 1. `ringbuf` -- serial RX, mouse and keyboard events. **done**
 2. `bitset` -- MFS block allocation, and the page-frame allocator EMU-003
    will need. **done**
-3. `InlineString<N>` / `InlineCString<N>` -- labels, log lines, and explicit
-   C-style system boundaries. **done**
+3. `Text<N>` (formerly `InlineString<N>` and `InlineCString<N>`, merged
+   2026-10-30) -- labels, log lines, and explicit C-style system boundaries.
+   **done**
 4. Arena / bump allocator -- per-frame DOM layout, per-syscall scratch;
    avoids fragmenting the first-fit heap. No new language feature needed.
 5. `Vec<T>` -- DOM child lists, dirents, the run queue. Needs generics; until

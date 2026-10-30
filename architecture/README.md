@@ -144,6 +144,14 @@
 | -------- | ------ | ------- | -------------- |
 | `halt`   | `0x3f` | —       | Stop execution |
 
+### 🔒 **Atomic and checks**
+
+| Mnemonic | Opcode | Pattern | Description |
+| -------- | ------ | ------- | ----------- |
+| `swp r1, r2` | `0x22` | `reg, reg` | Atomically swap r1 with mem\[r2]; r1 gets the old word |
+| `cas r1, r2, r3` | `0x23` | `reg, reg, reg` | If mem\[r3] == r1 store r2; r1 gets the old word |
+| `chk r1, imm21` | `0x24` | `reg, imm21` | Continue when r1 < imm (unsigned); otherwise r1 = `0x1BAD01`, r2 = address of the `chk`, then stop as `halt` does (a privilege violation in user mode). Used for array index checks. |
+
 ---
 
 ## 4. 🗘️ Memory Map
