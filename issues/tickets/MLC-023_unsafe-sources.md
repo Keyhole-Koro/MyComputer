@@ -69,6 +69,8 @@
 - 借用から生ポインタへの変換（`T *p = r;`）は許している。参照外しは W0003。
 - アドレスを i32 で持つ箇所を、`core/address.mln` の型に寄せるか。
 - import のパスにファイル名が入るため、`.unsafe.mln` への改名は参照側の修正を伴う。
+  → import のパスでは `.owned` / `.unsafe` を省くと決めた（`docs/design/mylang-memory-model.md`
+  規則 M6、2026-11-05）。実装は MLC-025。
 
 ## Verification
 
