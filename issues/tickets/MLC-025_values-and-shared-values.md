@@ -2,7 +2,11 @@
 
 | Status | Branch | Agent | Updated |
 | --- | --- | --- | --- |
-| Proposed | - | - | 2026-11-05 |
+| Blocked | - | - | 2026-11-05 |
+
+> メモリモデルの候補が2つある（`docs/design/mylang-values.md` と
+> `docs/design/mylang-objects.md`）。このチケットは前者に沿って書いてある。後者を採る場合は
+> 書き直す。決まるまで着手しない。
 
 ## Summary
 

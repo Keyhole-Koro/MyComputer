@@ -2,7 +2,9 @@
 
 | Status | Branch | Agent | Updated |
 | --- | --- | --- | --- |
-| Proposed | - | - | 2026-11-05 |
+| Blocked | - | - | 2026-11-05 |
+
+> メモリモデルが決まるまで着手しない（MLC-025 と同じ）。
 
 ## Summary
 

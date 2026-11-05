@@ -1,7 +1,7 @@
 # MyLang メモリモデル 別案：木と世代
 
-**Status:** 不採用（2026-11-05）。代償（CPU の変更、触るたびの照合、個別の削除）が大きい。
-代わりに `mylang-values.md`（値だけのモデル）を採った。
+**Status:** Superseded（2026-11-05）。この考え方は `mylang-objects.md` に引き継いだ
+（weak・own・境界・値のまるごとコピーをやめた形。変更点はそちらの §10.1）。
 
 **Scope:** rc・gc・所有権と借用のどれにも頼らない、メモリの扱いの案。
 `docs/design/mylang-memory-model.md`（rc と所有権を切り替える案）の代わりになる。

@@ -1,13 +1,13 @@
 # MyLang メモリモデル：値だけ
 
-**Status:** Draft 1（2026-11-05）
+**Status:** Draft 1（2026-11-05）。候補。もう一方の候補は `mylang-objects.md`
+（オブジェクトと世代）。どちらを採るかはまだ決めていない（そちらの §10 に比較）。
 
 **Scope:** 値の種類、代入と書き換え、参照渡し、ヒープの値、識別とつながり、資源、実行時検査、
 unsafe の規範
 
-**Supersedes:** `mylang-memory-model.md`（rc と所有権を切り替える案）と
-`mylang-tree-generation-memory.md`（木と世代の案）。実装済みの規則（範囲検査、ゼロ初期化、
-借用の置き場所と衝突、drop）は、この文書に引き継ぐ。
+**Supersedes:** `mylang-memory-model.md`（rc と所有権を切り替える案）。実装済みの規則
+（範囲検査、ゼロ初期化、借用の置き場所と衝突、drop）は、この文書に引き継ぐ。
 
 関連文書:
 

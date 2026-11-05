@@ -45,8 +45,8 @@
 | MLC-022 | [Result エラーの伝播経路トレース](completed/MLC-022_error-return-trace.md) | Done | `mlc --error-trace` で `return Err` の起点と `?` の各地点（From 変換を含む）を `@std/debug/error_trace.mln` に記録する。フラグなしではコードを出さない。 |
 | MLC-023 | [`.unsafe.mln` と生ポインタの分離](tickets/MLC-023_unsafe-sources.md) | In Progress | `.safe` を廃止し `.unsafe.mln` を導入。checked のファイルの生ポインタ操作は W0003（警告）。57 ファイル・約 2000 件の移行が残る。 |
 | MLC-024 | [借用検査の穴を塞ぐ](completed/MLC-024_borrow-check-holes.md) | Done | 共有借用を通した書き込み、借用中の元の変更、ループの中の move を E0601〜E0605 で止め、借用の生ポインタ化を W0003 にした。データだけの struct は自動でコピー。メモリモデルの段階1。 |
-| MLC-025 | [値だけのメモリモデル（共有値、Box、プール）](tickets/MLC-025_values-and-shared-values.md) | Proposed | 共有値のカウントと「書く前にコピー」、`new` と `Box<T>`、`Pool`・`Table`・`Handle`。段階2。 |
-| MLC-026 | [既存コードを値だけのモデルへ移す](tickets/MLC-026_memory-model-migration.md) | Proposed | DOM をプールに、`heap.alloc` を `new`・`Vec`・`Pool` に、`char *` を `str`・`Text`・`String` に。段階3。 |
+| MLC-025 | [値だけのメモリモデル（共有値、Box、プール）](tickets/MLC-025_values-and-shared-values.md) | Blocked | 段階2。メモリモデルの候補が2つあり、決まるまで待ち。 |
+| MLC-026 | [既存コードを値だけのモデルへ移す](tickets/MLC-026_memory-model-migration.md) | Blocked | 段階3。同上。 |
 | MLC-027 | [メモリモデルの性能（計測と最適化）](tickets/MLC-027_memory-model-performance.md) | Proposed | rc の前の基準、参照数の最適化、レジスタ割り当て、命令の追加。段階4。 |
 | MLC-028 | [構文の整理](tickets/MLC-028_syntax-cleanup.md) | Proposed | `case` の腕のブロック、使われていない予約語、DOM のハンドラ。段階5。 |
 | MYOS-018 | [SDK / シェル分離](completed/MYOS-018_sdk-shell-separation.md) | Done | MyAppFramework を SDK だけに。`app.mln` を MyOS/src/shell へ、`ui` / `elements` をプロトタイプ + サーバ実装に。 |
