@@ -11,7 +11,8 @@
   O7 に統合していく。
 - `toolchain/MyLangCompiler/docs/ownership.md`: 借用検査と実行時検査の実装の説明。
 - `toolchain/MyLangCompiler/docs/source-modifiers.md`: 今の `.unsafe.mln`。規則 U2 で置き換える。
-- チケット: [MLC-024](../../issues/tickets/MLC-024_borrow-check-holes.md)〜
+- チケット: [MLC-024](../../issues/completed/MLC-024_borrow-check-holes.md)（完了）、
+  [MLC-025](../../issues/tickets/MLC-025_rc-objects-and-modes.md)〜
   [MLC-028](../../issues/tickets/MLC-028_syntax-cleanup.md)（§12）。
 
 この文書は MyLang のメモリの扱いの規範で、ここに書いた規則が正しい振る舞いになる。実装が
@@ -159,10 +160,13 @@ receiver）から借りたもの、グローバル、文字列リテラルだけ
 共有（owned では move）になる。共有ポインタの先にある enum から、所有する値の payload は
 取り出せない。
 
-**規則 B9（生ポインタへの変換）** 安全なソースでは、借用を生ポインタとして保存できない
-（ローカル変数・フィールド・グローバルへの代入、構造体リテラル、return はエラー）。移行の
-間は、関数の引数として渡すことだけを許す。MLC-023 で引数と receiver を借用に移した後は、
-これもエラーにする。
+**規則 B9（生ポインタへの変換）** 安全なソースでは、借用を生ポインタや整数アドレスとして
+保存できない（変数・フィールドへの初期化と代入、構造体リテラル、生ポインタを返す
+return）。保存した後は、何を借りているかを誰も追えなくなるため。これは生ポインタの操作の
+一つとして扱い、ほかの操作と同じく移行の間は警告 W0003、移行が終わったらエラーにする
+（規則 U1）。グローバルの借用（プログラムの終わりまで生きている）と、生ポインタの先の
+借用（参照外しがすでに W0003）は対象外。関数の引数として渡すことは、MLC-023 で引数と
+receiver を借用に移すまで報告しない。
 
 ## 6. モード
 
@@ -277,15 +281,16 @@ attach(root.share(), leaf);       // 共有する所を書く
 | 規則 | 状態 | テスト / 実装 | チケット |
 | --- | --- | --- | --- |
 | V1 | ローカルは実装済み。グローバルとフィールドは今もゼロ | `succeed/scope/zeroInitLocals.mln` | - |
-| V2 | 未実装（今は `impl Copy` が要る） | - | MLC-025 |
+| V2 | データだけの struct の自動コピーは実装済み（生ポインタのフィールドを持つ struct は、まだ move）。共有できる値の区別は未実装 | `succeed/semantic/dataStructsCopy.mln` | MLC-024、MLC-025 |
 | V3 | 実装済み | - | - |
-| V4 | 一部。ループの中の move と、抜ける分岐の扱いは MLC-024。元をゼロにする、フィールドからの move は未実装 | - | MLC-024、MLC-025 |
+| V4 | ループの中の move（E0604）と、抜ける分岐の扱いは実装済み。元をゼロにする、フィールドからの move は未実装 | `fail/semantic/moveInLoop_fail.mln`、`succeed/semantic/moveThenLeave.mln` | MLC-024、MLC-025 |
 | V5、V6 | 変数は実装済み。オブジェクトは未実装 | `codegen_drop.c` | MLC-025 |
 | O1〜O7 | 未実装 | - | MLC-025、MLC-026 |
-| B1 | `mut` 不要は今の実装どおり。`const` は MLC-024 | - | MLC-024 |
+| B1 | 実装済み（`mut` の宣言は不要、`const` は E0605） | `fail/semantic/mutBorrowConst_fail.mln` | MLC-024 |
 | B2 | `str` 以外は実装済み | `parser_borrow_positions.c` | MLC-025 |
 | B3、B6 | 実装済み | MLC-023 | - |
-| B4、B5、B9 | MLC-024 | - | MLC-024 |
+| B4、B5 | 実装済み（E0601〜E0603。借用を通して取った借用は、通った借用もロックする） | `fail/semantic/writeThroughSharedBorrow_fail.mln` ほか | MLC-024 |
+| B9 | 保存は W0003 として実装済み。引数として渡すのは未報告 | `warn/semantic/borrowKeptAsPointer_warn.mln` | MLC-024、MLC-023 |
 | B7、B8 | 未実装 | - | MLC-025 |
 | M1〜M5 | 未実装 | - | MLC-025 |
 | U1 | 警告 W0003 として実装済み | MLC-023 | MLC-023 |
@@ -299,7 +304,7 @@ attach(root.share(), leaf);       // 共有する所を書く
 | 段階 | 内容 | チケット |
 | --- | --- | --- |
 | 0 | この仕様 | - |
-| 1 | 今の言語のまま穴を塞ぐ（範囲検査・ゼロ初期化・網羅性は済み）。借用検査の穴 | MLC-024 |
+| 1 | 今の言語のまま穴を塞ぐ（範囲検査・ゼロ初期化・網羅性・借用検査の穴。済み） | MLC-024 |
 | 2 | 参照数つきオブジェクト、weak、モード、`share()`、ポインタの先の借用 | MLC-025 |
 | 3 | 既存コードの移行（`heap.alloc` から `new`、標準のコンテナ、モジュールごとのモード） | MLC-026、MLC-023 |
 | 4 | 性能（計測、参照数の最適化、コード生成、命令の追加） | MLC-027 |
