@@ -6,8 +6,8 @@
 
 ## Summary
 
-参照数の増減と範囲検査で増える命令を測り、コンパイラと CPU の両方で取り返す。rc を入れる
-前に、決まった結果が出る基準を作って記録しておく。
+共有値のカウントの増減、書く前のコピー、範囲検査で増える命令を測り、コンパイラと CPU の
+両方で取り返す。共有値を入れる前に、決まった結果が出る基準を作って記録しておく。
 
 ## Background
 
@@ -58,6 +58,6 @@
 
 ## 関連
 
-- `docs/design/mylang-memory-model.md`
+- `docs/design/mylang-values.md`
 - `docs/implemented/profiler.md`
-- MLC-025 参照数つきオブジェクトと rc / owned モード
+- MLC-025 値だけのメモリモデル

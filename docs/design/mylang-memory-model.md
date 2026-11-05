@@ -1,6 +1,8 @@
 # MyLang メモリモデル
 
-**Status:** Draft 1（2026-11-05）
+**Status:** Superseded（2026-11-05）。rc と所有権を切り替える案。`mylang-values.md`（値だけの
+モデル）に置き換えた。実装済みの規則（V1、V2 の一部、V4〜V6、B1〜B6、B9、C1、C4、U1）は、
+そちらに引き継いである。
 
 **Scope:** 値の種類、move と drop、参照数つきオブジェクト、借用、rc / owned モード、
 実行時検査、unsafe の規範

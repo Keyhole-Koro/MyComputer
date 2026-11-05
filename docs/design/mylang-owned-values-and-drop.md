@@ -7,11 +7,11 @@ cleanup, the standard allocator boundary, and the heap-owned `String` type.
 The compiler-oriented ownership overview remains in
 `toolchain/MyLangCompiler/docs/ownership.md`.
 
-The memory model in `docs/design/mylang-memory-model.md` (2026-11-05) is the
+The memory model in `docs/design/mylang-values.md` (2026-11-05) is the
 target these rules move toward: moves will leave a zero value behind instead
-of clearing a runtime flag, and `String` will keep its bytes in a counted,
-copy-on-write buffer. Until those parts land (MLC-025, MLC-026), this document
-describes the implemented behavior.
+of clearing a runtime flag, and `String` will become a shared value whose
+bytes are copied before a write when they are shared. Until those parts land
+(MLC-025, MLC-026), this document describes the implemented behavior.
 
 ## 1. Terminology
 

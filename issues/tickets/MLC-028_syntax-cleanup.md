@@ -38,5 +38,5 @@
 
 ## 関連
 
-- `docs/design/mylang-memory-model.md`
+- `docs/design/mylang-values.md`
 - MLC-018 型付き関数値とコールバック
