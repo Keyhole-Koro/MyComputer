@@ -16,6 +16,7 @@ export enum UiOp {
     AREA_CLEAR,        // (id)
     AREA_LINES,        // (id, result_out = Result<i32, UiError>*)
     LIST_SET_ITEMS,    // (id, s0 = "\n"-joined)
+    LIST_SELECT,       // (id, a1 = row, or -1 for none)
     LIST_COUNT,        // (id, result_out = Result<i32, UiError>*)
     LIST_SELECTED,     // (id, result_out = Result<Option<i32>, UiError>*)
     LIST_ITEM,         // (id, a1 = row, a2 = text out, a3 = cap, result_out = Result<i32, UiError>*)

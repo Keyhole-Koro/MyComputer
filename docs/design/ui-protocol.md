@@ -75,13 +75,9 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | SET_CHECKED | id, a1 | – | `ui.set_checked` |
 | INPUT_SET | id, s0 | – | `ui.input_set` |
 | AREA_APPEND / AREA_CLEAR / AREA_LINES | id, (s0), result_out for AREA_LINES | (– / `Result<i32, UiError>`) | `ui.area_*` |
-| LIST_SET_ITEMS / LIST_COUNT | id, (s0), result_out for LIST_COUNT | (– / `Result<i32, UiError>`) | `ui.list_set_items` / `ui.list_count` |
-| LIST_SELECTED | id, result_out | `Result<Option<i32>, UiError>` | `ui.list_selected` |
-| LIST_ITEM | id, a1=row, a2=text out, a3=cap, result_out | `Result<i32, UiError>` | `ui.list_item` |
+| LIST_SET_ITEMS / LIST_COUNT | id, (s0), result_out for LIST_COUNT | (– / `Result<i32, UiError>`) | `List_items` / `ui.list_count` |
+| LIST_SELECT | id, a1=行（-1 で選択なし） | – | `List_selected` |
 | FOCUS / FOCUS_WINDOW | id | – | `ui.focus*` |
-| CLOSE | id | – | `ui.close`（自分で開いたダイアログ） |
-| WINDOW_OF / WINDOW_X / WINDOW_Y | id, result_out | `Result<Option<NodeId>, UiError>` / `Result<i32, UiError>` | `ui.window_*` |
-| SHOW | id | – | `ui.show`（ダイアログをデスクトップへ） |
 | TEST_ID | id, s0 | – | `ui.test_id` |
 | SEND_KEY | a0=type, a1=code, a2=mods | – | `ui.send_key` |
 | RGB | a0, a1, a2 | 色 | `ui.rgb` |
@@ -110,17 +106,19 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | CLAIM_KEY | s0="Ctrl+S" | token | `@key`（runtime.start） |
 | MAIN_WINDOW | a0=win | – | `@app` viewの戻り |
 | EXIT | – | – | CLOSE処理後のruntime |
+| SHOW_DIALOG | a0=win | – | `Dialog_when`。シェルがアプリのウィンドウの上に置く |
+| HIDE_DIALOG | a0=win | – | `Dialog_when`。ノードは残る |
 
 ## 3. イベントの表（`EventKind`）
 
 | kind | id | arg | token / text | 発生源 |
 | --- | --- | --- | --- | --- |
 | CLICK | ノード | 0 | – | `dom.dispatch_click`（Button, Checkbox） |
-| CHANGE | ノード | 0 | – | `dom.fire_change`（TextInput 編集、Checkbox、List 選択） |
-| ACTIVATE | List | 0 | – | 選択行のクリック / Enter |
+| CHANGE | ノード | Checkbox の状態、List の行、ほかは 0 | – | `dom.fire_change`（TextInput 編集、Checkbox、List 選択） |
+| ACTIVATE | List | 行 | – | 選択行のクリック / Enter |
 | TIMER | タイマ | 0 | – | `dom_widgets.tick` |
 | KEY | ウィンドウ | code \| mods << 16 | token = 一致した claim | シェル `dispatch_key` |
-| CLOSE | ウィンドウ | 0 | – | シェル `window_closed`（× ボタン） |
+| CLOSE | ウィンドウかダイアログ | 0 | – | シェル `window_closed`（× ボタン）。ダイアログなら `onCancel` へ |
 | OPEN | ウィンドウ | 0 | text = path | シェル `open` |
 
 - 所有ノード（`owner != 0`）に起きたことは `dom.emit` → UI domain event sink →
