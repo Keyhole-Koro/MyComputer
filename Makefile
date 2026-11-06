@@ -30,7 +30,6 @@ help:
 		'  make dom-inspect      Dump the live DOM tree (ARGS="--watch" to follow changes, needs make build first)' \
 		'  make profile ARGS="report profile.json"  Read a profile (see tools/MyProfiler)' \
 		'  make unused-exports   Report exports nothing references (ARGS="--write-allow" to rewrite the allowlist)' \
-		'  make profile ARGS="profile.json --map image.mbin.map"' \
 		'' \
 		'Pass script options with ARGS="...".'
 
