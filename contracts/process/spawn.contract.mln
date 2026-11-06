@@ -25,6 +25,7 @@ export struct SpawnReadMismatch {
 // Launch adds search/read context, but keeps the filesystem and loader causes
 // intact instead of collapsing them into generic status values.
 export enum SpawnError {
+    NoHandler,
     NotFound,
     Filesystem(SpawnFilesystemError),
     EmptyExecutable,
@@ -43,6 +44,7 @@ export impl From<LoaderError> for SpawnError {
 export impl Describe for SpawnError {
     str (Self self) describe() {
         return case self of {
+            SpawnError::NoHandler -> "processes cannot be spawned yet";
             SpawnError::NotFound -> "file not found";
             SpawnError::Filesystem(failure) -> failure.cause.describe();
             SpawnError::EmptyExecutable -> "not an executable";
