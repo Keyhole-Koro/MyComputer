@@ -48,7 +48,7 @@ jobs:
             qa/runners/run_mylang.py \
             qa/runners/run_system.py \
             qa/tools/debug_session.py \
-            qa/tools/profile_report.py \
+            tools/MyProfiler/myprofiler.py \
             qa/tests/test-all.py
 
       - name: Run pinned component-owned suites

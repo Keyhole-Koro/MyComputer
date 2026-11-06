@@ -205,7 +205,7 @@ def main():
             out_masm = build_dir / rel.with_suffix(".masm")
             out_masm.parent.mkdir(parents=True, exist_ok=True)
             ml_depfile = Path(str(out_masm) + ".ml-deps")
-            cmd = [mlc]
+            cmd = [mlc, "--line-info"]
             if args.entry:
                 cmd += ["-entry", args.entry]
             # Pass redirects through to MLC as well. This is essential for a
@@ -280,8 +280,9 @@ def main():
     # Emit a symbol map alongside the linked image so the profiler can attribute
     # program counters to function names. Named <output>.map next to the binary.
     map_path = out_path.with_suffix(out_path.suffix + ".map")
-    
-    linker_cmd = [mllinker, "--map", map_path]
+    lines_path = out_path.with_suffix(out_path.suffix + ".lines")
+
+    linker_cmd = [mllinker, "--map", map_path, "--lines", lines_path]
     if args.base:
         linker_cmd.extend(["--base", args.base])
     if args.header:

@@ -122,6 +122,10 @@ SUITES = {
         ["make", "-C", str(MYEMULATOR_DIR), "test-component"],
         ["myemu"],
     ),
+    "profiler": (
+        [sys.executable, str(REPO_ROOT / "tools" / "MyProfiler" / "tests" / "test_profiler.py")],
+        [],
+    ),
     "compiler-e2e": (
         ["make", "-C", str(MYLANGCOMPILER_DIR), "test-e2e"],
         ["mlc", "myas", "mllinker", "myemu"],
