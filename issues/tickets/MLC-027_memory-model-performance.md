@@ -2,7 +2,7 @@
 
 | Status | Branch | Agent | Updated |
 | --- | --- | --- | --- |
-| Proposed | - | - | 2026-11-05 |
+| In Progress | - | - | 2026-11-07 |
 
 ## Summary
 
@@ -29,6 +29,21 @@
   候補はコンパイラの e2e（143本、止まった時の命令数）と、QA のカーネルのテスト
   （DOM、FS、heap）。
 
+### 基準（2026-11-07）
+
+`qa/baselines/e2e-instructions.json` が e2e 157 本の停止時の命令数で、rc の前の記録。
+2 回測って表はバイト単位で一致した。
+
+```bash
+python3 tools/MyProfiler/myprofiler.py bench after.json
+python3 tools/MyProfiler/myprofiler.py bench-diff qa/baselines/e2e-instructions.json after.json
+```
+
+合計 2,479,903,423 命令のうち 96.2% が `genericI32ToString` の 1 本で、合計だけを見ると他の
+変化が隠れる。ケースごとの差を見ること。原因は `i32.to_string` の `value % 10` と
+`value / 10`（`text/str.unsafe.mln:390-391`）で、除算が引き算の繰り返しなので商に比例して
+命令が増える。MyProfiler の `arith` に 99.9% が出る。
+
 ## Design
 
 ### Proposed Design
@@ -45,7 +60,7 @@
 
 ## Progress
 
-- [ ] 決まった結果が出る基準と、rc の前の記録
+- [x] 決まった結果が出る基準と、rc の前の記録
 - [ ] 参照数の最適化
 - [ ] レジスタ割り当て
 - [ ] オフセットつきの `load`/`store`

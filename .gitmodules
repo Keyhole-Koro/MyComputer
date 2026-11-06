@@ -49,3 +49,6 @@
 	path = system/MyAppFramework
 	url = https://github.com/Keyhole-Koro/MyAppFramework.git
 	branch = main
+[submodule "tools/MyProfiler"]
+	path = tools/MyProfiler
+	url = https://github.com/Keyhole-Koro/MyProfiler.git

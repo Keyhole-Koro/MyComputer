@@ -27,7 +27,7 @@ help:
 		'  make dom-tester-test  Build the system image and run the headless MyDOMTester E2E test' \
 		'  make framework-test   Build the system image and run the app framework E2E test' \
 		'  make dom-inspect      Dump the live DOM tree (ARGS="--watch" to follow changes, needs make build first)' \
-		'  make profile ARGS="profile.json --map image.mbin.map"' \
+		'  make profile ARGS="report profile.json"  Read a profile (see tools/MyProfiler)' \
 		'' \
 		'Pass script options with ARGS="...".'
 
@@ -133,7 +133,7 @@ dom-inspect:
 	$(PYTHON) -m system.MyOS.tests.mydomtester.inspect $(ARGS)
 
 profile:
-	$(PYTHON) $(QA_DIR)/tools/profile_report.py $(ARGS)
+	$(PYTHON) tools/MyProfiler/myprofiler.py $(ARGS)
 
 clean-qa:
 	rm -rf $(QA_DIR)/outputs

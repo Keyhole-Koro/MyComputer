@@ -240,11 +240,10 @@ def main():
 
     status_line("INFO", f"report: {report_path}", YELLOW)
     if profile_path and Path(profile_path).exists():
-        map_path = linked_bin.with_suffix(linked_bin.suffix + ".map")
         status_line("INFO", f"profile: {profile_path}", YELLOW)
         status_line(
             "NEXT",
-            f"python3 qa/tools/profile_report.py {profile_path} --map {map_path}",
+            f"python3 tools/MyProfiler/myprofiler.py report {profile_path} --image {linked_bin}",
             CYAN,
         )
     status_line("DONE", "kernel run complete", GREEN)
