@@ -218,6 +218,14 @@ SUITES = {
         ["python3", str(REPO_ROOT / "tools" / "readme_media.py"), "--check"],
         [],
     ),
+    "unused-exports": (
+        ["python3", str(REPO_ROOT / "qa" / "tools" / "unused_exports.py")],
+        ["mlc"],
+    ),
+    "unused-exports-tool": (
+        ["python3", str(REPO_ROOT / "qa" / "tests" / "unused_exports_test.py")],
+        ["mlc"],
+    ),
 }
 
 # These suites may incrementally build the same sibling repositories internally.

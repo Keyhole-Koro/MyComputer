@@ -3,7 +3,8 @@ QA_DIR := qa
 
 .PHONY: help run system build system-build screenshot readme readme-check kernel kernel-build emulator qa test qa-no-build \
 	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom qa-graphics \
-	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test apps-test framework-test dom-inspect font profile clean-qa
+	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test apps-test framework-test dom-inspect font profile clean-qa \
+	unused-exports
 
 help:
 	@printf '%s\n' \
@@ -27,6 +28,7 @@ help:
 		'  make dom-tester-test  Build the system image and run the headless MyDOMTester E2E test' \
 		'  make framework-test   Build the system image and run the app framework E2E test' \
 		'  make dom-inspect      Dump the live DOM tree (ARGS="--watch" to follow changes, needs make build first)' \
+		'  make unused-exports   Report exports nothing references (ARGS="--write-allow" to rewrite the allowlist)' \
 		'  make profile ARGS="profile.json --map image.mbin.map"' \
 		'' \
 		'Pass script options with ARGS="...".'
@@ -134,6 +136,10 @@ dom-inspect:
 
 profile:
 	$(PYTHON) $(QA_DIR)/tools/profile_report.py $(ARGS)
+
+unused-exports:
+	$(MAKE) -C toolchain/MyLangCompiler mlc
+	$(PYTHON) $(QA_DIR)/tools/unused_exports.py $(ARGS)
 
 clean-qa:
 	rm -rf $(QA_DIR)/outputs

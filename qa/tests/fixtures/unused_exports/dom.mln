@@ -1,0 +1,6 @@
+package dom;
+
+export void append_child(i32 parent, i32 child) { }
+export i32 Button(str text, fn(i32 owner, i32 id, i32 arg) -> void onClick = 0) { return 1; }
+export i32 Label(str text) { return 2; }
+export i32 Separator() { return 3; }

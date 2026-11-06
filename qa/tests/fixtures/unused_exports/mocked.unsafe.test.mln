@@ -1,0 +1,7 @@
+import lib from "lib.mln";
+import mock from "../../../../toolchain/MyLangTestKit/runtime/facade.mln";
+
+/*@Test name="mocked" */
+void mocked_is_only_named_here() {
+    mock.of(lib.mocked).when().ret(1);
+}

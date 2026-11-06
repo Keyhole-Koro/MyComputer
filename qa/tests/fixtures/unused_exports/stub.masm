@@ -1,0 +1,8 @@
+; Only this file names called_from_assembly.
+import lib_called_from_assembly
+
+export stub_entry
+
+stub_entry:
+  call lib_called_from_assembly
+  mov pc, lr

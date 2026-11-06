@@ -1,0 +1,33 @@
+// What each export here is expected to be is checked by
+// qa/tests/unused_exports_test.py.
+package lib;
+
+import { Eq } from "@std/core/cmp.mln";
+
+export i32 g_read = 1;
+export i32 g_unread = 2;
+
+export i32 called() { return 1; }
+export i32 never_called() { return 2; }
+
+// Calling itself is not a use.
+export i32 only_recursive(i32 n) { return only_recursive(n); }
+
+export i32 called_from_assembly() { return 3; }
+export void pressed(i32 owner, i32 id, i32 arg) { }
+export i32 mocked() { return 4; }
+
+export T instantiated<T>(T value) { return value; }
+export T never_instantiated<T>(T value) { return value; }
+
+export struct Pair<T> { T left; T right; };
+export T (Pair<T> self) first() { return self.left; }
+export T (Pair<T> self) second() { return self.right; }
+
+export struct Key { i32 value; };
+export i32 (Key self) raw() { return self.value; }
+
+// Nothing compares two Keys, and the trait still requires this.
+export impl Eq for Key {
+    bool (Key self) eq(Key other) { return self.value == other.value; }
+}
