@@ -1,6 +1,10 @@
 package process_types;
 import { Describe } from "@std/core/describe.mln";
 
+/** A process. It crosses the wire as a word; zero names no process, so an ID
+ * that may be absent is an Option<Pid>. */
+export newtype Pid = i32;
+
 /** Process termination result stored in the Zombie lifecycle state.
  * Ordinary programs may return any i32 through Code; the kernel uses the
  * reason variants when it terminates a process for a synchronous fault.
