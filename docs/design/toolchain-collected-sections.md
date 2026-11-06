@@ -116,14 +116,12 @@ import section from "@std/memory/section.mln";
 import { as_slice } from "@std/memory/section.mln";
 
 section.exists("annotations");             // bool
-section.start("annotations");              // 先頭アドレス（無ければ 0）
-section.size("annotations");               // バイト数（無ければ 0）
 Slice<Row> rows = as_slice<Row>("annotations");   // size / sizeof(Row) 要素の Slice
 ```
 
 `__sections` を歩いて名前を `str.eq` で照合する。`as_slice<T>` は generic なので import 側の
-TU で実体化される — そのため本体は同パッケージの **export 関数**（`start`/`size`）だけを呼ぶ
-（§6 のコンパイラ変更「テンプレート内の export 名の書き換え」）。
+TU で実体化される。本体が呼ぶ `start`/`size` は非公開のままでよく、コンパイラがモジュール固有の
+リンク名を与える（`toolchain/MyLangCompiler/docs/module-resolution.md`）。
 
 ### `meta/annotations.mln` — アノテーション行のイテレータ
 

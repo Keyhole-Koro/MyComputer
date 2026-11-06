@@ -17,7 +17,10 @@ export i32 called_from_assembly() { return 3; }
 export void pressed(i32 owner, i32 id, i32 arg) { }
 export i32 mocked() { return 4; }
 
-export T instantiated<T>(T value) { return value; }
+// Linked to from the instance in main.mln: not an export of this module.
+i32 private_helper() { return 5; }
+
+export T instantiated<T>(T value) { private_helper(); return value; }
 export T never_instantiated<T>(T value) { return value; }
 
 export struct Pair<T> { T left; T right; };
