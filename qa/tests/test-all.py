@@ -144,6 +144,11 @@ SUITES = {
          str(MYKERNEL_DIR / "tests" / "heap" / "exhaustion.unsafe.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
+    "app-sdk": (
+        [str(MYLANGTESTER_DIR / "build" / "mytest"),
+         str(REPO_ROOT / "system" / "MyAppFramework" / "tests" / "ui_requests.dom.unsafe.test.mln")],
+        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    ),
     "stdlib": (
         [str(MYLANGTESTER_DIR / "build" / "mytest"),
          str(MYKERNEL_DIR / "tests" / "libs" / "std.unsafe.test.mln")],
