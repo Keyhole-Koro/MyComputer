@@ -300,7 +300,7 @@ attach(root.share(), leaf);       // 共有する所を書く
 | V4 | ループの中の move（E0604）と、抜ける分岐の扱いは実装済み。元をゼロにする、フィールドからの move は未実装 | `fail/semantic/moveInLoop_fail.mln`、`succeed/semantic/moveThenLeave.mln` | MLC-024、MLC-025 |
 | V5、V6 | 変数は実装済み。オブジェクトは未実装 | `codegen_drop.c` | MLC-025 |
 | O1〜O7 | 未実装 | - | MLC-025、MLC-026 |
-| B1 | 実装済み（`mut` の宣言は不要、`const` は E0605） | `fail/semantic/mutBorrowConst_fail.mln` | MLC-024 |
+| B1 | 実装済み（`mut` の宣言は不要、`const` は E0605） | `fail/semantic/borrowConst_fail.mln` | MLC-024 |
 | B2 | `str` 以外は実装済み | `parser_borrow_positions.c` | MLC-025 |
 | B3、B6 | 実装済み | MLC-023 | - |
 | B4、B5 | 実装済み（E0601〜E0603。借用を通して取った借用は、通った借用もロックする） | `fail/semantic/writeThroughSharedBorrow_fail.mln` ほか | MLC-024 |
