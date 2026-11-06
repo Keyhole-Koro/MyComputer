@@ -796,12 +796,15 @@ export i32 self();
 export void exit(i32 code);
 export void yield();
 
-// sync/atomic.mln
-export i32 load(i32 *p);
-export void store(i32 *p, i32 value);
-export i32 swap(i32 *p, i32 value);
-export i32 compare_exchange(i32 *p, i32 expected, i32 replacement);
-export i32 fetch_add(i32 *p, i32 delta);
+// sync/atomic.unsafe.mln: T is one word wide (an integer, an enum, a newtype)
+export struct Atomic<T> { i32 word; };
+export T (borrow Atomic<T> self) load();
+export void (borrow Atomic<T> self) store(T value);
+export T (borrow Atomic<T> self) swap(T value);
+export T (borrow Atomic<T> self) compare_exchange(T expected, T replacement);
+export T (borrow Atomic<T> self) fetch_add(i32 delta);
+export Result<_, ThreadError> (borrow Atomic<T> self) wait(T expected, i32 timeout_ticks);
+export Result<i32, ThreadError> (borrow Atomic<T> self) wake(i32 count);
 ```
 
 `spawn(entry, arg)` は直接workerをinitial PCにしない。stdlibの `thread_trampoline` をinitial
@@ -815,7 +818,7 @@ PCにし、`arg0 = entry`、`arg1 = arg` とする。trampolineは `entry(arg)` 
 
 ```mln
 export struct Mutex {
-    i32 state;
+    Atomic<MutexState> state;
 };
 ```
 
@@ -837,7 +840,7 @@ export struct Mutex {
 
 ```mln
 export struct Condvar {
-    i32 sequence;
+    Atomic<i32> sequence;
 };
 ```
 
@@ -847,16 +850,16 @@ export struct Condvar {
 - 条件そのものはCondvarに保存しない。利用者は共有状態をMutex下で確認し、必ずloopで待つ。
 
 ```mln
-export void (Mutex *self) init();
-export void (Mutex *self) lock();
-export bool (Mutex *self) try_lock();
-export void (Mutex *self) unlock();
+export void (borrow Mutex self) init();
+export void (borrow Mutex self) lock();
+export bool (borrow Mutex self) try_lock();
+export void (borrow Mutex self) unlock();
 
-export void (Condvar *self) init();
-export void (Condvar *self) wait(Mutex *mutex);
-export Result<_, ThreadError> (Condvar *self) wait_ticks(Mutex *mutex, i32 ticks);
-export void (Condvar *self) notify_one();
-export void (Condvar *self) notify_all();
+export void (borrow Condvar self) init();
+export void (borrow Condvar self) wait(borrow Mutex mutex);
+export Result<_, ThreadError> (borrow Condvar self) wait_ticks(borrow Mutex mutex, i32 ticks);
+export void (borrow Condvar self) notify_one();
+export void (borrow Condvar self) notify_all();
 ```
 
 ---
