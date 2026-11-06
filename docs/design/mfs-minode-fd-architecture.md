@@ -154,7 +154,7 @@ Input: "/docs/readme.txt"
 
 - `fs.create(path)` needs every directory on the way; `fs.mkdir(path)` makes one
 - `fs.remove(path)` on a directory requires it to be empty
-- `fs.dir_next_at(dir, start, out, cap)` lists one directory (`""` / `"/"`: the root);
+- `fs.dir_next_at(dir, start, out)` lists one directory (`""` / `"/"`: the root);
   `fs.is_dir(idx)` tells a directory entry from a file
 - `tools/mkfs.py`: `--dir PATH`, and a `--file a/b/c=...` creates the directories on the way.
   The system image puts console programs in `/bin` and desktop apps in `/apps`; the

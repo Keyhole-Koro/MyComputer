@@ -6,6 +6,7 @@ package myos_process_args;
 
 export struct ProcSpawnArgs<Out> {
     char *path;
+    i32 path_length;
     i32 stdout_node;
     Out *result_out;
 };
@@ -23,6 +24,7 @@ export struct ProcReapArgs<Out> {
 export struct ProcFeedArgs {
     i32 pid;
     char *line;
+    i32 line_length;
 };
 
 export struct ProcBindArgs {

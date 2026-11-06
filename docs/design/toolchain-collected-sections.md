@@ -99,7 +99,7 @@ _end:                    ; 以前どおり、イメージの末尾
 
 `--header` でリンクした実行形式は、ヘッダ（version 2、36 バイト）に `sections_offset` ——
 このディレクトリのファイル内オフセット —— を持つ（`docs/design/mbin-executable-header.md`）。
-MyStdLib `format/mbin.mln` がそれを読み（`section_offset(image, name)`、`va_to_ptr`）、
+MyStdLib `format/mbin.mln` がそれを読み（`section_offset(image, name)`、`string_at`）、
 `meta/annotations.mln` の `in_image(image)` がファイル上のアノテーション表を同じイテレータで
 返す。MyOS のシェルは起動時にディスク上の MBIN ファイルのヘッダを読んで `@app` 行を
 ランチャーに載せる（ロードはしない）。

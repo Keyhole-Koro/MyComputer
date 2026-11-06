@@ -141,7 +141,7 @@ An `OS_CALL` argument record names its own service. The contract declares the
 record and, directly below it, the service it travels under:
 
 ```mylang
-export struct FsOpenArgs { char *path; Result<i32, FsError> *result_out; };
+export struct FsOpenArgs { char *path; i32 path_length; Result<i32, FsError> *result_out; };
 export impl OsCall for FsOpenArgs = OsService::FS_OPEN;
 ```
 

@@ -8,28 +8,32 @@ import { OsService, OsCall } from "@contracts/myos/services.contract.mln";
 // OS_CALL argument records for the hosted filesystem API.
 // Each record is followed by the OsService it travels under. result_out
 // points into caller memory and must only be written through the OS
-// user-memory helpers.
+// user-memory helpers. A path is a view: its bytes and their count.
 
 export struct FsOpenArgs {
     char *path;
+    i32 path_length;
     Result<i32, FsError> *result_out;
 };
 export impl OsCall for FsOpenArgs = OsService::FS_OPEN;
 
 export struct FsCreateArgs {
     char *path;
+    i32 path_length;
     Result<i32, FsError> *result_out;
 };
 export impl OsCall for FsCreateArgs = OsService::FS_CREATE;
 
 export struct FsMkdirArgs {
     char *path;
+    i32 path_length;
     Result<i32, FsError> *result_out;
 };
 export impl OsCall for FsMkdirArgs = OsService::FS_MKDIR;
 
 export struct FsRemoveArgs {
     char *path;
+    i32 path_length;
     Result<_, FsError> *result_out;
 };
 export impl OsCall for FsRemoveArgs = OsService::FS_REMOVE;
@@ -65,6 +69,7 @@ export impl OsCall for FsCloseArgs = OsService::FS_CLOSE;
 
 export struct FsDirNextArgs {
     char *path;
+    i32 path_length;
     i32 start;
     char *name_out;
     i32 name_cap;

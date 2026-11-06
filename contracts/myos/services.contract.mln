@@ -49,6 +49,12 @@ export trait OsCall {
     OsService service();
 }
 
+/** OS_CALL LOG argument: a message as a view into caller memory. */
+export struct LogArgs {
+    char *text;
+    i32 length;
+};
+
 // Internal OS_CALL routing failure. The kernel maps it to the common
 // SyscallStatus plus r2 payload at the user/kernel ABI boundary.
 export enum OsServiceError {
