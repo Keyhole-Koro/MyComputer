@@ -53,6 +53,10 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 `protocol_elements.mln`、SDK の `ui.mln` / `elements.mln` / `runtime.mln` でだけ行う。0 は
 どのノードも指さないが、「無し」の意味では使わない。
 
+**プロセス id** も線の上では語（`Request.owner`、`Event.owner`、OS_CALL の引数の記録）。サーバと
+カーネルの中では `Pid`（`contracts/process/control.contract.mln` の newtype）で、DOM の `owner`
+は `Option<Pid>`、None がシステム。語との変換は syscall と線の境界でだけ行う。
+
 **運び手：カーネルのチャネル**（`MyKernel/src/kernel/ipc.mln`）
 
 - チャネル = 24 ワード固定長メッセージ × 32 スロットのリング。要求チャネルは複数 producer だが、
@@ -123,7 +127,7 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | CLOSE | ウィンドウ | 0 | – | シェル `window_closed`（× ボタン） |
 | OPEN | ウィンドウ | 0 | text = path | シェル `open` |
 
-- 所有ノード（`owner != 0`）に起きたことは `dom.emit` → UI domain event sink →
+- 所有ノード（`owner` が `Some`）に起きたことは `dom.emit` → UI domain event sink →
   `ipc/events` の順でチャネルに積む。UI domain coreはtransportをimportしない。サーバ自身の
   ノード（タスクバー、メニュー、時計）は従来どおり
   サーバ内の関数ポインタ（`push_event`）。**アプリのノードに関数ポインタは無い**

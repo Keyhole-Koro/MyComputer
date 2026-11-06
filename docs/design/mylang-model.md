@@ -41,7 +41,7 @@ index Node.owner;
 | `A knows many B` | 関連の鎖。A が消えても B は残り、鎖から外れる |
 | `as 名前 / 逆の名前` | 両側のメソッド名。逆の名前は省ける |
 | `ordered` | 順序を保つ。どの鎖も追加の順を保つので、意図を書くための語 |
-| `index T.列`、`unique T.列` | `i32` の列で引くハッシュ表 |
+| `index T.列`、`unique T.列` | `i32` か、その newtype の列で引くハッシュ表 |
 
 宣言ではない行は、そのまま展開先に残る。`package` と `import` はここに書く。
 

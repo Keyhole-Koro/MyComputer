@@ -62,7 +62,7 @@ The kernel manages up to **16 concurrent processes** via a static table `g_proc_
 
 ```c
 typedef struct {
-    i32 pid;              // Process ID (1..16, 0 = Unused / Kernel idle)
+    Pid pid;              // Process ID (1..16)
     i32 state;            // PROC_UNUSED, PROC_READY, PROC_RUNNING, PROC_BLOCKED, PROC_ZOMBIE
     i32 page_directory;   // Physical address of the root Page Directory (PDBR)
     i32 kernel_stack_top; // Physical top of this process's dedicated kernel stack (for KERNEL_SP)

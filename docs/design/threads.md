@@ -268,7 +268,7 @@ export enum WaitReason {
 
 ```mln
 export struct Process {
-    i32 pid;
+    Pid pid;
     ProcessState state;
 
     // Address-space ownership
@@ -298,7 +298,7 @@ Threadを特別扱いする必要はない。
 ```mln
 export enum ThreadOwner {
     Kernel,
-    User(i32), // pid
+    User(Pid),
 }
 
 export struct KernelStack {
@@ -409,13 +409,13 @@ scheduler.mln ─────────▶ mmu.mln
 ### 6.1 Process API
 
 ```mln
-Result<i32, ProcessError> reserve_process();
-Result<_, ProcessError> commit_process(i32 pid, i32 pdbr, i32 heap_break);
-Result<_, ProcessError> begin_process_exit(i32 pid, ProcessExitStatus status);
-Result<_, ProcessError> finish_process_exit(i32 pid);
-Result<ProcessState, ProcessError> process_state(i32 pid);
-Result<i32, ProcessError> process_pdbr(i32 pid);
-Result<_, ProcessError> reap_process(i32 pid);
+Result<Pid, ProcessError> reserve_process();
+Result<_, ProcessError> commit_process(Pid pid, i32 pdbr, i32 heap_break);
+Result<_, ProcessError> begin_process_exit(Pid pid, ProcessExitStatus status);
+Result<_, ProcessError> finish_process_exit(Pid pid);
+Result<ProcessState, ProcessError> process_state(Pid pid);
+Result<i32, ProcessError> process_pdbr(Pid pid);
+Result<_, ProcessError> reap_process(Pid pid);
 ```
 
 `reserve_process()` は `Loading` slotを返す。`commit_process()` はmain TCBがpublish可能に
@@ -435,17 +435,17 @@ export struct InitialUserContext {
 ```
 
 ```mln
-Result<i32, ThreadError> create_main_thread(i32 pid, InitialUserContext init);
-Result<i32, ThreadError> spawn_user_thread(i32 pid, ThreadSpawnArgs args);
+Result<i32, ThreadError> create_main_thread(Pid pid, InitialUserContext init);
+Result<i32, ThreadError> spawn_user_thread(Pid pid, ThreadSpawnArgs args);
 Result<i32, SchedulerError> spawn_kernel_thread(fn() -> void entry, i32 stack_bytes);
 
 Option<i32> current_tid();
-Option<i32> current_pid();
+Option<Pid> current_pid();
 
 Result<_, ThreadError> block_current(i32 saved_sp, WaitReason reason);
 Result<_, ThreadError> wake_thread(i32 tid, i32 wake_result);
 void exit_current_thread(i32 saved_sp, i32 code);
-void exit_process_threads(i32 pid, ProcessExitStatus status);
+void exit_process_threads(Pid pid, ProcessExitStatus status);
 Result<JoinOutcome, ThreadError> join_thread(i32 target_tid);
 void finish_deferred_cleanup(i32 retired_thread_slot);
 ```
