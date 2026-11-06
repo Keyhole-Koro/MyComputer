@@ -7,6 +7,8 @@ export enum AppOp {
     CLAIM_KEY,
     MAIN_WINDOW,
     EXIT,
+    SHOW_DIALOG,
+    HIDE_DIALOG,
 }
 
 /** Failure while launching an app or routing a path to an app. */

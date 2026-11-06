@@ -48,8 +48,9 @@ i32 main() { return app.run<Counter>(); }
 
 ## 2. 状態と画面
 
-**規則 A4（`view` は読むだけ）** `view` の受け手は `(Self c)` なので、状態を書き換えられない
-（規則 P1）。
+**規則 A4（`view` は読むだけ）** `view` の受け手は `(Self c)` で、状態を書き換えられない。無印の引数は
+本来ローカルな書き換えを許す（規則 W1）が、`view` の受け手には `const` を付けるので、書くのも、借りるのも、
+`borrow` のメソッドを呼ぶのもコンパイルエラーになる（E0605）。
 
 **規則 A5（値の表示）** 属性に状態を書くと、その値が変わった時に画面が変わる。
 
@@ -70,10 +71,15 @@ i32 main() { return app.run<Counter>(); }
 | `TextLog` | 末尾に足す | Terminal の出力 |
 
 ```c
+Self start() { return Notes { title: ui.field() }; }
+
 <TextInput field={n.title} placeholder="Title" onChange={n.changed} />
 <TextArea field={e.body} name="Type here..." />
 <TextArea log={t.out} text="MyOS terminal.\n" name="output" readonly={1} />
 ```
+
+部品は `start` で作る。`view` は状態を書けないので、ノードを部品のフィールドへ書き戻せない。部品は
+番号で、`view` が要素に渡すと、フレームワークがその番号にノードを結ぶ。
 
 `read` が返す `str` は次の `read` まで有効。二つの部品を続けて読むなら、先の値を `Text<N>` に写す。
 
@@ -87,8 +93,13 @@ i32 main() { return app.run<Counter>(); }
 
 ```c
 <List items={f.rows} selected={f.selected} onChange={f.select} />
-<Dialog when={f.asking} text="Delete this file?" onConfirm={f.delete} onCancel={f.cancel} />
+<Dialog when={f.asking} title="Delete file?" text="Delete this file?" onConfirm={f.delete} onCancel={f.cancel} />
 ```
+
+`when=` は出し入れだけをする。ノードは `view` で一度作るだけで、隠している間も残る。だから再び出た時、
+中の部品は値を持ったままで、ノード数も増えない。`Dialog` は `<Window>` の子に書くが別のウィンドウになり、
+シェルがアプリのウィンドウの上に置く。`Dialog` のウィンドウを閉じるのは `onCancel` と同じで、消えるのは
+`when` の値が変わった時である。
 
 **規則 A8（イベントは値を運ぶ）** ハンドラは必要な値だけを受け取る。ノードの ID は渡らない。
 
@@ -96,6 +107,7 @@ i32 main() { return app.run<Counter>(); }
 void (borrow Counter c) click() { ... }
 void (borrow Notes n) changed(str text) { ... }
 void (borrow Counter c) set_double(bool on) { ... }
+void (borrow Files f) select(i32 row) { ... }
 ```
 
 ## 3. 動く順番
@@ -117,13 +129,19 @@ void (borrow Counter c) set_double(bool on) { ... }
 
 ## 5. 決まっていないこと
 
-- **`when=` で消えたものの中の部品。** 再び出た時に値を残すかどうか。
 - **`items=` の型。** 今は改行区切りの `Text<N>`。`Vec` が共有値になれば置き換える（MLC-025）。
 - **シェルが読む `opens`。** シェルはまだ `opens` ではなく `open` という名前の行を探す。読み替える
   までは、`opens` を書くアプリは構造体に `@open` も付ける。
 - **属性の更新の粒度。** 全部の束縛を毎回比べるか、書き換えたフィールドで絞るか。まず全部比べる。
 
-## 6. 移行
+## 6. 決めたこと
+
+- **`when=` で消えたものの中の部品。** 値を残す（規則 A7）。消すには、作り直す仕組みと部品の結び直しが
+  要る。隠すだけなら、どちらも要らない。
+- **Terminal の子プロセスの出力。** `TextLog` のまま `terminal` へ渡す（規則 A6）。アプリにノードを渡す道は
+  作らない。
+
+## 7. 移行
 
 1. Counter を新しい形で動かす（`App`、`app.run`、値の属性）。
 2. Notes で `TextField` を固める。
