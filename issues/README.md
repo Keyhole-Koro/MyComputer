@@ -49,6 +49,7 @@
 | MLC-026 | [既存コードを値だけのモデルへ移す](tickets/MLC-026_memory-model-migration.md) | In Progress | アプリ、AppSDK、DOM を移した。OS とカーネルの unsafe はファイル単位のまま。 |
 | MLC-027 | [メモリモデルの性能（計測と最適化）](tickets/MLC-027_memory-model-performance.md) | Proposed | rc の前の基準、参照数の最適化、レジスタ割り当て、命令の追加。段階4。 |
 | MLC-028 | [構文の整理](tickets/MLC-028_syntax-cleanup.md) | Proposed | `case` の腕のブロック、使われていない予約語、DOM のハンドラ。段階5。 |
+| MLC-029 | [値を返す関数の return 抜けを検出する](completed/MLC-029_missing-return-check.md) | Done | 到達可能性の判定と E0202、戻らない関数の `@noreturn`。 |
 | MYOS-018 | [SDK / シェル分離](completed/MYOS-018_sdk-shell-separation.md) | Done | MyAppFramework を SDK だけに。`app.mln` を MyOS/src/shell へ、`ui` / `elements` をプロトタイプ + サーバ実装に。 |
 | MYOS-019 | [UI プロトコル](completed/MYOS-019_ui-protocol.md) | Done | アプリ ↔ UI サーバをメッセージ表に。段 2。 |
 | MYOS-020 | [UI サーバを自タスクに](completed/MYOS-020_ui-server-task.md) | Done | カーネルのチャネル、アプリのタスク、DOM ロック。段 3。 |
