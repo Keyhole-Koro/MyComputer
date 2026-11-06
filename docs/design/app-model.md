@@ -71,7 +71,17 @@ i32 main() { return app.run<Counter>(); }
 
 ```c
 <TextInput field={n.title} placeholder="Title" onChange={n.changed} />
+<TextArea field={e.body} name="Type here..." />
+<TextArea log={t.out} text="MyOS terminal.\n" name="output" readonly={1} />
 ```
+
+`read` が返す `str` は次の `read` まで有効。二つの部品を続けて読むなら、先の値を `Text<N>` に写す。
+
+`TextArea` の `text=` は作った時の中身で、`view` はそれ以上 DOM に書かない。
+
+子プロセスの出力は OS が DOM へ直接流すので、ノードが要る。アプリは `TextLog` のまま
+`terminal.spawn_bound(path, t.out)` に渡し、ノードへの解決は `terminal` の中だけで行う。`TextLog`
+にノードを取り出す操作は無い。Terminal の `clear` コマンドも同じ道を通る（`terminal.clear(t.out)`）。
 
 **規則 A7（構造）** 項目数が変わる部分は値として渡す。出すかどうかは `when=` で決める。
 
@@ -92,7 +102,8 @@ void (borrow Counter c) set_double(bool on) { ... }
 
 1. シェルが実行ファイルの `@app` の行を読み、ランチャーに並べる。
 2. 起動すると、プロセスの `main` から `app.run<T>()` に入る。
-3. `run` が `T::start()` で状態を作り、`view()` で画面を作る。
+3. `run` が `T::start()` で状態を作り、`view()` で画面を作る。`@timer` と `@key` を登録し、
+   `open("")` を呼ぶ。
 4. イベントが来ると、ハンドラを呼び、状態に依存する属性を更新する。
 5. 閉じると `close()` を呼んで終わる。
 
@@ -108,7 +119,8 @@ void (borrow Counter c) set_double(bool on) { ... }
 
 - **`when=` で消えたものの中の部品。** 再び出た時に値を残すかどうか。
 - **`items=` の型。** 今は改行区切りの `Text<N>`。`Vec` が共有値になれば置き換える（MLC-025）。
-- **Terminal の子プロセスの出力。** OS が DOM へ直接流すので、`TextLog` から ID を渡す道が要る。
+- **シェルが読む `opens`。** シェルはまだ `opens` ではなく `open` という名前の行を探す。読み替える
+  までは、`opens` を書くアプリは構造体に `@open` も付ける。
 - **属性の更新の粒度。** 全部の束縛を毎回比べるか、書き換えたフィールドで絞るか。まず全部比べる。
 
 ## 6. 移行
