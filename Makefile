@@ -3,7 +3,7 @@ QA_DIR := qa
 
 .PHONY: help run system build system-build screenshot readme readme-check kernel kernel-build emulator qa test qa-no-build \
 	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom qa-graphics \
-	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test apps-test framework-test dom-inspect font profile clean-qa \
+	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test apps-test framework-test dom-inspect font profile profile-tools profile-diff bench bench-save clean-qa \
 	unused-exports
 
 help:
@@ -28,7 +28,11 @@ help:
 		'  make dom-tester-test  Build the system image and run the headless MyDOMTester E2E test' \
 		'  make framework-test   Build the system image and run the app framework E2E test' \
 		'  make dom-inspect      Dump the live DOM tree (ARGS="--watch" to follow changes, needs make build first)' \
-		'  make profile ARGS="report profile.json"  Read a profile (see tools/MyProfiler)' \
+		'  make profile          Profile the boot up to the first idle and report (TOP=n for more rows)' \
+		'  make profile SOURCE=fs/fs.unsafe.mln  Show that file from the last profile with the cost of each line' \
+		'  make profile-diff     Compare the last two profiles by function (TOP=n for more rows)' \
+		'  make bench            Measure the e2e programs and compare with qa/baselines (TOP=n for more rows)' \
+		'  make bench-save       Measure the e2e programs and make that the baseline' \
 		'  make unused-exports   Report exports nothing references (ARGS="--write-allow" to rewrite the allowlist)' \
 		'' \
 		'Pass script options with ARGS="...".'
@@ -134,8 +138,38 @@ framework-test:
 dom-inspect:
 	$(PYTHON) -m system.MyOS.tests.mydomtester.inspect $(ARGS)
 
+# Instruction profiles (tools/MyProfiler). build/profile keeps the last two boots
+# and the e2e table, so none of these take a file name. `make build` does not
+# rebuild the toolchain, and measuring an old compiler would compare nothing, so
+# whatever measures rebuilds it first.
+MYPROFILER := $(PYTHON) tools/MyProfiler/myprofiler.py
+TOP_FLAG = $(if $(TOP),--top $(TOP))
+
+profile-tools:
+	$(MAKE) -C toolchain/MyLangCompiler mlc
+	$(MAKE) -C toolchain/MyAssembler
+	$(MAKE) -C toolchain/MyLinker
+	$(MAKE) -C runtime/MyEmulator
+
+ifdef SOURCE
 profile:
-	$(PYTHON) tools/MyProfiler/myprofiler.py $(ARGS)
+	$(MYPROFILER) annotate $(SOURCE)
+else
+profile: profile-tools
+	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run --headless
+	$(MYPROFILER) system
+	$(MYPROFILER) report $(TOP_FLAG)
+endif
+
+profile-diff:
+	$(MYPROFILER) diff $(TOP_FLAG)
+
+bench: profile-tools
+	$(MYPROFILER) bench
+	$(MYPROFILER) bench-diff $(TOP_FLAG)
+
+bench-save: profile-tools
+	$(MYPROFILER) bench qa/baselines/e2e-instructions.json
 
 unused-exports:
 	$(MAKE) -C toolchain/MyLangCompiler mlc

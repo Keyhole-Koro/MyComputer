@@ -35,8 +35,7 @@
 2 回測って表はバイト単位で一致した。
 
 ```bash
-python3 tools/MyProfiler/myprofiler.py bench after.json
-python3 tools/MyProfiler/myprofiler.py bench-diff qa/baselines/e2e-instructions.json after.json
+make bench
 ```
 
 合計 2,479,903,423 命令のうち 96.2% が `genericI32ToString` の 1 本で、合計だけを見ると他の
