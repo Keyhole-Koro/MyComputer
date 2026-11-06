@@ -41,8 +41,8 @@ export impl From<LoaderError> for SpawnError {
 }
 
 export impl Describe for SpawnError {
-    str (borrow Self self) describe() {
-        return case *self of {
+    str (Self self) describe() {
+        return case self of {
             SpawnError::NotFound -> "file not found";
             SpawnError::Filesystem(failure) -> failure.cause.describe();
             SpawnError::EmptyExecutable -> "not an executable";

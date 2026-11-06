@@ -18,8 +18,8 @@ export enum UiError {
 }
 
 export impl Describe for UiError {
-    str (borrow Self self) describe() {
-        return case *self of {
+    str (Self self) describe() {
+        return case self of {
             UiError::NodeNotFound(_) -> "no such element";
             UiError::WrongNodeKind(_) -> "wrong kind of element";
             UiError::InvalidIndex(_) -> "index out of range";

@@ -137,7 +137,7 @@ annotation on_close          on method of app;
 | `@sizeof(T)` | 今は `T probe; sizeof(probe)` で回避しているもの |
 
 `@tramp` だけが「コンパイラの組み込み」として残る。呼び出し規約（引数レジスタ、
-`borrow mut` が書き戻されない、等）はコンパイラの領分なので、これは正しい境界。
+`borrow` が書き戻されない、等）はコンパイラの領分なので、これは正しい境界。
 
 `@key("Ctrl+S")` の文字列→`(mods, code)` 変換は、テンプレート側では**文字列のまま表に
 入れ**、`app.mln` が起動時にパースする（`parse_key_spec` を `.mln` に移す）。コンパイル時に

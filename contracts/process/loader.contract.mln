@@ -32,8 +32,8 @@ export impl From<MmuError> for LoaderError {
 }
 
 export impl Describe for MmuError {
-    str (borrow Self self) describe() {
-        return case *self of {
+    str (Self self) describe() {
+        return case self of {
             MmuError::AllocFailed -> "out of memory";
             MmuError::InvalidDirectory -> "invalid page directory";
             MmuError::UnalignedAddress(_) -> "misaligned executable segment";
@@ -42,8 +42,8 @@ export impl Describe for MmuError {
 }
 
 export impl Describe for LoaderError {
-    str (borrow Self self) describe() {
-        return case *self of {
+    str (Self self) describe() {
+        return case self of {
             LoaderError::ProcSlotFull -> "too many processes";
             LoaderError::OutOfMemory -> "out of memory";
             LoaderError::Mmu(cause) -> cause.describe();

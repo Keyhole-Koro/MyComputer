@@ -54,7 +54,7 @@ index Node.owner;
 | `knows one` | `name()`、`set_name()`、`clear_name()` |
 | `index`、`unique` | 列の読み書き、`t_by_列()` |
 
-列は `row()` が返す `borrow mut TRow` から読み書きする。索引のある列だけは `row()` に出ず、
+列は `row()` が返す `borrow TRow` から読み書きする。索引のある列だけは `row()` に出ず、
 専用の読み書きを通す。索引を壊さないため。
 
 ID を語のまま持つコード向けに、`t_live_id()`、`t_row_id()`、`t_name_first_id()`、

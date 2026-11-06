@@ -19,8 +19,8 @@ export enum ProcessControlError {
 }
 
 export impl Describe for ProcessControlError {
-    str (borrow Self self) describe() {
-        return case *self of {
+    str (Self self) describe() {
+        return case self of {
             ProcessControlError::InvalidPid(_) -> "no such process";
             ProcessControlError::NotExited(_) -> "process is still running";
         };

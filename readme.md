@@ -23,7 +23,7 @@ struct Counter {
 /** Builds the counter window and initializes its per-instance increment step.
  * @return DOM node ID of the newly created window.
  */
-i32 (borrow mut Counter c) view() {
+i32 (borrow Counter c) view() {
     c.step = 1;
     return <Window title="Counter" x={96} y={72} w={400} h={272}>
         <Panel x={20} y={20} w={360} h={140} radius={10}>

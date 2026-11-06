@@ -18,7 +18,7 @@ so a temporary syntax error does not recolor the rest of the file.
 
 Ownership-oriented tokens are exposed through semantic tokens:
 - `ownershipRef` for `ref` and `&`
-- `ownershipMut` for `mut` and `&mut`
+- `ownershipMove` for `move`
 
 Generic declarations and named imports are supported by the LSP. In particular,
 `Vec<Node>` type arguments are highlighted as types, and uses such as

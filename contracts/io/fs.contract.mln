@@ -27,8 +27,8 @@ export enum SeekWhence {
 }
 
 export impl Describe for FsError {
-    str (borrow Self self) describe() {
-        return case *self of {
+    str (Self self) describe() {
+        return case self of {
             FsError::Disabled -> "filesystem not available";
             FsError::InvalidName -> "invalid name";
             FsError::AlreadyExists -> "already exists";
