@@ -83,7 +83,7 @@
 - [ ] `Pool`・`Table`・`Handle`・`Map`
 - [ ] move した元のゼロ化
 - [x] import での `.unsafe` の省略
-- [ ] `impl Copy` の削除
+- [x] `impl Copy` の削除
 
 ## Verification
 
