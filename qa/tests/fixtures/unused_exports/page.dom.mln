@@ -1,0 +1,10 @@
+import dom from "dom.mln";
+import lib from "lib.mln";
+
+// `Label` and `Button` are called only by these elements, through their link
+// names, and `append_child` only by the nesting.
+i32 view() {
+    return <Label text="Save?">
+        <Button text="OK" onClick={lib.pressed} />
+    </Label>;
+}

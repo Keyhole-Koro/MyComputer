@@ -17,7 +17,7 @@ on the TextMate layer instead of being forced to the generic variable color,
 so a temporary syntax error does not recolor the rest of the file.
 
 Ownership-oriented tokens are exposed through semantic tokens:
-- `ownershipRef` for `ref` and `&`
+- `ownershipBorrow` for `borrow` and `&`
 - `ownershipMove` for `move`
 
 Generic declarations and named imports are supported by the LSP. In particular,

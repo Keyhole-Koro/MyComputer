@@ -1,0 +1,8 @@
+import lib from "lib.mln";
+import table from "table.mln";
+import { instantiated, Pair } from "lib.mln";
+
+i32 main() {
+    Pair<i32> pair;
+    return lib.called() + lib.g_read + instantiated<i32>(1) + pair.first();
+}
