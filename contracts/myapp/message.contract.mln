@@ -63,7 +63,7 @@ export enum EventKind {
 // All asynchronous notifications delivered to the application runtime.
 export struct Event {
     i32 owner;
-    i32 id;
+    i32 id;           // the node as a word: NodeId in the runtime
     EventKind kind;
     i32 arg;
     i32 token;

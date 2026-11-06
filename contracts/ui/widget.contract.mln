@@ -1,12 +1,16 @@
 package ui_types;
 import { Describe } from "@std/core/describe.mln";
 
+/** A node of the UI tree. It crosses the wire as a word; zero names no node,
+ * so an ID that may be absent is an Option<NodeId>. */
+export newtype NodeId = i32;
+
 // Semantic UI errors shared by the DOM implementation and application API.
 // Transport-specific status codes do not belong here: these values cross the
 // application boundary inside Result without being translated to sentinels.
 export enum UiError {
-    NodeNotFound(i32),
-    WrongNodeKind(i32),
+    NodeNotFound(NodeId),
+    WrongNodeKind(NodeId),
     InvalidIndex(i32),
     InvalidCapacity(i32),
     OwnerTableFull(i32),

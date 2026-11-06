@@ -48,6 +48,11 @@ void idle();                    // WAIT_NOTIFICATION(EVENT)：eventが届くま�
 void exit();                    // sys_exit：EXIT を送ったあと
 ```
 
+**ノード id** は線の上では語。両端の中では `NodeId`（`contracts/ui/widget.contract.mln` の
+newtype）で、無いことがある所は `Option<NodeId>`。語との変換は `ui/protocol.mln`、
+`protocol_elements.mln`、SDK の `ui.mln` / `elements.mln` / `runtime.mln` でだけ行う。0 は
+どのノードも指さないが、「無し」の意味では使わない。
+
 **運び手：カーネルのチャネル**（`MyKernel/src/kernel/ipc.mln`）
 
 - チャネル = 24 ワード固定長メッセージ × 32 スロットのリング。要求チャネルは複数 producer だが、
@@ -75,7 +80,7 @@ void exit();                    // sys_exit：EXIT を送ったあと
 | LIST_ITEM | id, a1=row, a2=text out, a3=cap, result_out | `Result<i32, UiError>` | `ui.list_item` |
 | FOCUS / FOCUS_WINDOW | id | – | `ui.focus*` |
 | CLOSE | id | – | `ui.close`（自分で開いたダイアログ） |
-| WINDOW_OF / WINDOW_X / WINDOW_Y | id, result_out | `Result<Option<i32>, UiError>` / `Result<i32, UiError>` | `ui.window_*` |
+| WINDOW_OF / WINDOW_X / WINDOW_Y | id, result_out | `Result<Option<NodeId>, UiError>` / `Result<i32, UiError>` | `ui.window_*` |
 | SHOW | id | – | `ui.show`（ダイアログをデスクトップへ） |
 | TEST_ID | id, s0 | – | `ui.test_id` |
 | SEND_KEY | a0=type, a1=code, a2=mods | – | `ui.send_key` |
@@ -93,7 +98,7 @@ void exit();                    // sys_exit：EXIT を送ったあと
 | CREATE_TIMER | a0=interval | id | `<Timer>`、`@timer` |
 | CREATE_TEXT_AREA | s0=name, x, y, w, h, capacity, readonly, s1 | id | `<TextArea>` |
 | CREATE_LIST | s0=name, x, y, w, h, capacity, s1 | id | `<List>` |
-| APPEND_CHILD | a0=parent, a1=child | – | markup の子 |
+| APPEND_CHILD | a0=parent, a1=child | child | markup の子 |
 `x, y, w, h` は `a0..a3`。`(id)` は `a0`。ハンドラ（`onClick` 等）は**表に無い**：
 アプリの外へ出ない（§4）。
 
@@ -101,7 +106,7 @@ void exit();                    // sys_exit：EXIT を送ったあと
 
 | op | 引数 | 戻り値 | SDK側の入口 |
 | --- | --- | --- | --- |
-| OPEN | s0=path | 受けたアプリのwindow or 0 | `ui.open` |
+| OPEN | s0=path, result_out | `Result<Option<NodeId>, AppError>`（受けたアプリのwindow。起動中はNone） | `ui.open` |
 | CLAIM_KEY | s0="Ctrl+S" | token | `@key`（runtime.start） |
 | MAIN_WINDOW | a0=win | – | `@app` viewの戻り |
 | EXIT | – | – | CLOSE処理後のruntime |
@@ -159,8 +164,8 @@ void exit();                    // sys_exit：EXIT を送ったあと
 
 ## 5. 決めたこと（2026-09-21 の追記）
 
-- ノード id は再利用される（free list）。owner（pid）ごとに 96 ノードまで；超えると
-  CREATE_\* は 0 を返す
+- ノードの行は再利用される（free list）が、id は世代が進むので古い id は届かない。owner（pid）
+  ごとに 96 ノードまで；超えると CREATE_\* は `UiError::OwnerNodeLimit` を返す
 - 1 プロセス 1 インスタンス。`app_main.mln` が `@app` 行の `size` だけ `sbrk` で取る（固定上限なし）
 - イベントチャネルは 32 スロット。各 slot は text を 64 bytes inline で所有する。TIMER は「同じタイマの未消費の tick があれば積まない」
   （遅いアプリは追いつくだけで、遅れは溜まらない）。それでもあふれた分は捨てて数える
