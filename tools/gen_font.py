@@ -28,10 +28,6 @@ class FaceSpec:
     weight: int | None
     pixel_size: int
 
-    @property
-    def is_bold(self) -> bool:
-        return (self.weight or 400) >= 500
-
 
 @dataclass(frozen=True)
 class Glyph:
@@ -49,8 +45,6 @@ class FontData:
 
     line_heights: list[int] = field(default_factory=list)
     ascents: list[int] = field(default_factory=list)
-    pixel_sizes: list[int] = field(default_factory=list)
-    bold_faces: list[int] = field(default_factory=list)
     advances: list[int] = field(default_factory=list)
     bearing_x: list[int] = field(default_factory=list)
     bearing_y: list[int] = field(default_factory=list)
@@ -63,8 +57,6 @@ class FontData:
         ascent, descent = font.getmetrics()
         self.line_heights.append(ascent + descent)
         self.ascents.append(ascent)
-        self.pixel_sizes.append(spec.pixel_size)
-        self.bold_faces.append(1 if spec.is_bold else 0)
         for codepoint in range(FIRST_CODEPOINT, LAST_CODEPOINT + 1):
             self.append_glyph(rasterize_glyph(font, chr(codepoint)))
 
@@ -166,12 +158,9 @@ def module_source(font_path: Path, data: FontData) -> str:
         "// command. Metrics are in pixels at the face's own size (no UI scaling here:\n",
         "// the 2x faces exist so a 2048x1536 display gets real 2x glyphs instead of\n",
         "// blown-up 1x ones).\n\n",
-        f"i32 FACE_COUNT = {len(FACES)};\n",
         f"i32 GLYPH_COUNT = {GLYPH_COUNT};\n\n",
         int_array("face_line_h", data.line_heights),
         int_array("face_ascent", data.ascents),
-        int_array("face_px", data.pixel_sizes),
-        int_array("face_bold", data.bold_faces),
         "\n// Per glyph, indexed face * GLYPH_COUNT + (ch - 0x20).\n",
         int_array("g_adv", data.advances),
         int_array("g_bx", data.bearing_x),
@@ -182,8 +171,6 @@ def module_source(font_path: Path, data: FontData) -> str:
         "\n",
         byte_array("g_data", bytes(data.coverage)),
         """
-export i32 face_count() { return FACE_COUNT; }
-
 // Pick a face: bold selects the bold weight, scale >= 2 the 2x size.
 export i32 face_for(bool bold, i32 scale) {
     i32 f = 0;
@@ -194,7 +181,6 @@ export i32 face_for(bool bold, i32 scale) {
 
 export i32 line_height(i32 face) { return face_line_h[face]; }
 export i32 ascent(i32 face) { return face_ascent[face]; }
-export i32 pixel_size(i32 face) { return face_px[face]; }
 
 // Characters outside 0x20..0x7E draw as '?'.
 i32 glyph_index(i32 face, i32 ch) {

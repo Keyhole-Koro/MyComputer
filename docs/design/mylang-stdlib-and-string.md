@@ -90,7 +90,7 @@ The intended shape is four explicit layers:
 Const generics use explicit declarations such as `struct Text<const N>` and
 uses such as `Text<128>`. An `i32.to_string()` returns an owned `Text<12>`; formatting no longer borrows a caller-provided
 temporary array. `len` is in bytes and the encoding is UTF-8; a `chars()`
-iterator can wait, since `font8x8.mln` is ASCII.
+iterator can wait, since `font_sans.mln` is ASCII.
 
 ### Phase 2 -- owned types -- in progress
 
