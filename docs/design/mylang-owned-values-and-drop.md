@@ -27,10 +27,10 @@ Pointers, references, primitive values, enums, and borrowed `str` values do
 not participate in automatic drop. Their ordinary Copy/borrow rules still
 apply.
 
-Small struct values may opt into the same Copy behaviour with `impl Copy`.
-The compiler accepts that marker only when the struct has no `drop()` method
-and every field is itself Copy; it is therefore never a way to duplicate an
-owning `String`, Vec, or resource handle.
+A struct or array is copied when everything it holds is, with nothing to
+declare (rule V2 of `docs/design/mylang-values.md`). One that holds a `drop()`
+or a raw pointer field moves, so a copy never duplicates an owning `String`,
+Vec, or resource handle.
 
 ## 2. Declaring deterministic cleanup
 
