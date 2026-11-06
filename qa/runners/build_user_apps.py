@@ -53,9 +53,12 @@ def build_gui_app(source: Path, out_dir: Path, build_dir: Path, quiet: bool) -> 
     which finds the @app row in the image and runs the instance's event loop."""
     name = source.name[: -len(".dom.mln")]
     out = out_dir / (name + ".mbin")
+    entry = [str(USER_DIR / "lib" / "start.masm"), str(APP_MAIN)]
+    if "\ni32 main()" in source.read_text(encoding="utf-8"):
+        entry = []
     cmd = [
         sys.executable, str(QA_DIR / "runners" / "build_toolchain.py"),
-        str(USER_DIR / "lib" / "start.masm"), str(APP_MAIN), str(source),
+        *entry, str(source),
         "-o", str(out), "--build-dir", str(build_dir / name),
         "--base", USER_CODE_BASE, "--header",
     ]
