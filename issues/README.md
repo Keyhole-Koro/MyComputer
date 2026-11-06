@@ -51,6 +51,7 @@
 | MLC-028 | [構文の整理](tickets/MLC-028_syntax-cleanup.md) | Proposed | `case` の腕のブロック、使われていない予約語、DOM のハンドラ。段階5。 |
 | MLC-029 | [値を返す関数の return 抜けを検出する](completed/MLC-029_missing-return-check.md) | Done | 到達可能性の判定と E0202、戻らない関数の `@noreturn`。 |
 | MLC-030 | [引数を読む・書く・受け取るの3つにする](completed/MLC-030_parameter-modes.md) | Done | `borrow mut` と `mut` をなくした。読むのが既定で、`borrow` と `move` にだけ印を付ける。 |
+| MLC-031 | [全体の整理と未使用 export の検出](completed/MLC-031_repository-cleanup.md) | Done | `NodeId`、`Atomic<T>`、`char*` から `str`、表のモデル化、`make unused-exports`。 |
 | MYOS-018 | [SDK / シェル分離](completed/MYOS-018_sdk-shell-separation.md) | Done | MyAppFramework を SDK だけに。`app.mln` を MyOS/src/shell へ、`ui` / `elements` をプロトタイプ + サーバ実装に。 |
 | MYOS-019 | [UI プロトコル](completed/MYOS-019_ui-protocol.md) | Done | アプリ ↔ UI サーバをメッセージ表に。段 2。 |
 | MYOS-020 | [UI サーバを自タスクに](completed/MYOS-020_ui-server-task.md) | Done | カーネルのチャネル、アプリのタスク、DOM ロック。段 3。 |

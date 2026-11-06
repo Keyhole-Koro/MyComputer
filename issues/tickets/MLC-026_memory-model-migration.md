@@ -2,7 +2,7 @@
 
 | Status | Branch | Agent | Updated |
 | --- | --- | --- | --- |
-| In Progress | main | - | 2026-11-06 |
+| In Progress | main | - | 2026-11-07 |
 
 > `mylang-values.md` を採用した。共有値（MLC-025）を待たずに進められる部分を先に移した。
 
