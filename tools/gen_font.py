@@ -184,11 +184,11 @@ def module_source(font_path: Path, data: FontData) -> str:
         """
 export i32 face_count() { return FACE_COUNT; }
 
-// Pick a face: bold != 0 selects the bold weight, scale >= 2 the 2x size.
-export i32 face_for(i32 bold, i32 scale) {
+// Pick a face: bold selects the bold weight, scale >= 2 the 2x size.
+export i32 face_for(bool bold, i32 scale) {
     i32 f = 0;
     if (scale >= 2) { f = 1; }
-    if (bold != 0) { f = f + 2; }
+    if (bold) { f = f + 2; }
     return f;
 }
 
