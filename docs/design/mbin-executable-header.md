@@ -22,7 +22,7 @@
    - 初期値ゼロの変数のためにバイナリ内にゼロのパディングを含める必要がありました。
 
 これらを解決するため、軽量かつ確実なセグメント分離・メモリ保護を実現する **MBIN v2 (Executable Header)** を策定・実装しました。
-なお、エミュレータがアドレス 0 から直接起動するカーネルROM（`main_linked.mbin`）との互換性を保つため、リンカーはオプション指定時（`--header`）にヘッダを付与し、カーネルローダーはマジック番号による自動判定（ヘッダ付きバイナリ / 従来のフラットバイナリへのフォールバック）をサポートします。
+なお、エミュレータがアドレス 0 から直接起動するカーネルROM（`main_linked.mbin`）との互換性を保つため、リンカーはオプション指定時（`--header`）にヘッダを付与します。カーネルローダーが受け付けるのはヘッダ付きのイメージだけで、ヘッダのないバッファは拒否します（2026-11-07 にフラットバイナリへのフォールバックを削除。それまでは任意のファイルが RWX でマップされて実行された）。
 
 ---
 
@@ -87,7 +87,7 @@ struct MbinHeader {
 
 1. **`magic` (0x00, 4 bytes)**:
    - ASCII文字列 `"MBIN"`（`0x4D, 0x42, 0x49, 0x4E`）。
-   - ローダーは先頭4バイトを読み取り、この値に一致する場合のみヘッダ付きバイナリとして解釈します。
+   - ローダーは先頭4バイトを読み取り、この値に一致しないバッファを拒否します。
 2. **`version` (0x04, 4 bytes)**:
    - ヘッダフォーマットのバージョン番号。現在は `1`。
 3. **`entry_point` (0x08, 4 bytes)**:
@@ -129,9 +129,9 @@ Virtual Address Space:
 |                        |
 +------------------------+ data_vaddr + align_4k(data_size)
 | Data / BSS Segment     | PTE: 0x0B (VALID | WRITABLE | USER) [RW, No-Exec]
-+------------------------+ data_vaddr = 0x40000000 + align_4k(text_size)
++------------------------+ data_vaddr = code_base + align_4k(text_size)
 | Text (Code) Segment    | PTE: 0x0D (VALID | EXEC | USER)     [RX, No-Write]
-+------------------------+ 0x40000000 (USER_CODE_BASE)
++------------------------+ code_base = entry_point & ~0xFFF
 ```
 
 ### パーミッション設計のセキュリティ効果
@@ -154,7 +154,7 @@ Virtual Address Space:
 リンカーに `--header` オプションが指定された場合、リンカーは以下の処理を行います：
 
 1. **Textセクション仮想アドレス**:
-   - `text_base_addr = base_addr` (通常 `0x40000000`)
+   - `text_base_addr = base_addr` (ユーザープログラムは `0x00020000`、`qa/runners/build_user_apps.py`)
 2. **Dataセクション仮想アドレス**:
    - Textセクションの終端を 4096 バイト境界に切り上げます：
      $$\text{data\_base\_addr} = (\text{text\_base\_addr} + \text{total\_text\_size} + 4095) \ \& \ \sim 4095$$
@@ -178,18 +178,18 @@ mllinker [--map <map_file>] [--base <hex_addr>] [--header] <output.bin> <input1.
 
 1. **ヘッダ検証**:
    - バイナリの先頭 4 バイトを読み取り、`0x4D42494E` と比較します。
-   - 一致しない場合：従来のフラットバイナリとして `USER_CODE_BASE` (0x40000000) に `PTE_USER_RWX` でロード（後方互換性維持）。
+   - 32 バイトに満たない、または一致しない場合：`LoaderError::InvalidHeader(0)` で拒否。
    - 一致する場合：
-     - バージョン確認（`version == 1`）。
+     - バージョン確認（`version` が 1 か 2）。違えば `LoaderError::InvalidHeader(version)`。
      - 各セクションのサイズ・オフセットが入力バッファの範囲内か境界検査。
 2. **ページテーブル設定**:
    - ユーザープロセスの Page Directory を作成し、カーネル空間（RAM, MMIO, VRAM）をアイデンティティマップ。
 3. **Textセクションのマッピング (RX)**:
-   - 仮想アドレス `USER_CODE_BASE` (0x40000000) から `text_size` バイト分の物理フレームを確保。
+   - 仮想アドレス `code_base`（`entry_point & ~0xFFF`、リンクされたベース）から `text_size` バイト分の物理フレームを確保。
    - ファイルの `text_offset` からデータをコピー。
    - PTE フラグに `PTE_USER_RX` (`0x0D`) を設定。
 4. **Dataセクションのマッピング (RW)**:
-   - `data_size > 0` の場合、仮想アドレス `USER_CODE_BASE + align_4k(text_size)` から `data_size` バイト分の物理フレームを確保。
+   - `data_size > 0` の場合、仮想アドレス `code_base + align_4k(text_size)` から `data_size` バイト分の物理フレームを確保。
    - ファイルの `data_offset` からデータをコピー。
    - PTE フラグに `PTE_USER_RW` (`0x0B`) を設定。
 5. **BSSセクションのゼロクリア**:
@@ -238,7 +238,7 @@ C言語スタイルのマジックナンバー（`-1` や `0/NULL` 戻り値）�
         OutOfMemory,         // メモリ不足 (ページディレクトリ / フレーム / スタック確保失敗)
         MmuInvalidDir,       // MMU内部エラー: 不正なページディレクトリ (pd == 0)
         MmuUnaligned(i32),   // MMU内部エラー: アドレスのアライメント不正 (不正アドレス)
-        InvalidHeader(i32),  // MBINヘッダ無効または未サポートバージョン (不正なバージョン番号)
+        InvalidHeader(i32),  // MBINヘッダなし (0) または未サポートバージョン (不正なバージョン番号)
         InvalidBounds(i32),  // セクション境界がバッファサイズを超過 (バッファサイズ)
         SpawnTaskFailed,     // スケジューラタスク生成失敗
     }

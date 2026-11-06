@@ -66,7 +66,7 @@ typedef struct {
     i32 state;            // PROC_UNUSED, PROC_READY, PROC_RUNNING, PROC_BLOCKED, PROC_ZOMBIE
     i32 page_directory;   // Physical address of the root Page Directory (PDBR)
     i32 kernel_stack_top; // Physical top of this process's dedicated kernel stack (for KERNEL_SP)
-    i32 user_entry;       // Virtual entry point (typically 0x40000000)
+    i32 user_entry;       // Virtual entry point, from the MBIN header
     i32 user_sp;          // Saved User Stack Pointer
     i32 heap_break;       // Current User Heap break pointer (starts at 0x41000000)
     i32 exit_code;        // Return code when state == PROC_ZOMBIE
@@ -170,17 +170,17 @@ pass their records as raw addresses.
 3. **Create Page Directory:** 
    * `pd = mmu.create_page_directory();`
    * `mmu.setup_identity_kernel_mapping(pd);` (kernel is protected with `U=0`).
-4. **Load Code Pages (`0x40000000`):**
-   * Reads file size.
+4. **Load Code Pages:**
+   * Reads file size and refuses a file without an MBIN header (`docs/design/mbin-executable-header.md`).
    * Allocates physical frames `mmu.alloc_page()` for every 4 KB of code/data.
    * Reads executable contents into allocated physical frames.
-   * Maps virtual addresses `0x40000000 .. 0x40000000 + size` with `PTE_VALID | PTE_WRITABLE | PTE_EXEC | PTE_USER`.
+   * Maps text at the page of the header's `entry_point` with `PTE_VALID | PTE_EXEC | PTE_USER`, and data and BSS after it with `PTE_VALID | PTE_WRITABLE | PTE_USER`.
 5. **Allocate Stack Pages (`0x7FFF0000 .. 0x7FFFFFFF`):**
    * Allocates physical stack frame.
    * Maps virtual address `0x7FFF0000` with `PTE_VALID | PTE_WRITABLE | PTE_USER`.
 6. **Initialize Process State:**
    * `proc.user_sp = 0x7FFFFFE0;`
-   * `proc.user_entry = 0x40000000;`
+   * `proc.user_entry = entry_point;`
    * `proc.heap_break = 0x41000000;`
    * `proc.state = PROC_READY;`
 
@@ -190,9 +190,9 @@ To jump into user space safely:
 2. Set `KERNEL_SP` MMIO register to `proc.kernel_stack_top`.
 3. Set CPU registers:
    * Set user stack pointer `sp = proc.user_sp`.
-   * Push fake return `PC` (`0x40000000`) and `SR` (`SR_USER | SR_IE = 0x21`) onto the kernel stack.
+   * Push fake return `PC` (the entry point) and `SR` (`SR_USER | SR_IE = 0x21`) onto the kernel stack.
 4. Execute `iret`.
-5. The CPU automatically transitions to User Mode (`SR[5] = 1`), loads `PC = 0x40000000`, and executes the user binary.
+5. The CPU automatically transitions to User Mode (`SR[5] = 1`), loads the entry point into `PC`, and executes the user binary.
 
 ### 3. Trapping on Syscall & Returning
 1. User code executes `syscall`.
