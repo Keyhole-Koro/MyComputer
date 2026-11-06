@@ -2,7 +2,7 @@
 
 | Status | Branch | Agent | Updated |
 | --- | --- | --- | --- |
-| In Progress | main | claude-code:opus-5.5 | 2026-10-12 |
+| Done | main | - | 2026-11-06 |
 
 ## Summary
 
@@ -39,14 +39,14 @@
   計測：対象 118 ファイル中 57 ファイル、約 2000 件。多いのは
   `apps/files.dom.mln` 243、`ui/dom/dom.mln` 221、`dom_widgets.mln` 207、
   `dom_render.mln` 151、`shell/app.mln` 124、`apps/terminal.dom.mln` 108。
-- [ ] 段階 2：移行。receiver と API を `borrow` / `borrow mut` に置き換え、残る生ポインタ操作
+- [x] 段階 2：移行（2026-11-06）。receiver と API を `borrow` / `borrow mut` に置き換え、残る生ポインタ操作
   （ヒープ、MMIO、ページテーブル、syscall のユーザーメモリ、DOM のノード表など）を
   小さな `.unsafe.mln` に切り出す。trait の receiver（`Self *self`）、std の
   `iter()` が返す `T *` も対象。
   - [x] std の `Vec` / `Slice` / `HashMap`：receiver を `borrow` / `borrow mut` に、
     `at()` / `get()` を `Option<borrow T>` に。書き込み用に `at_mut()` /
     `get_mut()`（`Option<borrow mut T>`）を追加（2026-10-12）。
-- [ ] 段階 3：W0003 をエラーにする。
+- [x] 段階 3：W0003 を E0701 のエラーにした（2026-11-06）。`T*` という型、`str` の置き場所、`@safe`（規則 U4、U5）も同時に入れた。
 - [x] `unchecked { }` ブロックを削除（2026-10-12）。ファイル単位の `.unsafe.mln` に
   一本化。`&` は常に借用になった（以前はブロック内だけ生のアドレス）。
 - [x] キーワード `ref` を `borrow` に改名（2026-10-12）。DOM の `ref={...}` 属性

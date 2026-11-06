@@ -19,7 +19,7 @@ export enum ProcessControlError {
 }
 
 export impl Describe for ProcessControlError {
-    char *(Self *self) describe() {
+    str (borrow Self self) describe() {
         return case *self of {
             ProcessControlError::InvalidPid(_) -> "no such process";
             ProcessControlError::NotExited(_) -> "process is still running";

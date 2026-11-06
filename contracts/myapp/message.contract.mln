@@ -35,6 +35,9 @@ export struct Request {
     // with the reply. This is operation-independent.
     i32 result_out;
     i32 result_size;
+    // Byte lengths of s0 and s1: strings cross as views, not NUL-terminated.
+    i32 s0_len;
+    i32 s1_len;
 };
 
 // Sticky wake reasons used by the application transport. A failed nonblocking

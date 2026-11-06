@@ -112,7 +112,7 @@ def main():
     )
     parser.add_argument(
         "--source",
-        help="Path to the MyLang entry source to build and run. Defaults to system/MyOS/src/boot/main.mln",
+        help="Path to the MyLang entry source to build and run. Defaults to system/MyOS/src/boot/main.unsafe.mln",
     )
     parser.add_argument(
         "--stub",
@@ -130,7 +130,7 @@ def main():
 
     # System bring-up lives in MyOS: it starts the DOM, filesystem, compositor
     # and apps, and only hands the kernel its own init calls along the way.
-    kernel_source = Path(args.source).resolve() if args.source else MYOS_DIR / "src" / "boot" / "main.mln"
+    kernel_source = Path(args.source).resolve() if args.source else MYOS_DIR / "src" / "boot" / "main.unsafe.mln"
     kernel_stub = Path(args.stub).resolve() if args.stub else MYOS_DIR / "src" / "boot" / "stub.masm"
     linked_bin = build_dir / f"{kernel_source.stem}_linked.mbin"
     build_toolchain = QA_DIR / "runners" / "build_toolchain.py"

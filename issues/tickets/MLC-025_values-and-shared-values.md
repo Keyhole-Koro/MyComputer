@@ -2,11 +2,10 @@
 
 | Status | Branch | Agent | Updated |
 | --- | --- | --- | --- |
-| Blocked | - | - | 2026-11-05 |
+| Proposed | - | - | 2026-11-06 |
 
-> メモリモデルの候補が2つある（`docs/design/mylang-values.md` と
-> `docs/design/mylang-objects.md`）。このチケットは前者に沿って書いてある。後者を採る場合は
-> 書き直す。決まるまで着手しない。
+> `docs/design/mylang-values.md` を採用した（2026-11-06）。import での `.unsafe` の省略は実装済み。
+> `Pool`・`Handle` の役割はモデル拡張（`mylang-model.md`）が持つ。
 
 ## Summary
 
@@ -83,7 +82,7 @@
 - [ ] グローバルの借用の保持
 - [ ] `Pool`・`Table`・`Handle`・`Map`
 - [ ] move した元のゼロ化
-- [ ] import での `.unsafe` の省略
+- [x] import での `.unsafe` の省略
 - [ ] `impl Copy` の削除
 
 ## Verification

@@ -91,12 +91,12 @@ def main():
     build_dir = REPO_ROOT / "build"
     build_dir.mkdir(parents=True, exist_ok=True)
 
-    fw_source = MYFIRMWARE_DIR / "src" / "fw" / "main.mln"
+    fw_source = MYFIRMWARE_DIR / "src" / "fw" / "main.unsafe.mln"
     fw_stub = MYFIRMWARE_DIR / "src" / "boot" / "stub.masm"
     fw_bin = build_dir / "firmware_linked.mbin"
 
-    # The entry point is MyOS's: see system/MyOS/src/boot/main.mln.
-    kernel_source = MYOS_DIR / "src" / "boot" / "main.mln"
+    # The entry point is MyOS's: see system/MyOS/src/boot/main.unsafe.mln.
+    kernel_source = MYOS_DIR / "src" / "boot" / "main.unsafe.mln"
     kernel_stub = MYOS_DIR / "src" / "boot" / "stub.masm"
     kernel_bin = build_dir / "kernel_linked.mbin"
 
@@ -124,7 +124,7 @@ def main():
         cmd=[
             sys.executable, build_toolchain,
             repo / "system/MyFirmware/src/boot/stub.masm",
-            repo / "system/MyFirmware/src/fw/main.mln",
+            repo / "system/MyFirmware/src/fw/main.unsafe.mln",
             repo / "system/MyFirmware/src/fw/jump.masm",
             "-o", fw_bin,
             "--build-dir", build_dir
@@ -161,7 +161,7 @@ def main():
     # Console programs go to /bin, desktop apps to /apps (the shell lists
     # the executables in /apps at boot; the spawn path searches both).
     # The firmware loads KERNEL_BLOCKS blocks of the kernel image (see
-    # system/MyFirmware/src/fw/main.mln); a bigger image boots half-loaded.
+    # system/MyFirmware/src/fw/main.unsafe.mln); a bigger image boots half-loaded.
     KERNEL_BLOCKS = 16
     kernel_size = kernel_bin.stat().st_size
     if kernel_size > KERNEL_BLOCKS * 65536:

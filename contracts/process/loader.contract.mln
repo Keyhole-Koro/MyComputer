@@ -32,7 +32,7 @@ export impl From<MmuError> for LoaderError {
 }
 
 export impl Describe for MmuError {
-    char *(Self *self) describe() {
+    str (borrow Self self) describe() {
         return case *self of {
             MmuError::AllocFailed -> "out of memory";
             MmuError::InvalidDirectory -> "invalid page directory";
@@ -42,7 +42,7 @@ export impl Describe for MmuError {
 }
 
 export impl Describe for LoaderError {
-    char *(Self *self) describe() {
+    str (borrow Self self) describe() {
         return case *self of {
             LoaderError::ProcSlotFull -> "too many processes";
             LoaderError::OutOfMemory -> "out of memory";

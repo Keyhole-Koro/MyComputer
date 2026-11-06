@@ -43,10 +43,10 @@
 | MLC-020 | [ABI透過な不透明newtype](tickets/MLC-020_opaque-newtypes.md) | Proposed | Pid、Fd、NodeId等を基底scalarと同じABIのnominal typeにする。 |
 | MLC-021 | [trait と `?` のエラー変換](completed/MLC-021_traits-and-try-conversion.md) | Done | trait/impl/境界、`?`→From、`==`→Eq、for-in→Iterator、`impl Drop`、デフォルト実装、ジェネリック impl、struct/enum の境界を実装済み（`dyn Trait` は実装後に削除）。 |
 | MLC-022 | [Result エラーの伝播経路トレース](completed/MLC-022_error-return-trace.md) | Done | `mlc --error-trace` で `return Err` の起点と `?` の各地点（From 変換を含む）を `@std/debug/error_trace.mln` に記録する。フラグなしではコードを出さない。 |
-| MLC-023 | [`.unsafe.mln` と生ポインタの分離](tickets/MLC-023_unsafe-sources.md) | In Progress | `.safe` を廃止し `.unsafe.mln` を導入。checked のファイルの生ポインタ操作は W0003（警告）。57 ファイル・約 2000 件の移行が残る。 |
+| MLC-023 | [`.unsafe.mln` と生ポインタの分離](tickets/MLC-023_unsafe-sources.md) | Done | 生ポインタは `.unsafe.mln` のみ。E0701、E0702、`@safe`、import の `.unsafe` 省略まで実装済み。 |
 | MLC-024 | [借用検査の穴を塞ぐ](completed/MLC-024_borrow-check-holes.md) | Done | 共有借用を通した書き込み、借用中の元の変更、ループの中の move を E0601〜E0605 で止め、借用の生ポインタ化を W0003 にした。データだけの struct は自動でコピー。メモリモデルの段階1。 |
-| MLC-025 | [値だけのメモリモデル（共有値、Box、プール）](tickets/MLC-025_values-and-shared-values.md) | Blocked | 段階2。メモリモデルの候補が2つあり、決まるまで待ち。 |
-| MLC-026 | [既存コードを値だけのモデルへ移す](tickets/MLC-026_memory-model-migration.md) | Blocked | 段階3。同上。 |
+| MLC-025 | [値だけのメモリモデル（共有値、Box、プール）](tickets/MLC-025_values-and-shared-values.md) | Proposed | 段階2。メモリモデルの候補が2つあり、決まるまで待ち。 |
+| MLC-026 | [既存コードを値だけのモデルへ移す](tickets/MLC-026_memory-model-migration.md) | In Progress | アプリ、AppSDK、DOM を移した。OS とカーネルの unsafe はファイル単位のまま。 |
 | MLC-027 | [メモリモデルの性能（計測と最適化）](tickets/MLC-027_memory-model-performance.md) | Proposed | rc の前の基準、参照数の最適化、レジスタ割り当て、命令の追加。段階4。 |
 | MLC-028 | [構文の整理](tickets/MLC-028_syntax-cleanup.md) | Proposed | `case` の腕のブロック、使われていない予約語、DOM のハンドラ。段階5。 |
 | MYOS-018 | [SDK / シェル分離](completed/MYOS-018_sdk-shell-separation.md) | Done | MyAppFramework を SDK だけに。`app.mln` を MyOS/src/shell へ、`ui` / `elements` をプロトタイプ + サーバ実装に。 |

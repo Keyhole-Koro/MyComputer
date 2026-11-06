@@ -27,7 +27,7 @@ export enum SeekWhence {
 }
 
 export impl Describe for FsError {
-    char *(Self *self) describe() {
+    str (borrow Self self) describe() {
         return case *self of {
             FsError::Disabled -> "filesystem not available";
             FsError::InvalidName -> "invalid name";
