@@ -16,14 +16,14 @@ markup builds the window, and the fields hold each launch's state.
 struct Counter {
     i32 clicks;
     i32 step;
-    i32 label;
+    NodeId label;
 };
 
 @app
 /** Builds the counter window and initializes its per-instance increment step.
  * @return DOM node ID of the newly created window.
  */
-i32 (borrow Counter c) view() {
+NodeId (borrow Counter c) view() {
     c.step = 1;
     return <Window title="Counter" x={96} y={72} w={400} h={272}>
         <Panel x={20} y={20} w={360} h={140} radius={10}>

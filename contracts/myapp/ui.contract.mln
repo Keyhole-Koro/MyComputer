@@ -23,13 +23,13 @@ export enum UiOp {
     FOCUS,             // (id)
     FOCUS_WINDOW,      // (id)
     CLOSE,             // (id) -- a window the app opened itself
-    WINDOW_OF,         // (id) -> Result<Option<i32>, UiError>
+    WINDOW_OF,         // (id) -> Result<Option<NodeId>, UiError>
     WINDOW_X,          // (id) -> Result<i32, UiError>
     WINDOW_Y,          // (id) -> Result<i32, UiError>
     SHOW,              // (id) -- mount a window on the desktop
     TEST_ID,           // (id, s0)
     SEND_KEY,          // (a0 = type, a1 = code, a2 = mods)
-    // elements.mln --- creation writes Result<i32, UiError> to result_out
+    // elements.mln --- creation writes Result<NodeId, UiError> to result_out
     CREATE_WINDOW,     // (s0 = title, x, y, w, h, s1 = testId)
     CREATE_BUTTON,     // (s0 = text, x, y, w, h, s1)
     CREATE_PRIMARY_BUTTON,
@@ -45,5 +45,5 @@ export enum UiOp {
     CREATE_TIMER,      // (a0 = interval) -- ticks are TIMER events
     CREATE_TEXT_AREA,  // (s0 = name, x, y, w, h, capacity, readonly, s1)
     CREATE_LIST,       // (s0 = name, x, y, w, h, capacity, s1)
-    APPEND_CHILD,      // (a0 = parent, a1 = child)
+    APPEND_CHILD,      // (a0 = parent, a1 = child) -> the child
 };
