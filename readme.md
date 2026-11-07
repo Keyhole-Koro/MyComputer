@@ -29,7 +29,7 @@ impl App for Counter {
     Self start() { return Counter { step: 1 }; }
 
     View (Self c) view() {
-        return <Window title="Counter" x={96} y={72} w={400} h={272}>
+        return <Window title="Counter" w={400} h={272}>
             <Panel x={20} y={20} w={360} h={140} radius={10}>
                 <Column x={20} y={16} w={320} h={110} gap={10}>
                     <Label text="A window, a panel, two buttons." color={ui.TEXT_SECONDARY} />

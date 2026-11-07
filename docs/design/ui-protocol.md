@@ -31,13 +31,13 @@ i32 request(Request *m);        // OS_CALL(REQUEST) → OS_CALL(REPLY) を待つ
   要求が作るノードはすべて pid に所有される（サーバは `handle()` の間だけ `dom.current_owner`
   をこれにする）。イベントの `owner` も pid
 - 文字列（`s0` ≤ 1024、`s1` ≤ 128）はカーネルがプロセスごとのバッファにコピーし、サーバは
-  さらに自分のコピー（`dom.set_text_copy`、node の name）を持つ。出力バッファ（TEXT_COPY /
-  LIST_ITEM の `out`、≤ 4096）はカーネル側のバッファに書かせ、返事のときにユーザメモリへ
-  コピーバックする。**サーバのポインタをアプリに返す要求は無い**
-- `LIST_SELECTED` / `LIST_ITEM`のtyped resultもprocessごとのkernel bufferへ書き、gatewayが
-  同じ`Result<..., UiError>`をcopy-outする。選択なしは`Ok(None)`で、負数sentinelへの変換はない。
-- `SET_TEXT_FMT` は使われない：書式つきの属性はアプリ側で整形して SET_TEXT を送る
-  （`%s` の引数はプロセスのポインタで、サーバには読めない）
+  さらに自分のコピー（`dom.set_text_copy`、node の name）を持つ。出力バッファ（TEXT_COPY の
+  `out`、≤ 4096）はカーネル側のバッファに書かせ、返事のときにユーザメモリへコピーバックする。
+  **サーバのポインタをアプリに返す要求は無い**
+- typed resultもprocessごとのkernel bufferへ書き、gatewayが同じ`Result<..., UiError>`を
+  copy-outする。
+- 書式つきの属性はアプリ側で整形して SET_TEXT を送る（`%s` の引数はプロセスのポインタで、
+  サーバには読めない）
 
 **イベント**（サーバ → アプリ、非同期）
 
@@ -74,8 +74,6 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | --- | --- | --- | --- |
 | SET_TEXT | id, s0 | – | `<Label text={...}>` の属性 |
 | TEXT_COPY | id, a1=out, a2=cap, result_out | `Result<i32, UiError>` | `TextField.read`（サーバのポインタは返さない。`text_of` は無い） |
-| SET_TEXT_FMT | id, s0=fmt, a1, a2 | – | – |
-| IS_CHECKED | id, result_out | `Result<bool, UiError>` | `ui.is_checked` |
 | SET_CHECKED | id, a1 | – | `ui.set_checked` |
 | INPUT_SET | id, s0 | – | `ui.input_set` |
 | AREA_APPEND / AREA_CLEAR / AREA_LINES | id, (s0), result_out for AREA_LINES | (– / `Result<i32, UiError>`) | `ui.area_*` |
@@ -85,7 +83,7 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | TEST_ID | id, s0 | – | `ui.test_id` |
 | SEND_KEY | a0=type, a1=code, a2=mods | – | `ui.send_key` |
 | RGB | a0, a1, a2 | 色 | `ui.rgb` |
-| CREATE_WINDOW | s0=title, x, y, w, h, s1=testId | id | `<Window>` |
+| CREATE_WINDOW | s0=title, w, h, s1=testId | id | `<Window>`（位置はシェルが決める） |
 | CREATE_BUTTON / CREATE_PRIMARY_BUTTON | s0=text, x, y, w, h, s1 | id | `<Button>` / `<PrimaryButton>` |
 | CREATE_TEXT | s0, x, y, s1 | id | `<Text>` |
 | CREATE_LABEL | s0, x, y, color, bold, s1 | id | `<Label>` |
@@ -107,7 +105,7 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | op | 引数 | 戻り値 | SDK側の入口 |
 | --- | --- | --- | --- |
 | OPEN | s0=path, result_out | `Result<Option<NodeId>, AppError>`（受けたアプリのwindow。起動中はNone） | `ui.open` |
-| CLAIM_KEY | s0="Ctrl+S" | token | `@key`（runtime.start） |
+| CLAIM_KEY | s0="Ctrl+S" | token | `@key`（`runtime.start_annotations`） |
 | MAIN_WINDOW | a0=win | – | `@app` viewの戻り |
 | EXIT | – | – | CLOSE処理後のruntime |
 | SHOW_DIALOG | a0=win | – | `Dialog_when`。シェルがアプリのウィンドウの上に置く |
@@ -129,7 +127,7 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
   `ipc/events` の順でチャネルに積む。UI domain coreはtransportをimportしない。サーバ自身の
   ノード（タスクバー、メニュー、時計）は従来どおり
   サーバ内の関数ポインタ（`push_event`）。**アプリのノードに関数ポインタは無い**
-- CLOSE を受けたアプリは `@on_close` を走らせてから EXIT を送り、自分で終わる。ノードと
+- CLOSE を受けたアプリは `close` を走らせてから EXIT を送り、自分で終わる。ノードと
   key claim はプロセスが終わった後の共通の解放（`console.sweep`）で消える（順序が保証される）
 
 ## 4. 両端
@@ -140,12 +138,13 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
   `lifecycle.contract.mln`がdomain別op
 - `runtime/transport.mln`がMyStdLib `platform/myos`のsyscall bindingで運ぶ
 - `runtime/runtime.mln`：
-  - ハンドラ表 `(owner, key, kind) → fn`。`elements` のスタブが `onClick` 等を `on(id, kind, fn)` で登録
-  - `start(self, type)`：`@app` の view を呼び、`@timer` → CREATE_TIMER + 登録、`@key` → CLAIM_KEY + 登録、
-    `@open` / `@on_close` → 登録。**アノテーションの意味はここ**（シェルが知るのは `@app` と「`@open` を持つか」だけ）
-  - `pump()`：`poll` で取ったイベントを `fn(owner, id, arg)`（OPEN は `fn(owner, path)`）で配る。
-  `run()` = `pump(); idle();` のループ。空の POLL が通知を arm し、`idle()` は event が
-  enqueue されるまで task を block する
+  - ハンドラ表 `(key, kind) → fn`。`elements` のスタブが `onClick` 等を `on_event(id, kind, fn)` などで
+    登録する。どの形で呼ぶかはイベントが運ぶ値で決まる
+  - `start_annotations()`：`@timer` → CREATE_TIMER + 登録、`@key` → CLAIM_KEY + 登録。
+    **アノテーションの意味はここ**（シェルが知るのは `@app` の行だけ）
+  - `next()`：`poll` で取ったイベントを 1 つ配り、OPEN と CLOSE は `app.run` へ返す。`app.run` は
+    `next()` と `idle()` のループ。空の POLL が通知を arm し、`idle()` は event が enqueue される
+    まで task を block する
 
 **provider**（`MyOS/src/syscall`, `ipc`, `ui`, `shell`, `fs`, `proc`）
 - `ipc/gateway.mln`：user-memory copy、REQUEST / REPLY / POLL
@@ -162,7 +161,7 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
   終わらせ、イベント・ノード・key claim・コンソール・gateway slot を解放して `Released`
   にする。slot は最後に、reap で解放する。DOM に触るのでサーバのタスクでしか走らない（reap の
   syscall は割り込み禁止で動き、サーバが保持したままの DOM ロックを待てない）
-- 「OS → SDK」の呼び出しは無い。`runtime/app_main.mln`（SDK）がプロセスの `main`
+- 「OS → SDK」の呼び出しは無い。アプリの `main` が `app.run` に入る
 - **DOM ロック**（`dom.lock` / `unlock`）：サーバのタスクが 1 パスの間持ち、sleep の前に手放す。
   automation のダンプが取る。待ちがいれば unlock はロックを**手渡す**（サーバがすぐ取り直して
   ダンプが飢えないように）。アプリのタスクは DOM に触らないので取らない
@@ -173,7 +172,7 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 
 - ノードの行は再利用される（free list）が、id は世代が進むので古い id は届かない。owner（pid）
   ごとに 96 ノードまで；超えると CREATE_\* は `UiError::OwnerNodeLimit` を返す
-- 1 プロセス 1 インスタンス。`app_main.mln` が `@app` 行の `size` だけ `sbrk` で取る（固定上限なし）
+- 1 プロセス 1 インスタンス。状態は `app.run` が持つ
 - イベントチャネルは 32 スロット。各 slot は text を 64 bytes inline で所有する。TIMER は「同じタイマの未消費の tick があれば積まない」
   （遅いアプリは追いつくだけで、遅れは溜まらない）。それでもあふれた分は捨てて数える
   （MyOS `ipc/events.mln` の `dropped()`）

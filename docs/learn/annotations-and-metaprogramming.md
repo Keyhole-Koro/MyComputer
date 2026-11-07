@@ -184,16 +184,16 @@ annotation on_close          on method of app;
 
 ```mylang
 // annotations.mln — Java の @interface 相当。呼ばれない
-export void timer(i32 fn, char *type, i32 size, i32 ms);
+export void timer(i32 ms);
 
 @timer(100)
-void (Terminal *t) poll() { ... }
-// → コンパイラが terminal___annotations() の表に 1 行:
-//    ["timer", Terminal__poll, "Terminal", sizeof(Terminal), 1, 100, 0, 0]
+void (borrow Terminal t) poll() { ... }
+// → コンパイラがモジュールの表に 1 行:
+//    ["timer", Terminal__poll, "Terminal", 1, 100, 0, 0]
 ```
 
 - **mlc**：`@a(x)` を宣言（同ファイル / symbol-list import）と照合し、モジュールの
-  `annotations` 束ねセクションに 8 ワード × 行の**静的データ**を出す。関数は呼ばない、
+  `annotations` 束ねセクションに 7 ワード × 行の**静的データ**を出す。関数は呼ばない、
   名前の意味も知らない
 - **リンカ**：全オブジェクトの `annotations` チャンクを 1 本のセクションに物理連結し、
   `__sections` ディレクトリに名前で載せる（`docs/design/toolchain-collected-sections.md`）。

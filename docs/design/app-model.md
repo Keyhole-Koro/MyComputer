@@ -1,10 +1,8 @@
 # アプリのモデル：状態、宣言、反映
 
-**Status:** Draft 1（2026-11-07）。実装前。
+**Status:** 実装済み（2026-11-07）。
 
 **Scope:** アプリの入口、`@app` の役割、画面の宣言と更新、イベント、アプリと DOM の境界
-
-**Supersedes:** `system/MyAppFramework/docs/APP_FRAMEWORK.md` の `@app`、`ref=`、ハンドラの節
 
 ---
 
@@ -43,8 +41,19 @@ export trait App {
 i32 main() { return app.run<Counter>(); }
 ```
 
-`@key` と `@timer` は、キーや周期というデータなので注釈のまま残す。`@open` と `@on_close` は
-`App` のメソッドになる。
+`@key` と `@timer` は、キーや周期というデータなので注釈でメソッドに付ける。他アプリからのパスと
+閉じる時の後始末は `App` の `open` と `close` で受ける。
+
+```c
+@app(name = "Editor", single, opens)
+struct Editor { ... };
+
+@key("Ctrl+S")
+void (borrow Editor e) save() { ... }
+```
+
+注釈のプロトタイプは自分の引数だけを持つ（`export void timer(i32 ms);`）。行に残る関数番地は、
+`run` が `@timer` と `@key` のメソッドを呼ぶためのもので、`struct` の行では 0 である。
 
 ## 2. 状態と画面
 
@@ -121,30 +130,10 @@ void (borrow Files f) select(i32 row) { ... }
 
 アプリは 1 プロセスに 1 つなので、状態は `run` が持つ。
 
-## 4. 消えるもの
+ウィンドウの位置はアプリが決めない。`<Window>` に `x` と `y` は無く、シェルが新しいウィンドウを一段ずつ
+ずらして置く。
 
-`ref=`、アプリの `NodeId` のフィールド、`refresh()`、`ui.is_checked`、`text_copy`、ハンドラの
-`NodeId id`、`app_main` の `sbrk` とゼロ埋め、`@open`、`@on_close`、注釈の関数番地と `size`、
-`<Window>` の `x` と `y`。
-
-## 5. 決まっていないこと
+## 4. 決まっていないこと
 
 - **`items=` の型。** 今は改行区切りの `Text<N>`。`Vec` が共有値になれば置き換える（MLC-025）。
-- **シェルが読む `opens`。** シェルはまだ `opens` ではなく `open` という名前の行を探す。読み替える
-  までは、`opens` を書くアプリは構造体に `@open` も付ける。
-- **属性の更新の粒度。** 全部の束縛を毎回比べるか、書き換えたフィールドで絞るか。まず全部比べる。
-
-## 6. 決めたこと
-
-- **`when=` で消えたものの中の部品。** 値を残す（規則 A7）。消すには、作り直す仕組みと部品の結び直しが
-  要る。隠すだけなら、どちらも要らない。
-- **Terminal の子プロセスの出力。** `TextLog` のまま `terminal` へ渡す（規則 A6）。アプリにノードを渡す道は
-  作らない。
-
-## 7. 移行
-
-1. Counter を新しい形で動かす（`App`、`app.run`、値の属性）。
-2. Notes で `TextField` を固める。
-3. Files で `items=` と `when=` を固める。
-4. Editor と Terminal を移す。
-5. `ref=`、`@open`、`@on_close`、`app_main` の生ポインタを消す。
+- **属性の更新の粒度。** 全部の束縛を毎回比べるか、書き換えたフィールドで絞るか。今は全部比べる。

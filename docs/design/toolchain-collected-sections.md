@@ -126,16 +126,15 @@ TU で実体化される。本体が呼ぶ `start`/`size` は非公開のまま�
 ### `meta/annotations.mln` — アノテーション行のイテレータ
 
 mlc は `@a(args)` を検査したうえで、モジュールごとに `annotations` セクションへ
-**8 ワード × 行**を出す（`codegen_annotations.c`）：
+**7 ワード × 行**を出す（`codegen_annotations.c`）：
 
 | ワード | 内容 |
 | --- | --- |
 | 0 | アノテーション名（`char*`） |
-| 1 | 付けられた関数 |
+| 1 | 付けられた関数（`struct` は 0） |
 | 2 | レシーバ型名（`char*`、プレーン関数は `""`） |
-| 3 | その型の `sizeof`（プレーン関数は 0） |
-| 4 | 引数の数 |
-| 5–7 | 引数（数値／bool は 0・1／文字列は `char*`） |
+| 3 | 引数の数 |
+| 4–6 | 引数（数値／bool は 0・1／文字列は `char*`） |
 
 ```mylang
 import annotations from "@std/meta/annotations.mln";
@@ -143,20 +142,19 @@ import { Annotations } from "@std/meta/annotations.mln";
 
 Annotations it = annotations.named("app");         // all() / named(n) / of_type(t) / where(n, t)
 while (it.next()) {
-    inspect(it.type(), it.size(), it.arg(0), it.text(1));
+    inspect(it.type(), it.arg(0), it.text(1));
 }
 annotations.count();                               // 全行数
 ```
 
-- `AnnotationRow`（8 ワードそのまま）と `Annotations`（カーソル + フィルタ）は export struct
-- メソッド：`next()`、`reset()`、`row()`、`name()`、`fn()`、`type()`、`size()`、`argc()`、
+- `AnnotationRow`（7 ワードそのまま）と `Annotations`（カーソル + フィルタ）は export struct
+- メソッド：`next()`、`reset()`、`row()`、`name()`、`fn()`、`type()`、`argc()`、
   `arg(k)`、`text(k)`（`char*` として）、`flag(k)`
 - 知らない名前の行は `named()` で頼まれなければ見えない。他のフレームワークが自分の
   アノテーションを同じ表に混ぜても互いに干渉しない
-- MyAppFramework の `app_main` / `runtime` は実行中 image の `"app"` / `"timer"` / `"key"` /
-  `"open"` / `"on_close"` を読む。MyOS の `shell/app.mln` は `in_image()` でディスク上の
-  executable から `"app"` / `"open"` の公開メタデータだけを読む。MyStdLib はどの名前にも
-  意味を与えない。`meta.mln` は無くなった
+- MyAppFramework の `runtime` は実行中 image の `"app"` / `"timer"` / `"key"` を読む。MyOS の
+  `shell/app.mln` は `in_image()` でディスク上の executable から `"app"` の公開メタデータだけを
+  読む。MyStdLib はどの名前にも意味を与えない。`meta.mln` は無くなった
 
 ## 5. 重複定義の検出
 
