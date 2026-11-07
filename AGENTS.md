@@ -48,6 +48,20 @@ make -C toolchain/MyLangCompiler test-e2e
 For standard-library and system changes, use the relevant root QA suites and
 finish with `git diff --check` plus a recursive status check.
 
+After editing `.mln` sources, these show what a build or the editor would report,
+without either:
+
+```bash
+make check FILE=path/to/source.mln      # parse and semantic errors, from mlc
+make lsp-check FILE=path/to/source.mln  # what the language server shows
+```
+
+Without `FILE`, both cover the whole repository. `make lsp-check` reports
+`lsp false alarm` when the server marks a source mlc parses, and `lsp missed`
+when mlc's parser rejects one the server passes. Both mean the server's grammar
+or `toolchain/MyLangCompiler/tools/syntax_check.c` is behind the compiler, so fix
+those rather than the source.
+
 ## Documentation placement
 
 - `AGENTS.md`: instructions for coding agents and repository workflow.

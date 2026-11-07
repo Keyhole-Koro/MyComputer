@@ -8,7 +8,7 @@ $(shell mkdir -p $(TMPDIR))
 .PHONY: help run system build system-build screenshot readme readme-check kernel kernel-build emulator qa test qa-no-build \
 	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom qa-graphics \
 	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test apps-test framework-test dom-inspect font profile profile-tools profile-diff bench bench-save clean-qa \
-	unused-exports
+	unused-exports check lsp-check
 
 help:
 	@printf '%s\n' \
@@ -38,6 +38,8 @@ help:
 		'  make bench            Measure the e2e programs and compare with qa/baselines (TOP=n for more rows)' \
 		'  make bench-save       Measure the e2e programs and make that the baseline' \
 		'  make unused-exports   Report exports nothing references (ARGS="--write-allow" to rewrite the allowlist)' \
+		'  make check            Report parse and semantic errors in every .mln (FILE=path for one file or directory)' \
+		'  make lsp-check        Report what the language server shows, checked against the compiler (FILE=path to narrow)' \
 		'' \
 		'Pass script options with ARGS="...".'
 
@@ -178,6 +180,14 @@ bench-save: profile-tools
 unused-exports:
 	$(MAKE) -C toolchain/MyLangCompiler mlc
 	$(PYTHON) $(QA_DIR)/tools/unused_exports.py $(ARGS)
+
+check:
+	@$(MAKE) -s -C toolchain/MyLangCompiler mlc
+	@$(PYTHON) $(QA_DIR)/tools/mln_check.py $(FILE) $(ARGS)
+
+lsp-check:
+	@$(MAKE) -s -C toolchain/MyLangCompiler mlc syntax-check
+	@$(PYTHON) $(QA_DIR)/tools/lsp_check.py $(FILE) $(ARGS)
 
 clean-qa:
 	rm -rf $(QA_DIR)/outputs

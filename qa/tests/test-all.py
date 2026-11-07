@@ -61,6 +61,7 @@ def status(label, msg, code=CYAN):
 # name -> (directory, make target, produced artifact)
 COMPONENTS = {
     "mlc": (MYLANGCOMPILER_DIR, "mlc", MYLANGCOMPILER_DIR / "mlc"),
+    "syntax-check": (MYLANGCOMPILER_DIR, "syntax-check", MYLANGCOMPILER_DIR / "mylang-syntax-check"),
     "mytest": (MYLANGTESTER_DIR, "all", MYLANGTESTER_DIR / "build" / "mytest"),
     "myas": (MYASSEMBLER_DIR, "all", MYASSEMBLER_DIR / "build" / "myas"),
     "mllinker": (MYLINKER_DIR, "all", MYLINKER_DIR / "mllinker"),
@@ -236,10 +237,31 @@ SUITES = {
         ["python3", str(REPO_ROOT / "qa" / "tests" / "unused_exports_test.py")],
         ["mlc"],
     ),
+    "mln-check": (
+        ["python3", str(REPO_ROOT / "qa" / "tools" / "mln_check.py")],
+        ["mlc"],
+    ),
+    "mln-check-tool": (
+        ["python3", str(REPO_ROOT / "qa" / "tests" / "mln_check_test.py")],
+        ["mlc"],
+    ),
+    "lsp": (
+        ["python3", str(REPO_ROOT / "tools" / "MyLangServerProtocol" / "tests" / "run.py")],
+        ["mlc", "syntax-check"],
+    ),
+    "lsp-check": (
+        ["python3", str(REPO_ROOT / "qa" / "tools" / "lsp_check.py")],
+        ["mlc", "syntax-check"],
+    ),
+    "lsp-check-tool": (
+        ["python3", str(REPO_ROOT / "qa" / "tests" / "lsp_check_test.py")],
+        ["mlc", "syntax-check"],
+    ),
 }
 
 # These suites may incrementally build the same sibling repositories internally.
-SERIAL_SUITES = {"compiler-e2e", "assembler-e2e", "testkit"}
+# The LSP suites share one parse table, which a grammar change makes them rebuild.
+SERIAL_SUITES = {"compiler-e2e", "assembler-e2e", "testkit", "lsp", "lsp-check", "lsp-check-tool"}
 
 
 def run_suite(name):
