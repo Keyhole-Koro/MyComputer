@@ -15,7 +15,7 @@ file. So a source that must pass and one that must fail go through it first, and
 a checker that gets either wrong ends the run with status 2.
 
 Paths on the command line narrow the run to those files and directories. Inputs
-of other tools' tests (FIXTURE_TREES) often fail on purpose, so there only a
+of other tools' tests (ON_PURPOSE_TREES) often fail on purpose, so there only a
 false alarm counts, unless a path names them.
 """
 
@@ -26,8 +26,8 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from mln_check import select_sources
-from unused_exports import FIXTURE_TREES, REPO_ROOT, find_sources, under
+from mln_check import ON_PURPOSE_TREES, select_sources
+from unused_exports import REPO_ROOT, find_sources, under
 
 sys.path.insert(0, str(REPO_ROOT / "tools" / "MyLangServerProtocol" / "src"))
 
@@ -129,7 +129,7 @@ def main():
 
     reported = 0
     for source, (parsed, parser_error) in zip(sources, verdicts):
-        on_purpose = not args.paths and under(source, FIXTURE_TREES)
+        on_purpose = not args.paths and under(source, ON_PURPOSE_TREES)
         lines = findings(source, shown[source], parsed, parser_error, on_purpose)
         reported += len(lines)
         for line in lines:

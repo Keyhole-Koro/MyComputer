@@ -3,7 +3,7 @@
 
 Every `.mln` in the repository goes through `mlc --check`, which parses it and
 runs the semantic checks. Paths on the command line narrow that to those files
-and directories. Inputs of other tools' tests (FIXTURE_TREES) are left out,
+and directories. Inputs of other tools' tests (ON_PURPOSE_TREES) are left out,
 since many fail on purpose, unless a path names them.
 
 The parser stops at its first error in a file. Linking is not checked: that
@@ -20,11 +20,17 @@ from pathlib import Path
 from unused_exports import FIXTURE_TREES, REPO_ROOT, find_sources, under
 
 
+# The language's own example counts as a fixture for unused exports, since nothing
+# calls it. It is not meant to fail, so it is checked like any source.
+ON_PURPOSE_TREES = tuple(tree for tree in FIXTURE_TREES
+                         if tree != "toolchain/MyLangCompiler/docs")
+
+
 def select_sources(root, paths):
     """Paths relative to root of the sources to check, in a stable order."""
     if not paths:
         return [source for source in find_sources(root)
-                if source.endswith(".mln") and not under(source, FIXTURE_TREES)]
+                if source.endswith(".mln") and not under(source, ON_PURPOSE_TREES)]
     selected = []
     for path in paths:
         target = Path(path).resolve()
