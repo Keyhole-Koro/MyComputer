@@ -36,7 +36,7 @@ i32 request(Request *m);        // OS_CALL(REQUEST) → OS_CALL(REPLY) を待つ
   コピーバックする。**サーバのポインタをアプリに返す要求は無い**
 - `LIST_SELECTED` / `LIST_ITEM`のtyped resultもprocessごとのkernel bufferへ書き、gatewayが
   同じ`Result<..., UiError>`をcopy-outする。選択なしは`Ok(None)`で、負数sentinelへの変換はない。
-- `SET_TEXT_FMT` は使われない：`ui.set_text_fmt` はアプリ側で整形して SET_TEXT を送る
+- `SET_TEXT_FMT` は使われない：書式つきの属性はアプリ側で整形して SET_TEXT を送る
   （`%s` の引数はプロセスのポインタで、サーバには読めない）
 
 **イベント**（サーバ → アプリ、非同期）
@@ -68,9 +68,9 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 
 | op | 引数 | 戻り値 | SDK 側の入口 |
 | --- | --- | --- | --- |
-| SET_TEXT | id, s0 | – | `ui.set_text` |
-| TEXT_COPY | id, a1=out, a2=cap, result_out | `Result<i32, UiError>` | `ui.text_copy`（サーバのポインタは返さない。`text_of` は無い） |
-| SET_TEXT_FMT | id, s0=fmt, a1, a2 | – | `ui.set_text_fmt` |
+| SET_TEXT | id, s0 | – | `<Label text={...}>` の属性 |
+| TEXT_COPY | id, a1=out, a2=cap, result_out | `Result<i32, UiError>` | `TextField.read`（サーバのポインタは返さない。`text_of` は無い） |
+| SET_TEXT_FMT | id, s0=fmt, a1, a2 | – | – |
 | IS_CHECKED | id, result_out | `Result<bool, UiError>` | `ui.is_checked` |
 | SET_CHECKED | id, a1 | – | `ui.set_checked` |
 | INPUT_SET | id, s0 | – | `ui.input_set` |
