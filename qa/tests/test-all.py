@@ -195,7 +195,8 @@ SUITES = {
     ),
     "process": (
         [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(MYKERNEL_DIR / "tests" / "process" / "process.unsafe.test.mln")],
+         str(MYKERNEL_DIR / "tests" / "process" / "process.unsafe.test.mln"),
+         str(MYOS_DIR / "tests" / "proc" / "pid_reuse.unsafe.test.mln")],
         ["mlc", "mytest", "myas", "mllinker", "myemu"],
     ),
     "thread": (

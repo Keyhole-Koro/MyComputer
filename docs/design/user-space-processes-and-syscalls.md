@@ -62,7 +62,7 @@ The kernel manages up to **16 concurrent processes** via a static table `g_proc_
 
 ```c
 typedef struct {
-    i32 pid;              // Process ID (1..16, 0 = Unused / Kernel idle)
+    Pid pid;              // Process ID (1..16)
     i32 state;            // PROC_UNUSED, PROC_READY, PROC_RUNNING, PROC_BLOCKED, PROC_ZOMBIE
     i32 page_directory;   // Physical address of the root Page Directory (PDBR)
     i32 kernel_stack_top; // Physical top of this process's dedicated kernel stack (for KERNEL_SP)
@@ -126,7 +126,13 @@ Syscalls leverage the standard MyLang register convention.
 
 `SYS_SPAWN(path)` / the `PROC_SPAWN` service resolve a bare name through the
 search path `/bin`, then `/apps` (`console.open_executable`); a path with a
-`/` is taken as is.
+`/` is taken as is. The caller becomes the new process's parent.
+
+A process controls only its children. `PROC_EXITED` and `PROC_REAP` answer any
+other pid with `Err(InvalidPid)` through `result_out`; `PROC_BIND`, `PROC_UNBIND`
+and `PROC_FEED`, which have no `result_out`, answer with a `ProcessControlStatus`
+as the routing value. `PROC_EXITED` reports true, and `PROC_REAP` succeeds, only
+once the OS has released everything it holds under the child's pid.
 
 `SYS_YIELD` puts the calling task to sleep until the next timer tick
 (`scheduler.yield_until_tick`) rather than merely rescheduling it. The

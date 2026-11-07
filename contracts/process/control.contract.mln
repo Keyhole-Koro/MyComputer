@@ -16,10 +16,20 @@ export enum ProcessExitStatus {
     IllegalInstruction,   // The kernel terminated the process after an illegal instruction.
 }
 
-// Errors returned by process lifecycle queries and collection.
+// Errors returned by process control. A process controls only its own children,
+// so InvalidPid also answers a pid naming somebody else's child: to the caller,
+// no such child exists. NotExited covers a child the OS is still releasing.
 export enum ProcessControlError {
-    InvalidPid(i32),
-    NotExited(i32),
+    InvalidPid(Pid),
+    NotExited(Pid),
+}
+
+/** What PROC_BIND, PROC_UNBIND and PROC_FEED answer with in r2. Their records
+ * have no result_out, so this word is how a refusal crosses the boundary.
+ */
+export enum ProcessControlStatus {
+    Accepted,
+    Refused,   // The pid names no child of the caller.
 }
 
 export impl Describe for ProcessControlError {

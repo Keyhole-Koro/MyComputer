@@ -53,6 +53,10 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 `protocol_elements.mln`、SDK の `ui.mln` / `elements.mln` / `runtime.mln` でだけ行う。0 は
 どのノードも指さないが、「無し」の意味では使わない。
 
+**プロセス id** も線の上では語（`Request.owner`、`Event.owner`、OS_CALL の引数の記録）。サーバと
+カーネルの中では `Pid`（`contracts/process/control.contract.mln` の newtype）で、DOM の `owner`
+は `Option<Pid>`、None がシステム。語との変換は syscall と線の境界でだけ行う。
+
 **運び手：カーネルのチャネル**（`MyKernel/src/kernel/ipc.mln`）
 
 - チャネル = 24 ワード固定長メッセージ × 32 スロットのリング。要求チャネルは複数 producer だが、
@@ -121,12 +125,12 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | CLOSE | ウィンドウかダイアログ | 0 | – | シェル `window_closed`（× ボタン）。ダイアログなら `onCancel` へ |
 | OPEN | ウィンドウ | 0 | text = path | シェル `open` |
 
-- 所有ノード（`owner != 0`）に起きたことは `dom.emit` → UI domain event sink →
+- 所有ノード（`owner` が `Some`）に起きたことは `dom.emit` → UI domain event sink →
   `ipc/events` の順でチャネルに積む。UI domain coreはtransportをimportしない。サーバ自身の
   ノード（タスクバー、メニュー、時計）は従来どおり
   サーバ内の関数ポインタ（`push_event`）。**アプリのノードに関数ポインタは無い**
-- CLOSE を受けたアプリは `@on_close` を走らせてから EXIT を送る。シェルはそれを受けて
-  `remove_owned` と解放をする（順序が保証される）
+- CLOSE を受けたアプリは `@on_close` を走らせてから EXIT を送り、自分で終わる。ノードと
+  key claim はプロセスが終わった後の共通の解放（`console.sweep`）で消える（順序が保証される）
 
 ## 4. 両端
 
@@ -149,10 +153,15 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 - `ui/protocol.mln` / `protocol_elements.mln`：UiOpをDOM操作へ変換
 - `shell/protocol.mln`：AppOpだけをshellへ渡す。UI protocolはshellをimportしない
 - `ipc/events.mln`：UI/shellのdomain eventをwire Eventへ変換し、process channelへ接続
-- `syscall/router.mln`：OS_CALL登録。FS/processはdomain-local syscall endpointへdispatch
-- `shell/app.mln`：`mount()` = `console.spawn_file`。プロセスの view() → MAIN_WINDOW →
-  `window_ready` でデスクトップへ。CLOSE → EXIT → `instance_exited`、`reap_exited` タイマが
-  終わったプロセスを回収（クラッシュしたものは所有ノードごと）
+- `syscall/router.mln`：OS_CALL登録。FS/processはdomain-local syscall endpointへdispatch。
+  `release_process` がプロセスの解放の順序を決める（残った要求への応答 → shell → gateway）
+- `shell/app.mln`：`mount()` = `console.spawn_file`。親プロセスを持たず、シェルが所有する。
+  プロセスの view() → MAIN_WINDOW → `window_ready` でデスクトップへ。CLOSE → EXIT →
+  `instance_exited`。`reap_exited` タイマはサーバのタスクで `console.sweep` を回す
+- `proc/console.mln`：プロセスの終わり。`sweep` は終了の仕方を問わず同じ道を通る。子を
+  終わらせ、イベント・ノード・key claim・コンソール・gateway slot を解放して `Released`
+  にする。slot は最後に、reap で解放する。DOM に触るのでサーバのタスクでしか走らない（reap の
+  syscall は割り込み禁止で動き、サーバが保持したままの DOM ロックを待てない）
 - 「OS → SDK」の呼び出しは無い。`runtime/app_main.mln`（SDK）がプロセスの `main`
 - **DOM ロック**（`dom.lock` / `unlock`）：サーバのタスクが 1 パスの間持ち、sleep の前に手放す。
   automation のダンプが取る。待ちがいれば unlock はロックを**手渡す**（サーバがすぐ取り直して

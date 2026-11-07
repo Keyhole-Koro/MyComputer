@@ -15,7 +15,8 @@ Layout:
 
 - `io/`: platform-neutral semantic contracts such as `FsError`.
 - `ui/`: platform-neutral UI semantic contracts such as `UiError`.
-- `process/`: process-launch and lifecycle errors shared by hosted clients and MyOS.
+- `process/`: the `Pid` type, and process-launch and lifecycle errors shared by hosted
+  clients and MyOS.
 - `sync/`: shared raw synchronization-word meanings such as `MutexState`.
 - `myos/`: MyOS wire identifiers such as `OsService`.
 - `myapp/`: application request/event envelopes and operation tables.

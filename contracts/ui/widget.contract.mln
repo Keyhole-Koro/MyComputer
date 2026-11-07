@@ -1,5 +1,6 @@
 package ui_types;
 import { Describe } from "@std/core/describe.mln";
+import { Pid } from "@contracts/process/control.contract.mln";
 
 /** A node of the UI tree. It crosses the wire as a word; zero names no node,
  * so an ID that may be absent is an Option<NodeId>. */
@@ -13,8 +14,8 @@ export enum UiError {
     WrongNodeKind(NodeId),
     InvalidIndex(i32),
     InvalidCapacity(i32),
-    OwnerTableFull(i32),
-    OwnerNodeLimit(i32),
+    OwnerTableFull(Pid),
+    OwnerNodeLimit(Pid),
     NodeIdLimit,
     AllocationFailed(i32),
     TimerLimit,
