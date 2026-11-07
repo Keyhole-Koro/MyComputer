@@ -1,6 +1,10 @@
 PYTHON ?= python3
 QA_DIR := qa
 
+# Test runs keep scratch files out of /tmp, which is memory on this machine.
+export TMPDIR ?= $(CURDIR)/build/tmp
+$(shell mkdir -p $(TMPDIR))
+
 .PHONY: help run system build system-build screenshot readme readme-check kernel kernel-build emulator qa test qa-no-build \
 	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom qa-graphics \
 	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test apps-test framework-test dom-inspect font profile profile-tools profile-diff bench bench-save clean-qa \
