@@ -6,9 +6,9 @@ header the kernel loader expects (MYOS-015):
 - system/MyOS/user/apps/*.mln -- console programs, each `package app;`
   exporting `i32 main()`; user/lib/start.masm calls it and exits with its
   return value.
-- system/MyOS/src/apps/*.dom.mln -- desktop apps (MYOS-022), linked with the
-  SDK's app_main.mln, whose main() finds the @app row in the image and runs
-  the instance's event loop. The shell lists them from their headers.
+- system/MyOS/src/apps/*.dom.mln -- desktop apps (MYOS-022), each with an
+  `i32 main()` that hands its type to the SDK's app.run. The shell lists them
+  from their headers.
 
 The images are then placed on the disk image by tools/mkfs.py (see
 qa/runners/run_system.py)."""
@@ -23,7 +23,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from tools.project_paths import MYOS_DIR, QA_DIR, REPO_ROOT
 
 USER_DIR = MYOS_DIR / "user"
-APP_MAIN = REPO_ROOT / "system" / "MyAppFramework" / "src" / "runtime" / "app_main.unsafe.mln"
 # MyLang materializes symbol addresses with a 21-bit immediate, so a
 # compiled program must be linked below 2 MB. 0x20000..0xFFFFF is RAM the
 # kernel never touches (the firmware stub sits at 0, the kernel image at
@@ -49,16 +48,13 @@ def build_app(source: Path, out_dir: Path, build_dir: Path, quiet: bool) -> Path
 
 
 def build_gui_app(source: Path, out_dir: Path, build_dir: Path, quiet: bool) -> Path:
-    """A desktop app: its .dom.mln plus the SDK's process entry (app_main),
-    which finds the @app row in the image and runs the instance's event loop."""
+    """A desktop app: its .dom.mln, whose main() runs the app. It never returns,
+    so it has no use for the start stub that exits with main's result."""
     name = source.name[: -len(".dom.mln")]
     out = out_dir / (name + ".mbin")
-    entry = [str(USER_DIR / "lib" / "start.masm"), str(APP_MAIN)]
-    if "\ni32 main()" in source.read_text(encoding="utf-8"):
-        entry = []
     cmd = [
         sys.executable, str(QA_DIR / "runners" / "build_toolchain.py"),
-        *entry, str(source),
+        str(source),
         "-o", str(out), "--build-dir", str(build_dir / name),
         "--base", USER_CODE_BASE, "--header",
     ]
