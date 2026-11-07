@@ -74,13 +74,12 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | --- | --- | --- | --- |
 | SET_TEXT | id, s0 | – | `<Label text={...}>` の属性 |
 | TEXT_COPY | id, a1=out, a2=cap, result_out | `Result<i32, UiError>` | `TextField.read`（サーバのポインタは返さない。`text_of` は無い） |
-| SET_CHECKED | id, a1 | – | `ui.set_checked` |
-| INPUT_SET | id, s0 | – | `ui.input_set` |
-| AREA_APPEND / AREA_CLEAR / AREA_LINES | id, (s0), result_out for AREA_LINES | (– / `Result<i32, UiError>`) | `ui.area_*` |
-| LIST_SET_ITEMS / LIST_COUNT | id, (s0), result_out for LIST_COUNT | (– / `Result<i32, UiError>`) | `List_items` / `ui.list_count` |
+| SET_CHECKED | id, a1 | – | `<Checkbox checked={...}>` の属性 |
+| INPUT_SET | id, s0 | – | `TextField.write` / `TextField.clear` |
+| AREA_APPEND / AREA_CLEAR | id, (s0) | – | `TextField.append` / `TextLog.append` / `terminal.clear` |
+| LIST_SET_ITEMS | id, s0 | – | `List_items` |
 | LIST_SELECT | id, a1=行（-1 で選択なし） | – | `List_selected` |
-| FOCUS / FOCUS_WINDOW | id | – | `ui.focus*` |
-| TEST_ID | id, s0 | – | `ui.test_id` |
+| FOCUS | id | – | `TextField.focus` / `focus` 属性 |
 | SEND_KEY | a0=type, a1=code, a2=mods | – | `ui.send_key` |
 | RGB | a0, a1, a2 | 色 | `ui.rgb` |
 | CREATE_WINDOW | s0=title, w, h, s1=testId | id | `<Window>`（位置はシェルが決める） |

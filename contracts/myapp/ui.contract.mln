@@ -13,14 +13,10 @@ export enum UiOp {
     INPUT_SET,         // (id, s0)
     AREA_APPEND,       // (id, s0)
     AREA_CLEAR,        // (id)
-    AREA_LINES,        // (id, result_out = Result<i32, UiError>*)
     LIST_SET_ITEMS,    // (id, s0 = "\n"-joined)
     LIST_SELECT,       // (id, a1 = row, or -1 for none)
-    LIST_COUNT,        // (id, result_out = Result<i32, UiError>*)
     // ui.mln --- focus and windows
     FOCUS,             // (id)
-    FOCUS_WINDOW,      // (id)
-    TEST_ID,           // (id, s0)
     SEND_KEY,          // (a0 = type, a1 = code, a2 = mods)
     // elements.mln --- creation writes Result<NodeId, UiError> to result_out
     CREATE_WINDOW,     // (s0 = title, w, h, s1 = testId) -- the shell places it

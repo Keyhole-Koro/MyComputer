@@ -62,7 +62,7 @@ The kernel manages up to **16 concurrent processes** via a static table `g_proc_
 
 ```c
 typedef struct {
-    Pid pid;              // Process ID (1..16)
+    Pid pid;              // generation << 5 | slot + 1
     i32 state;            // PROC_UNUSED, PROC_READY, PROC_RUNNING, PROC_BLOCKED, PROC_ZOMBIE
     i32 page_directory;   // Physical address of the root Page Directory (PDBR)
     i32 kernel_stack_top; // Physical top of this process's dedicated kernel stack (for KERNEL_SP)
@@ -70,7 +70,6 @@ typedef struct {
     i32 user_sp;          // Saved User Stack Pointer
     i32 heap_break;       // Current User Heap break pointer (starts at 0x41000000)
     i32 exit_code;        // Return code when state == PROC_ZOMBIE
-    i32 fd_table[8];      // Per-process virtual FD table mapping to MFS descriptors
     char name[16];        // Process name (e.g. "shell.mbin", "editor.mbin")
 } Process;
 ```

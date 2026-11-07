@@ -293,11 +293,12 @@ export struct Process {
 };
 ```
 
-fd tableは現在と同じ固定長の別配列でもよいが、意味上のownerはProcessである。
+開いたファイルはProcessではなくMyOSの`fs`が全体の表で持ち、各ファイルが開いたプロセスを
+`owner`に記録する。他のプロセスのファイルは`BadFd`で拒否し、プロセスが終わると
+`fs.close_all_of`が閉じる。
 
 ```mln
 Option<Process> g_processes[MAX_PROCS];
-Option<i32> g_process_fds[MAX_PROCS * MAX_FDS];
 ```
 
 `user_entry` はmain TCBの初期contextを作る間だけ必要であり、Processへ永続保存しない。

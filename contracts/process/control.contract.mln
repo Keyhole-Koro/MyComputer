@@ -2,7 +2,8 @@ package process_types;
 import { Describe } from "@std/core/describe.mln";
 
 /** A process. It crosses the wire as a word; zero names no process, so an ID
- * that may be absent is an Option<Pid>. */
+ * that may be absent is an Option<Pid>. A pid is never handed out twice, short of
+ * its slot being freed 2^26 times, so one kept past a reap names nobody. */
 export newtype Pid = i32;
 
 /** Process termination result stored in the Zombie lifecycle state.
