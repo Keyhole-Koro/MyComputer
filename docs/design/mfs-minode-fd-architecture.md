@@ -158,8 +158,8 @@ Input: "/docs/readme.txt"
   `fs.is_dir(idx)` tells a directory entry from a file
 - `tools/mkfs.py`: `--dir PATH`, and a `--file a/b/c=...` creates the directories on the way.
   The system image puts console programs in `/bin` and desktop apps in `/apps`; the
-  shell lists `/apps`, and `console.spawn_file("hello")` searches `/bin` then `/apps`
-  for a bare name
+  shell lists `/apps`, and `console.spawn_file(parent, "hello")` searches `/bin` then
+  `/apps` for a bare name
 
 ---
 

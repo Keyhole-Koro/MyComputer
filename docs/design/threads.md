@@ -166,6 +166,7 @@ export enum ProcessState {
     Alive,
     Exiting(ProcessExitStatus),
     Zombie(ProcessExitStatus),
+    Released(ProcessExitStatus),
 }
 ```
 
@@ -180,6 +181,9 @@ Loading ── commit main thread ──▶ Alive
                                     │ all TCBs and process resources released
                                     ▼
                                 Zombie
+                                    │ MyOS releases what it holds under the PID (console.sweep)
+                                    ▼
+                                Released
                                     │ parent reap
                                     ▼
                                 free slot
@@ -188,7 +192,14 @@ Loading ── commit main thread ──▶ Alive
 - `Loading`: PIDは予約済みだが、外部から実行・参照できない。
 - `Alive`: thread spawnと通常syscallを受け付ける。
 - `Exiting`: 新しいthreadやProcess資源操作を拒否し、全Threadと待機登録を回収中。
-- `Zombie`: exit statusだけを保持する。アドレス空間、fd、Threadは既に回収済み。
+- `Zombie`: アドレス空間、fd、Threadは既に回収済み。MyOSはまだこのPIDでイベント、DOMノード、
+  key claim、コンソール、gateway slotを持っている。
+- `Released`: exit statusだけを保持する。slotの解放だけが残っている。
+
+Processは親を持つ（`Process.parent`。`None` はOS自身で、シェルが起動したアプリがこれにあたる）。
+親だけが子をreap・feed・bind・queryできる。親でないcallerへの答えは `InvalidPid`、つまり
+「そのような子はいない」である。親が終わると、MyOSは子を `scheduler.terminate` で終わらせて
+回収する（hangup）。親はそれが済むまで `Released` にならないので、存在しない親を指すProcessは無い。
 
 `Exiting` を置くのは、process exitの途中でnotificationや別Threadのsyscallが入っても、
 新しい仕事を追加させないためである。
@@ -409,7 +420,7 @@ scheduler.mln ─────────▶ mmu.mln
 ### 6.1 Process API
 
 ```mln
-Result<Pid, ProcessError> reserve_process();
+Result<Pid, ProcessError> reserve_process(Option<Pid> parent);
 Result<_, ProcessError> commit_process(Pid pid, i32 pdbr, i32 heap_break);
 Result<_, ProcessError> begin_process_exit(Pid pid, ProcessExitStatus status);
 Result<_, ProcessError> finish_process_exit(Pid pid);
