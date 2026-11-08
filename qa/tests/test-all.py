@@ -96,6 +96,16 @@ def build_component(name, verbose):
 # executables; test discovery and assertions remain inside each submodule.
 # ---------------------------------------------------------------------------
 
+# mytest builds MyLang tests and runs them in the emulator, so a suite that
+# runs it needs the whole toolchain.
+MYTEST_DEPS = ("mlc", "mytest", "myas", "mllinker", "myemu")
+
+
+def mytest_suite(*tests):
+    """A suite that runs these MyLang test files with mytest."""
+    return [str(COMPONENTS["mytest"][2]), *map(str, tests)], list(MYTEST_DEPS)
+
+
 # name -> (runner argv, [required components])
 SUITES = {
     "compiler": (
@@ -124,98 +134,45 @@ SUITES = {
     ),
     "testkit": (
         ["python3", str(REPO_ROOT / "toolchain" / "MyLangTestKit" / "tests" / "run_integration_tests.py")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+        list(MYTEST_DEPS),
     ),
     "assembler-e2e": (
         ["make", "-C", str(MYASSEMBLER_DIR), "test-e2e"],
         ["myas", "mllinker", "myemu"],
     ),
-    "heap": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(MYKERNEL_DIR / "tests" / "heap" / "allocator.unsafe.test.mln"),
-         str(MYKERNEL_DIR / "tests" / "heap" / "exhaustion.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    "heap": mytest_suite(
+        MYKERNEL_DIR / "tests" / "heap" / "allocator.unsafe.test.mln",
+        MYKERNEL_DIR / "tests" / "heap" / "exhaustion.unsafe.test.mln",
     ),
-    "app-sdk": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(REPO_ROOT / "system" / "MyAppFramework" / "tests" / "ui_requests.dom.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    "app-sdk": mytest_suite(
+        REPO_ROOT / "system" / "MyAppFramework" / "tests" / "ui_requests.dom.unsafe.test.mln",
     ),
-    "stdlib": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(MYKERNEL_DIR / "tests" / "libs" / "std.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    "stdlib": mytest_suite(MYKERNEL_DIR / "tests" / "libs" / "std.unsafe.test.mln"),
+    "mmu": mytest_suite(MYKERNEL_DIR / "tests" / "mmu" / "mmu.unsafe.test.mln"),
+    "fs-directories": mytest_suite(MYOS_DIR / "tests" / "fs" / "directories.unsafe.test.mln"),
+    "fs-smoke": mytest_suite(MYOS_DIR / "tests" / "fs" / "fs_smoke.unsafe.test.mln"),
+    "fs-errors": mytest_suite(
+        MYOS_DIR / "tests" / "fs" / "error_contracts.unsafe.test.mln",
+        MYOS_DIR / "tests" / "fs" / "ssd_unavailable.unsafe.test.mln",
+        MYOS_DIR / "tests" / "fs" / "mocked_ssd.unsafe.test.mln",
+        MYOS_DIR / "tests" / "fs" / "mocked_result.unsafe.test.mln",
     ),
-    "mmu": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(MYKERNEL_DIR / "tests" / "mmu" / "mmu.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    "disk-fixture": mytest_suite(MYOS_DIR / "tests" / "fs" / "disk_fixture.unsafe.test.mln"),
+    "minode-fd": mytest_suite(MYOS_DIR / "tests" / "fs" / "minode_fd.unsafe.test.mln"),
+    "scheduler": mytest_suite(
+        MYKERNEL_DIR / "tests" / "scheduler" / "scheduler.unsafe.test.mln",
+        MYKERNEL_DIR / "tests" / "scheduler" / "mock_context.unsafe.test.mln",
     ),
-    "fs-directories": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(MYOS_DIR / "tests" / "fs" / "directories.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
+    "process": mytest_suite(
+        MYKERNEL_DIR / "tests" / "process" / "process.unsafe.test.mln",
+        MYOS_DIR / "tests" / "proc" / "pid_reuse.unsafe.test.mln",
     ),
-    "fs-smoke": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(MYOS_DIR / "tests" / "fs" / "fs_smoke.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
-    ),
-    "fs-errors": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(MYOS_DIR / "tests" / "fs" / "error_contracts.unsafe.test.mln"),
-         str(MYOS_DIR / "tests" / "fs" / "ssd_unavailable.unsafe.test.mln"),
-         str(MYOS_DIR / "tests" / "fs" / "mocked_ssd.unsafe.test.mln"),
-         str(MYOS_DIR / "tests" / "fs" / "mocked_result.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
-    ),
-    "disk-fixture": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(MYOS_DIR / "tests" / "fs" / "disk_fixture.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
-    ),
-    "minode-fd": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(MYOS_DIR / "tests" / "fs" / "minode_fd.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
-    ),
-    "scheduler": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(MYKERNEL_DIR / "tests" / "scheduler" / "scheduler.unsafe.test.mln"),
-         str(MYKERNEL_DIR / "tests" / "scheduler" / "mock_context.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
-    ),
-    "process": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(MYKERNEL_DIR / "tests" / "process" / "process.unsafe.test.mln"),
-         str(MYOS_DIR / "tests" / "proc" / "pid_reuse.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
-    ),
-    "thread": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"),
-         str(MYKERNEL_DIR / "tests" / "thread" / "thread.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
-    ),
-    "serial-rx": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "serial" / "serial_rx.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
-    ),
-    "dom": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "dom" / "dom_lowering.dom.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
-    ),
-    "dom-hit": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYOS_DIR / "tests" / "dom" / "dom_hit_dispatch.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
-    ),
-    "input-queues": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYKERNEL_DIR / "tests" / "io" / "input_queues.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
-    ),
-    "graphics": (
-        [str(MYLANGTESTER_DIR / "build" / "mytest"), str(MYOS_DIR / "tests" / "ui" / "graphics.unsafe.test.mln")],
-        ["mlc", "mytest", "myas", "mllinker", "myemu"],
-    ),
+    "thread": mytest_suite(MYKERNEL_DIR / "tests" / "thread" / "thread.unsafe.test.mln"),
+    "serial-rx": mytest_suite(MYKERNEL_DIR / "tests" / "serial" / "serial_rx.unsafe.test.mln"),
+    "dom": mytest_suite(MYKERNEL_DIR / "tests" / "dom" / "dom_lowering.dom.unsafe.test.mln"),
+    "dom-hit": mytest_suite(MYOS_DIR / "tests" / "dom" / "dom_hit_dispatch.unsafe.test.mln"),
+    "input-queues": mytest_suite(MYKERNEL_DIR / "tests" / "io" / "input_queues.unsafe.test.mln"),
+    "graphics": mytest_suite(MYOS_DIR / "tests" / "ui" / "graphics.unsafe.test.mln"),
     "readme": (
         ["python3", str(REPO_ROOT / "tools" / "readme_media.py"), "--check"],
         [],
