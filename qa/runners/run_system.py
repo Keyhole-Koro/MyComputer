@@ -13,6 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from tools.mkfs import kernel_size_error
 from tools.project_paths import MYEMULATOR_DIR, MYOS_DIR, QA_DIR, REPO_ROOT
 from qa.runners.build_user_apps import gui_app_name, gui_app_sources
 from qa.runners.runner_common import GREEN, MYEMU, RED, YELLOW, StepRunner, status_line
@@ -95,12 +96,11 @@ def main():
     # myemu --control-stdio itself) needs disk.img to exist.
     # Console programs go to /bin, desktop apps to /apps (the shell lists
     # the executables in /apps at boot; the spawn path searches both).
-    # The firmware loads KERNEL_BLOCKS blocks of the kernel image (see
-    # system/MyFirmware/src/fw/main.unsafe.mln); a bigger image boots half-loaded.
-    KERNEL_BLOCKS = 16
-    kernel_size = kernel_bin.stat().st_size
-    if kernel_size > KERNEL_BLOCKS * 65536:
-        status_line("FAIL", f"kernel image is {kernel_size} bytes, more than the firmware loads ({KERNEL_BLOCKS} x 64 KB)", RED)
+    # mkfs refuses a kernel image bigger than the firmware loads; checking
+    # here first reports just that rather than a failed mkfs step.
+    kernel_error = kernel_size_error(kernel_bin.stat().st_size)
+    if kernel_error:
+        status_line("FAIL", kernel_error, RED)
         sys.exit(1)
     mkfs_cmd = [sys.executable, REPO_ROOT / "tools" / "mkfs.py", disk_img, "--kernel", kernel_bin,
                 "--dir", "bin", "--dir", "apps"]

@@ -12,7 +12,8 @@ Mirrors the on-disk format in system/MyOS/src/fs/fs.mln:
 
 Blocks are 64 KiB; the image is 1 GiB. The kernel image is embedded at block
 KERNEL_BLOCK (what MyFirmware loads) and those blocks are marked used so the
-filesystem never allocates over it.
+filesystem never allocates over it. MyFirmware loads only KERNEL_BLOCKS
+blocks, so a bigger kernel image is refused.
 
 Usage:
     python3 tools/mkfs.py out.img --kernel build/kernel_linked.mbin \
@@ -37,6 +38,16 @@ NAME_MAX = 16
 FLAG_DIR = 1
 SB_BLOCK, ENTRY_BLOCK, BITMAP_BLOCK, DATA_START = 0, 1, 2, 3
 KERNEL_BLOCK = 16000  # must match system/MyFirmware and qa/runners/run_system.py
+# The firmware loads KERNEL_BLOCKS blocks of the kernel image (see
+# system/MyFirmware/src/fw/main.unsafe.mln); a bigger image boots half-loaded.
+KERNEL_BLOCKS = 16
+
+
+def kernel_size_error(size: int) -> str | None:
+    """Why a kernel image of `size` bytes would not boot, or None if it fits."""
+    if size > KERNEL_BLOCKS * BLOCK_SIZE:
+        return f"kernel image is {size} bytes, more than the firmware loads ({KERNEL_BLOCKS} x 64 KB)"
+    return None
 
 
 class Image:
@@ -106,6 +117,9 @@ class Image:
 
     def embed_kernel(self, data: bytes) -> None:
         # Raw image at a fixed block, outside the filesystem's data area.
+        error = kernel_size_error(len(data))
+        if error:
+            raise SystemExit(f"mkfs: {error}")
         n = (len(data) + BLOCK_SIZE - 1) // BLOCK_SIZE
         for i in range(n):
             self.mark(KERNEL_BLOCK + i)
