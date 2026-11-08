@@ -42,40 +42,28 @@ def gui_app_name(source: Path) -> str:
     return source.name[: -len(GUI_APP_SUFFIX)]
 
 
-def build_app(source: Path, out_dir: Path, build_dir: Path, quiet: bool) -> Path:
-    out = out_dir / (source.stem + ".mbin")
-    cmd = [
-        sys.executable, str(QA_DIR / "runners" / "build_toolchain.py"),
-        str(USER_DIR / "lib" / "start.masm"), str(source),
-        "-o", str(out), "--build-dir", str(build_dir / source.stem),
-        "--base", USER_CODE_BASE, "--header",
-    ]
-    proc = subprocess.run(cmd, cwd=REPO_ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-    if proc.returncode != 0:
-        print(proc.stdout[-3000:])
-        raise SystemExit(f"user app build failed: {source.name}")
-    if not quiet:
-        print(f"[user] {source.name} -> {out} ({out.stat().st_size} bytes)")
-    return out
-
-
-def build_gui_app(source: Path, out_dir: Path, build_dir: Path, quiet: bool) -> Path:
-    """A desktop app: its .dom.mln, whose main() runs the app. It never returns,
-    so it has no use for the start stub that exits with main's result."""
-    name = gui_app_name(source)
+def build_app(source: Path, out_dir: Path, build_dir: Path, quiet: bool, gui: bool = False) -> Path:
+    """Link one program as out_dir/<name>.mbin. A console program starts at
+    the start stub, which calls its main() and exits with the result; a
+    desktop app's main() runs the app and never returns, so it has no use
+    for the stub."""
+    if gui:
+        name, stub, label, kind = gui_app_name(source), [], "app", "app"
+    else:
+        name, stub, label, kind = source.stem, [str(USER_DIR / "lib" / "start.masm")], "user", "user app"
     out = out_dir / (name + ".mbin")
     cmd = [
         sys.executable, str(QA_DIR / "runners" / "build_toolchain.py"),
-        str(source),
+        *stub, str(source),
         "-o", str(out), "--build-dir", str(build_dir / name),
         "--base", USER_CODE_BASE, "--header",
     ]
     proc = subprocess.run(cmd, cwd=REPO_ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     if proc.returncode != 0:
         print(proc.stdout[-3000:])
-        raise SystemExit(f"app build failed: {source.name}")
+        raise SystemExit(f"{kind} build failed: {source.name}")
     if not quiet:
-        print(f"[app] {source.name} -> {out} ({out.stat().st_size} bytes)")
+        print(f"[{label}] {source.name} -> {out} ({out.stat().st_size} bytes)")
     return out
 
 
@@ -85,7 +73,7 @@ def build_all(out_dir: Path, build_dir: Path, quiet: bool = False) -> list:
     for source in sorted((USER_DIR / "apps").glob("*.mln")):
         built.append(build_app(source, out_dir, build_dir, quiet))
     for source in gui_app_sources():
-        built.append(build_gui_app(source, out_dir, build_dir, quiet))
+        built.append(build_app(source, out_dir, build_dir, quiet, gui=True))
     return built
 
 
