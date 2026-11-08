@@ -94,6 +94,7 @@ def show_obj(path: Path, max_bytes: int):
                     raise ValueError("File too short for collected-section table")
                 name, offset, size = entry.unpack(raw)
                 collects.append((objformat.cstring(name), offset, size))
+            debug = objformat.read_debug_trailer(f.read(), 0)
     except Exception as e:
         print(f"[{path}] ERROR: {e}")
         return
@@ -138,6 +139,15 @@ def show_obj(path: Path, max_bytes: int):
             )
     else:
         print("  (none)")
+
+    if debug:
+        funcs, rows = debug
+        print("Debug functions:")
+        for offset, name, file in funcs:
+            print(f"  - offset=0x{offset:08X}, {name} ({file})")
+        print("Debug rows:")
+        for offset, file, line, cost in rows:
+            print(f"  - offset=0x{offset:08X}, {file}:{line}" + (f", cost={cost}" if cost else ""))
 
 
 def main(argv):
