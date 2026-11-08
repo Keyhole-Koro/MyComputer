@@ -136,6 +136,11 @@ SUITES = {
         ["python3", str(REPO_ROOT / "toolchain" / "MyLangTestKit" / "tests" / "run_integration_tests.py")],
         list(MYTEST_DEPS),
     ),
+    # MyLangTester's own fixtures (pragma layouts and the like), run through mytest.
+    "tester": (
+        ["make", "-C", str(MYLANGTESTER_DIR), "test"],
+        list(MYTEST_DEPS),
+    ),
     "assembler-e2e": (
         ["make", "-C", str(MYASSEMBLER_DIR), "test-e2e"],
         ["myas", "mllinker", "myemu"],
