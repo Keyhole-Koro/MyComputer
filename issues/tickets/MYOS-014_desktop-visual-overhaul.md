@@ -2,7 +2,7 @@
 
 | Status | Branch | Agent | Updated |
 | --- | --- | --- | --- |
-| In Progress | main | claude-code:opus-5 | 2026-09-11 |
+| In Progress | main | claude-code:opus-5 | 2026-11-08 |
 
 ## Summary
 
@@ -128,6 +128,12 @@ AA 文字用）, 6=GRADIENT_V, 7=GRADIENT_H（COLOR→COLOR2）, 8=ROUND_RECT,
   メニュー（右ボタン・ホイールはデバイス〜ドライバまで実装済み、UI 未使用）。
 - 時計は起動からの経過時間（RTC なし）。
 - `hardware/verilator` は未対応。
+- パレットは `system/MyOS/src/ui/theme.mln` のまま。アプリも使う 4 色（`TEXT_PRIMARY`・
+  `TEXT_SECONDARY`・`TEXT_DISABLED`・`ACCENT`）は MyAppFramework の `src/ui.mln` に、
+  `CARET` などは `theme.mln` の中に同じ値をもう一度書いている。`contracts/ui/` の
+  1 か所に集めるには、定数の初期化子で別の定数を名指しできる必要がある。2026-11-08
+  時点では、import した定数はコード生成エラー、同じファイルの定数は値ではなく
+  アドレスになる。
 
 ## Progress
 
