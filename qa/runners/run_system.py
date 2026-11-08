@@ -14,6 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from tools.project_paths import MYEMULATOR_DIR, MYOS_DIR, QA_DIR, REPO_ROOT
+from qa.runners.build_user_apps import gui_app_name, gui_app_sources
 from qa.runners.runner_common import GREEN, MYEMU, RED, YELLOW, StepRunner, status_line
 from qa.tools.debug_session import DebugSession, default_session_dir
 
@@ -103,7 +104,7 @@ def main():
         sys.exit(1)
     mkfs_cmd = [sys.executable, REPO_ROOT / "tools" / "mkfs.py", disk_img, "--kernel", kernel_bin,
                 "--dir", "bin", "--dir", "apps"]
-    gui_apps = {p.name[: -len(".dom.mln")] for p in (MYOS_DIR / "src" / "apps").glob("*.dom.mln")}
+    gui_apps = {gui_app_name(p) for p in gui_app_sources()}
     for mbin in sorted((build_dir / "user").glob("*.mbin")):
         folder = "apps" if mbin.stem in gui_apps else "bin"
         mkfs_cmd += ["--file", f"{folder}/{mbin.stem}={mbin}"]

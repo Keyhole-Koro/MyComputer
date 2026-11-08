@@ -23,11 +23,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from tools.project_paths import MYOS_DIR, QA_DIR, REPO_ROOT
 
 USER_DIR = MYOS_DIR / "user"
+# A desktop app is src/apps/<name>.dom.mln; the disk image keeps it in /apps,
+# apart from the console programs in /bin.
+GUI_APP_DIR = MYOS_DIR / "src" / "apps"
+GUI_APP_SUFFIX = ".dom.mln"
 # MyLang materializes symbol addresses with a 21-bit immediate, so a
 # compiled program must be linked below 2 MB. 0x20000..0xFFFFF is RAM the
 # kernel never touches (the firmware stub sits at 0, the kernel image at
 # 0x100000); the loader maps a v2 image at the base it was linked at.
 USER_CODE_BASE = "0x00020000"
+
+
+def gui_app_sources() -> list:
+    return sorted(GUI_APP_DIR.glob("*" + GUI_APP_SUFFIX))
+
+
+def gui_app_name(source: Path) -> str:
+    return source.name[: -len(GUI_APP_SUFFIX)]
 
 
 def build_app(source: Path, out_dir: Path, build_dir: Path, quiet: bool) -> Path:
@@ -50,7 +62,7 @@ def build_app(source: Path, out_dir: Path, build_dir: Path, quiet: bool) -> Path
 def build_gui_app(source: Path, out_dir: Path, build_dir: Path, quiet: bool) -> Path:
     """A desktop app: its .dom.mln, whose main() runs the app. It never returns,
     so it has no use for the start stub that exits with main's result."""
-    name = source.name[: -len(".dom.mln")]
+    name = gui_app_name(source)
     out = out_dir / (name + ".mbin")
     cmd = [
         sys.executable, str(QA_DIR / "runners" / "build_toolchain.py"),
@@ -72,7 +84,7 @@ def build_all(out_dir: Path, build_dir: Path, quiet: bool = False) -> list:
     built = []
     for source in sorted((USER_DIR / "apps").glob("*.mln")):
         built.append(build_app(source, out_dir, build_dir, quiet))
-    for source in sorted((MYOS_DIR / "src" / "apps").glob("*.dom.mln")):
+    for source in gui_app_sources():
         built.append(build_gui_app(source, out_dir, build_dir, quiet))
     return built
 
