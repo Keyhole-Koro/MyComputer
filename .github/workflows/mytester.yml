@@ -47,6 +47,7 @@ jobs:
             qa/runners/run_kernel.py \
             qa/runners/run_mylang.py \
             qa/runners/run_system.py \
+            qa/runners/runner_common.py \
             qa/tools/debug_session.py \
             tools/MyProfiler/myprofiler.py \
             qa/tests/test-all.py

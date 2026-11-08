@@ -42,16 +42,7 @@ from tools.project_paths import (
     MYOS_DIR,
     REPO_ROOT,
 )
-
-GREEN, RED, CYAN, YELLOW = "32", "31", "36", "33"
-
-
-def colored(text, code):
-    return f"\033[{code}m{text}\033[0m"
-
-
-def status(label, msg, code=CYAN):
-    print(colored(f"[{label}]", code), msg, flush=True)
+from qa.runners.runner_common import CYAN, GREEN, MYEMU, RED, YELLOW, colored, status_line
 
 
 # ---------------------------------------------------------------------------
@@ -65,7 +56,7 @@ COMPONENTS = {
     "mytest": (MYLANGTESTER_DIR, "all", MYLANGTESTER_DIR / "build" / "mytest"),
     "myas": (MYASSEMBLER_DIR, "all", MYASSEMBLER_DIR / "build" / "myas"),
     "mllinker": (MYLINKER_DIR, "all", MYLINKER_DIR / "mllinker"),
-    "myemu": (MYEMULATOR_DIR, "all", MYEMULATOR_DIR / "target" / "release" / "myemu"),
+    "myemu": (MYEMULATOR_DIR, "all", MYEMU),
 }
 
 
@@ -90,7 +81,7 @@ def build_component(name, verbose):
     if proc.returncode == 0 and artifact.exists():
         return True, "up to date" if not verbose else "built"
 
-    status("WARN", f"{name}: build failed, cleaning and rebuilding", YELLOW)
+    status_line("WARN", f"{name}: build failed, cleaning and rebuilding", YELLOW)
     subprocess.run(["make", "clean"], cwd=directory,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     proc = _make(directory, target, verbose)
@@ -277,7 +268,7 @@ def run_suite(name):
 def record_result(results, name, ok, output, verbose):
     results[name] = (ok, output)
     label, code = ("PASS", GREEN) if ok else ("FAIL", RED)
-    status(label, name, code)
+    status_line(label, name, code)
     if verbose and output:
         print(output, flush=True)
 
@@ -307,15 +298,15 @@ def main():
 
     failed_builds = set()
     if args.no_build:
-        status("INFO", "skipping build phase (--no-build)", YELLOW)
+        status_line("INFO", "skipping build phase (--no-build)", YELLOW)
     else:
-        status("BUILD", f"building: {', '.join(sorted(needed))}")
+        status_line("BUILD", f"building: {', '.join(sorted(needed))}")
         for name in sorted(needed):
             ok, detail = build_component(name, args.verbose)
             if ok:
-                status("OK", f"{name}: {detail}", GREEN)
+                status_line("OK", f"{name}: {detail}", GREEN)
             else:
-                status("FAIL", f"{name}: {detail}", RED)
+                status_line("FAIL", f"{name}: {detail}", RED)
                 failed_builds.add(name)
 
     # Run suites whose components all built; mark the rest failed-without-running.
@@ -335,7 +326,7 @@ def main():
     serial_runnable = [s for s in runnable if s in SERIAL_SUITES]
 
     if parallel_runnable:
-        status("TEST", f"running {len(parallel_runnable)} component/system suite(s) in parallel")
+        status_line("TEST", f"running {len(parallel_runnable)} component/system suite(s) in parallel")
         with ProcessPoolExecutor(max_workers=args.jobs) as pool:
             futures = {pool.submit(run_suite, s): s for s in parallel_runnable}
             for fut in as_completed(futures):
@@ -343,14 +334,14 @@ def main():
                 record_result(results, name, ok, output, args.verbose)
 
     if serial_runnable:
-        status("E2E", f"running {len(serial_runnable)} toolchain suite(s) serially")
+        status_line("E2E", f"running {len(serial_runnable)} toolchain suite(s) serially")
         for suite in serial_runnable:
             name, ok, output = run_suite(suite)
             record_result(results, name, ok, output, args.verbose)
 
     # Summary, in the declared order for stable reading.
     print()
-    status("SUMMARY", "results:")
+    status_line("SUMMARY", "results:")
     passed = 0
     for s in selected:
         ok, detail = results[s]
@@ -364,9 +355,9 @@ def main():
 
     total = len(selected)
     code = GREEN if passed == total else RED
-    status("DONE", f"{passed}/{total} suites passed", code)
+    status_line("DONE", f"{passed}/{total} suites passed", code)
     if passed != total and not args.verbose:
-        status("INFO", "re-run with --verbose to see failing suite output", CYAN)
+        status_line("INFO", "re-run with --verbose to see failing suite output", CYAN)
     return 0 if passed == total else 1
 
 

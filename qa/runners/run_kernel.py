@@ -5,52 +5,24 @@ Build and run the sample kernel from MyKernel using the toolchain:
 """
 
 import argparse
-import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from tools.project_paths import MYEMULATOR_DIR, MYKERNEL_DIR, MYOS_DIR, QA_DIR, REPO_ROOT
-from qa.tools.debug_session import DebugSession, copy_artifacts, default_session_dir, run_logged
-
-GREEN = "32"
-RED = "31"
-YELLOW = "33"
-CYAN = "36"
-VERBOSE = False
-
-
-def colored(text, color_code):
-    return f"\033[{color_code}m{text}\033[0m"
-
-
-def status_line(label, message, color=CYAN):
-    print(colored(f"[{label}]", color), message)
-
-
-def run_step(cmd, cwd, description, session: DebugSession, log_name: str, quiet_fail=False):
-    if VERBOSE:
-        status_line("RUN", " ".join(str(c) for c in cmd), CYAN)
-    else:
-        status_line("STEP", description, CYAN)
-
-    try:
-        output = run_logged(cmd, cwd, description, session, log_name)
-    except subprocess.CalledProcessError as exc:
-        if not quiet_fail:
-            status_line("FAIL", description, RED)
-            status_line("INFO", f"session: {session.session_dir}", YELLOW)
-            tail = "\n".join((exc.output or "").strip().splitlines()[-20:])
-            if tail:
-                print(tail)
-        raise
-
-    if VERBOSE and output:
-        print(output, end="")
-        status_line("OK", description, GREEN)
-
-    return output
+from tools.project_paths import MYKERNEL_DIR, MYOS_DIR, QA_DIR
+from qa.runners.runner_common import (
+    CYAN,
+    GREEN,
+    MYEMU,
+    YELLOW,
+    StepRunner,
+    build_emulator,
+    emulator_debug_args,
+    print_serial_output,
+    status_line,
+)
+from qa.tools.debug_session import DebugSession, copy_artifacts, default_session_dir
 
 
 def main():
@@ -85,10 +57,6 @@ def main():
     )
     args = parser.parse_args()
 
-    global VERBOSE
-    VERBOSE = args.verbose
-
-    repo = REPO_ROOT
     kernel_dir = MYKERNEL_DIR
     build_dir = kernel_dir / "build"
     build_dir.mkdir(parents=True, exist_ok=True)
@@ -99,34 +67,22 @@ def main():
     kernel_stub = Path(args.stub).resolve() if args.stub else MYOS_DIR / "src" / "boot" / "stub.masm"
     linked_bin = build_dir / f"{kernel_source.stem}_linked.mbin"
     build_toolchain = QA_DIR / "runners" / "build_toolchain.py"
-    myemu = MYEMULATOR_DIR / "target" / "release" / "myemu"
 
     if args.log_dir:
         session_dir = Path(args.log_dir).resolve()
     else:
         session_dir = default_session_dir(build_dir / "sessions", kernel_source.stem)
     session = DebugSession(session_dir, kernel_source.stem)
+    steps = StepRunner(session, args.verbose, summarize_failures=False)
     report_path = session.path("registers.txt")
 
     status_line("INFO", f"session: {session.session_dir}", YELLOW)
 
     # Rebuild emulator so we always run the latest source.
-    try:
-        run_step(
-            ["make", "-C", MYEMULATOR_DIR, "all"],
-            cwd=repo,
-            description="build emulator",
-            session=session,
-            log_name="00-build-myemu.log",
-            quiet_fail=True,
-        )
-    except subprocess.CalledProcessError as exc:
-        if "cargo: not found" not in (exc.output or "") or not myemu.exists():
-            raise
-        status_line("INFO", f"cargo not found; using existing emulator: {myemu}", YELLOW)
+    build_emulator(steps, description="build emulator", log_name="00-build-myemu.log")
 
     # Build kernel using toolchain script (stub must be first for entry point)
-    run_step(
+    steps.run(
         [
             sys.executable,
             build_toolchain,
@@ -137,9 +93,7 @@ def main():
             "--build-dir",
             build_dir,
         ],
-        cwd=repo,
         description="build kernel image",
-        session=session,
         log_name="01-build-kernel.log",
     )
 
@@ -150,17 +104,10 @@ def main():
         status_line("DONE", "build complete; skipped emulator run", GREEN)
         return
 
-    emu_cmd = [myemu, "-i", linked_bin, "-o", report_path, "--log-dir", session.session_dir]
+    emu_cmd = [MYEMU, "-i", linked_bin, "-o", report_path, "--log-dir", session.session_dir]
     if args.headless:
         emu_cmd.append("--headless")
-    if args.trace:
-        emu_cmd.append("--trace")
-    if args.break_addr:
-        emu_cmd.extend(["--break", args.break_addr])
-    if args.step:
-        emu_cmd.extend(["--step", args.step])
-    if args.mem:
-        emu_cmd.extend(["--mem", args.mem[0], args.mem[1]])
+    emu_cmd += emulator_debug_args(args)
     if args.timer_interval:
         emu_cmd.extend(["--timer-interval", args.timer_interval])
     profile_path = None
@@ -168,19 +115,8 @@ def main():
         profile_path = session.path(args.profile)
         emu_cmd.extend(["--profile", profile_path])
 
-    run_step(
-        emu_cmd,
-        cwd=repo,
-        description="run emulator",
-        session=session,
-        log_name="02-emulator.log",
-    )
-
-    # myemu writes the guest's serial output to serial.txt in its --log-dir.
-    serial_output = session.path("serial.txt").read_text(encoding="utf-8", errors="replace").strip()
-    if serial_output:
-        status_line("PRINT", "kernel output", YELLOW)
-        print(serial_output)
+    steps.run(emu_cmd, description="run emulator", log_name="02-emulator.log")
+    print_serial_output(session, "kernel output")
 
     status_line("INFO", f"report: {report_path}", YELLOW)
     if profile_path and Path(profile_path).exists():

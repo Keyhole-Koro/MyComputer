@@ -7,89 +7,30 @@ This is intended as a fast debug loop:
 """
 
 import argparse
-import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from tools.project_paths import (
-    MYASSEMBLER_DIR,
-    MYEMULATOR_DIR,
-    MYLANGCOMPILER_DIR,
-    MYLINKER_DIR,
-    QA_DIR,
-    REPO_ROOT,
+from tools.project_paths import MYASSEMBLER_DIR, MYLANGCOMPILER_DIR, MYLINKER_DIR, QA_DIR
+from qa.runners.runner_common import (
+    GREEN,
+    MYEMU,
+    YELLOW,
+    StepRunner,
+    build_emulator,
+    emulator_debug_args,
+    print_serial_output,
+    status_line,
 )
-from qa.tools.debug_session import DebugSession, copy_artifacts, default_session_dir, run_logged
-
-GREEN = "32"
-RED = "31"
-CYAN = "36"
-YELLOW = "33"
-
-VERBOSE = False
+from qa.tools.debug_session import DebugSession, copy_artifacts, default_session_dir
 
 
-def colored(text, color_code):
-    return f"\033[{color_code}m{text}\033[0m"
-
-
-def status_line(label, message, color=CYAN):
-    print(colored(f"[{label}]", color), message)
-
-
-def run(cmd, cwd, description, session=None, log_name=None, quiet_fail=False):
-    output = None
-    if VERBOSE:
-        status_line("RUN", " ".join(str(c) for c in cmd), CYAN)
-    else:
-        status_line("STEP", description, CYAN)
-    try:
-        if session is None:
-            subprocess.check_call([str(c) for c in cmd], cwd=cwd)
-        else:
-            output = run_logged(cmd, cwd, description, session, log_name or f"{description}.log")
-            if VERBOSE and output:
-                print(output, end="")
-    except subprocess.CalledProcessError as exc:
-        if not quiet_fail:
-            status_line("FAIL", description, RED)
-            if session is not None:
-                status_line("INFO", f"session: {session.session_dir}", YELLOW)
-                tail = "\n".join((exc.output or "").strip().splitlines()[-20:])
-                if tail:
-                    print(tail)
-        raise
-    if VERBOSE:
-        status_line("OK", description, GREEN)
-    return output
-
-
-def ensure_tools(session=None):
-    run(["make", "-C", MYLANGCOMPILER_DIR, "all"], cwd=REPO_ROOT, description="build MyLangCompiler", session=session, log_name="01-build-mlc.log")
-    run(["make", "-C", MYASSEMBLER_DIR, "all"], cwd=REPO_ROOT, description="build MyAssembler", session=session, log_name="02-build-myas.log")
-    run(["make", "-C", MYLINKER_DIR, "all"], cwd=REPO_ROOT, description="build MyLinker", session=session, log_name="03-build-mllinker.log")
-    try:
-        run(
-            ["make", "-C", MYEMULATOR_DIR, "all"],
-            cwd=REPO_ROOT,
-            description="build MyEmulator",
-            session=session,
-            log_name="04-build-myemu.log",
-            quiet_fail=True,
-        )
-    except subprocess.CalledProcessError as exc:
-        myemu = MYEMULATOR_DIR / "target" / "release" / "myemu"
-        if "cargo: not found" not in (exc.output or "") or not myemu.exists():
-            status_line("FAIL", "build MyEmulator", RED)
-            if session is not None:
-                status_line("INFO", f"session: {session.session_dir}", YELLOW)
-                tail = "\n".join((exc.output or "").strip().splitlines()[-20:])
-                if tail:
-                    print(tail)
-            raise
-        status_line("INFO", f"cargo not found; using existing emulator: {myemu}", YELLOW)
+def ensure_tools(steps):
+    steps.run(["make", "-C", MYLANGCOMPILER_DIR, "all"], description="build MyLangCompiler", log_name="01-build-mlc.log")
+    steps.run(["make", "-C", MYASSEMBLER_DIR, "all"], description="build MyAssembler", log_name="02-build-myas.log")
+    steps.run(["make", "-C", MYLINKER_DIR, "all"], description="build MyLinker", log_name="03-build-mllinker.log")
+    build_emulator(steps, description="build MyEmulator", log_name="04-build-myemu.log")
 
 
 def default_build_dir(sources):
@@ -122,10 +63,6 @@ def main():
     parser.add_argument("--verbose", action="store_true", help="Show executed commands")
     args = parser.parse_args()
 
-    global VERBOSE
-    VERBOSE = args.verbose
-
-    repo = REPO_ROOT
     build_dir = Path(args.build_dir).resolve() if args.build_dir else default_build_dir(args.sources).resolve()
     build_dir.mkdir(parents=True, exist_ok=True)
     linked_bin = Path(args.out).resolve() if args.out else build_dir / "linked.mbin"
@@ -140,13 +77,13 @@ def main():
             "entry": args.entry,
         }
     )
+    steps = StepRunner(session, args.verbose, summarize_failures=False)
     status_line("INFO", f"session: {session.session_dir}", YELLOW)
 
     build_toolchain = QA_DIR / "runners" / "build_toolchain.py"
-    myemu = MYEMULATOR_DIR / "target" / "release" / "myemu"
 
     if not args.skip_build_tools:
-        ensure_tools(session)
+        ensure_tools(steps)
 
     build_cmd = [
         sys.executable,
@@ -166,7 +103,7 @@ def main():
     for ex in args.exclude:
         build_cmd.extend(["--exclude", ex])
 
-    run(build_cmd, cwd=repo, description="build MyLang image", session=session, log_name="05-build-image.log")
+    steps.run(build_cmd, description="build MyLang image", log_name="05-build-image.log")
 
     status_line("INFO", f"linked image: {linked_bin}", YELLOW)
     status_line("INFO", f"artifacts dir: {build_dir}", YELLOW)
@@ -176,7 +113,7 @@ def main():
         status_line("DONE", "build complete; skipped emulator run", GREEN)
         return
 
-    emu_cmd = [myemu, "-i", linked_bin]
+    emu_cmd = [MYEMU, "-i", linked_bin]
     if args.headless:
         emu_cmd.append("--headless")
     emu_report = Path(args.emu_out).resolve() if args.emu_out else session.path("registers.txt")
@@ -186,21 +123,10 @@ def main():
         emu_cmd.extend(["--reg", args.reg])
     if args.emu_verbose:
         emu_cmd.append("--verbose")
-    if args.trace:
-        emu_cmd.append("--trace")
-    if args.break_addr:
-        emu_cmd.extend(["--break", args.break_addr])
-    if args.step:
-        emu_cmd.extend(["--step", args.step])
-    if args.mem:
-        emu_cmd.extend(["--mem", args.mem[0], args.mem[1]])
+    emu_cmd += emulator_debug_args(args)
 
-    run(emu_cmd, cwd=repo, description="run emulator", session=session, log_name="06-emulator.log")
-    # myemu writes the guest's serial output to serial.txt in its --log-dir.
-    serial_output = session.path("serial.txt").read_text(encoding="utf-8", errors="replace").strip()
-    if serial_output:
-        status_line("PRINT", "serial output", YELLOW)
-        print(serial_output)
+    steps.run(emu_cmd, description="run emulator", log_name="06-emulator.log")
+    print_serial_output(session, "serial output")
     status_line("DONE", "MyLang program finished in emulator", GREEN)
 
 

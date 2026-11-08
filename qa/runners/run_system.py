@@ -14,62 +14,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from tools.project_paths import MYEMULATOR_DIR, MYOS_DIR, QA_DIR, REPO_ROOT
-from qa.tools.debug_session import (
-    DebugSession,
-    default_session_dir,
-    run_logged,
-    summarize_failure,
-)
-
-GREEN = "32"
-RED = "31"
-YELLOW = "33"
-CYAN = "36"
-VERBOSE = False
+from qa.runners.runner_common import GREEN, MYEMU, RED, YELLOW, StepRunner, status_line
+from qa.tools.debug_session import DebugSession, default_session_dir
 
 MYFIRMWARE_DIR = REPO_ROOT / "system" / "MyFirmware"
-
-def colored(text, color_code):
-    return f"\033[{color_code}m{text}\033[0m"
-
-def status_line(label, message, color=CYAN):
-    print(colored(f"[{label}]", color), message, flush=True)
-
-def run_step(
-    cmd,
-    cwd,
-    description,
-    session: DebugSession,
-    log_name: str,
-    echo_output: bool = False,
-):
-    if VERBOSE:
-        status_line("RUN", " ".join(str(c) for c in cmd), CYAN)
-    else:
-        status_line("STEP", description, CYAN)
-
-    try:
-        output = run_logged(
-            cmd,
-            cwd,
-            description,
-            session,
-            log_name,
-            echo_output=echo_output,
-        )
-    except subprocess.CalledProcessError as exc:
-        status_line("FAIL", description, RED)
-        status_line("INFO", f"full log: {session.path('steps', log_name)}", YELLOW)
-        summary = summarize_failure(exc.output or "")
-        if summary:
-            print(summary)
-        raise
-
-    if VERBOSE and output and not echo_output:
-        print(output, end="")
-        status_line("OK", description, GREEN)
-
-    return output
 
 def main():
     parser = argparse.ArgumentParser(description="Build and run MyComputer system.")
@@ -83,10 +31,6 @@ def main():
     )
     args = parser.parse_args()
 
-    global VERBOSE
-    VERBOSE = args.verbose
-
-    repo = REPO_ROOT
     build_dir = REPO_ROOT / "build"
     build_dir.mkdir(parents=True, exist_ok=True)
 
@@ -101,53 +45,45 @@ def main():
     kernel_bin = build_dir / "kernel_linked.mbin"
 
     build_toolchain = QA_DIR / "runners" / "build_toolchain.py"
-    myemu = MYEMULATOR_DIR / "target" / "release" / "myemu"
     disk_img = build_dir / "disk.img"
 
     session_dir = default_session_dir(build_dir / "sessions", "system")
     session = DebugSession(session_dir, "system")
+    steps = StepRunner(session, args.verbose)
     report_path = session.path("registers.txt")
 
     status_line("INFO", f"session: {session.session_dir}", YELLOW)
 
     # 1. Build emulator
-    run_step(
+    steps.run(
         ["make", "-C", MYEMULATOR_DIR, "all"],
-        cwd=repo,
         description="build emulator",
-        session=session,
         log_name="00-build-myemu.log",
     )
 
     # 2. Build Firmware
-    run_step(
+    steps.run(
         cmd=[
             sys.executable, build_toolchain,
             fw_stub, fw_source, fw_jump,
             "-o", fw_bin,
             "--build-dir", build_dir
         ],
-        cwd=repo,
         description="build firmware image",
-        session=session,
         log_name="01-build-firmware.log",
     )
 
     # 3. Build Kernel
-    run_step(
+    steps.run(
         [sys.executable, build_toolchain, kernel_stub, kernel_source, "-o", kernel_bin, "--build-dir", build_dir, "--base", "0x00100000"],
-        cwd=repo,
         description="build kernel image",
-        session=session,
         log_name="02-build-kernel.log",
     )
 
     # 4. Build the user-space programs (system/MyOS/user/apps -> build/user).
-    run_step(
+    steps.run(
         [sys.executable, QA_DIR / "runners" / "build_user_apps.py", "--quiet"],
-        cwd=repo,
         description="build user programs",
-        session=session,
         log_name="03-build-user.log",
     )
 
@@ -177,7 +113,7 @@ def main():
                   "programs (hello, echo, count) from the Terminal.\n",
         "--text", "todo.txt=- write more apps\n- add a network stack\n",
     ]
-    run_step(mkfs_cmd, cwd=repo, description="make disk image (mkfs)", session=session, log_name="04-mkfs.log")
+    steps.run(mkfs_cmd, description="make disk image (mkfs)", log_name="04-mkfs.log")
 
     if args.no_run:
         status_line("DONE", "build complete; skipped emulator run", GREEN)
@@ -196,7 +132,7 @@ def main():
     # (MIN_INSTRS_PER_TICK in runtime/MyEmulator/src/machine/timer.rs), so a tick
     # is delayed rather than allowed to crowd the guest out, and the period is
     # once again just an upper bound on the tick rate.
-    emu_cmd = [str(myemu), "-i", str(fw_bin), "--disk", str(disk_img), "-o", str(report_path), "--log-dir", str(session.session_dir), "--timer-interval", "1000"]
+    emu_cmd = [str(MYEMU), "-i", str(fw_bin), "--disk", str(disk_img), "-o", str(report_path), "--log-dir", str(session.session_dir), "--timer-interval", "1000"]
     if args.headless or args.screenshot:
         emu_cmd.append("--headless")
     if args.screenshot:
@@ -205,11 +141,9 @@ def main():
         # screenshot is then written from the presented frame.
         emu_cmd += ["--step", "200000000", "--screenshot", str(Path(args.screenshot).resolve())]
 
-    run_step(
+    steps.run(
         emu_cmd,
-        cwd=repo,
         description="run emulator",
-        session=session,
         log_name="05-run-emulator.log",
         echo_output=True,
     )
