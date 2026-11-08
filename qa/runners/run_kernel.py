@@ -53,37 +53,6 @@ def run_step(cmd, cwd, description, session: DebugSession, log_name: str, quiet_
     return output
 
 
-def extract_serial_output(emulator_output: str) -> str:
-    lines = emulator_output.splitlines()
-    serial_lines = []
-    seen_load = False
-
-    for line in lines:
-        if not seen_load:
-            if line.startswith("Loading binary from "):
-                seen_load = True
-            continue
-        if line.startswith("Stack Contents:"):
-            break
-        serial_lines.append(line)
-
-    return "\n".join(serial_lines).strip()
-
-
-def without_log_dir(cmd):
-    stripped = []
-    skip_next = False
-    for item in cmd:
-        if skip_next:
-            skip_next = False
-            continue
-        if str(item) == "--log-dir":
-            skip_next = True
-            continue
-        stripped.append(item)
-    return stripped
-
-
 def main():
     parser = argparse.ArgumentParser(description="Build and run MyKernel sample.")
     parser.add_argument("--no-run", action="store_true", help="Build only; skip emulator run.")
@@ -205,35 +174,16 @@ def main():
         profile_path = session.path(args.profile)
         emu_cmd.extend(["--profile", profile_path])
 
-    try:
-        emulator_output = run_step(
-            emu_cmd,
-            cwd=repo,
-            description="run emulator",
-            session=session,
-            log_name="02-emulator.log",
-            quiet_fail=True,
-        )
-    except subprocess.CalledProcessError as exc:
-        if "Unknown option: --log-dir" not in (exc.output or ""):
-            raise
-        status_line("INFO", "emulator does not support --log-dir; retrying legacy run", YELLOW)
-        emulator_output = run_step(
-            without_log_dir(emu_cmd),
-            cwd=repo,
-            description="run emulator (legacy)",
-            session=session,
-            log_name="02-emulator-legacy.log",
-        )
+    run_step(
+        emu_cmd,
+        cwd=repo,
+        description="run emulator",
+        session=session,
+        log_name="02-emulator.log",
+    )
 
-    serial_path = session.path("serial.txt")
-    debug_output_requested = args.trace or args.break_addr or args.step or args.mem
-    if serial_path.exists():
-        serial_output = serial_path.read_text(encoding="utf-8", errors="replace").strip()
-    elif debug_output_requested:
-        serial_output = ""
-    else:
-        serial_output = extract_serial_output(emulator_output)
+    # myemu writes the guest's serial output to serial.txt in its --log-dir.
+    serial_output = session.path("serial.txt").read_text(encoding="utf-8", errors="replace").strip()
     if serial_output:
         status_line("PRINT", "kernel output", YELLOW)
         print(serial_output)
