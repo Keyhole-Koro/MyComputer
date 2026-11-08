@@ -20,6 +20,11 @@ MyKernel の `run_serial_rx_test.py` などは、Python がビルド・エミュ
 
 ## 仕様案
 
+> 2026-11-08: この節の `test("name", options, () => { ... })` declaration は削除した。
+> `mytest` はもう読まない。今のテストは、通常のトップレベル関数に
+> `/*@Test "name" { key: value; }*/` を付けて宣言する（`toolchain/MyLangTester/README.md`）。
+> 以下は当時の仕様として残す。
+
 `test(...)` は通常の MyLang 関数呼び出しではなく、`mytest` 専用のトップレベル
 test declaration とする。
 
@@ -105,6 +110,9 @@ MyLang の kernel/emulator テストでは `stdin` や `step` を emulator 起�
 > `kernel_main()` へ lowering し、ビルド → `myemu` 実行 → `expect` の serial 出力照合まで
 > 動作する。assertion library `system/MyKernel/tests/libs/test.mln` も存在する。
 > `*.test.mln` は top-level `test(...)` declaration を必須とする。
+> その後、テストは `/*@Test*/` を付けた通常の関数へ移り、`test(...)` declaration と
+> body を書き換える harness は 2026-11-08 に削除した。`*.test.mln` には `/*@Test*/` の
+> 関数が要る。
 
 ### フェーズ1: 仕様固定と最小 mytest（実装済み）
 
