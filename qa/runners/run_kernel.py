@@ -58,10 +58,6 @@ def main():
     parser.add_argument("--no-run", action="store_true", help="Build only; skip emulator run.")
     parser.add_argument("--headless", action="store_true", help="Run emulator without display.")
     parser.add_argument("--verbose", action="store_true", help="Show full command output in the terminal.")
-    parser.add_argument(
-        "--log-file",
-        help="Compatibility alias for --log-dir; parent directory is used as the debug session directory.",
-    )
     parser.add_argument("--log-dir", help="Debug session directory (default: system/MyKernel/build/sessions/<timestamp>-kernel).")
     parser.add_argument("--trace", action="store_true", help="Pass --trace to emulator.")
     parser.add_argument("--break", dest="break_addr", help="Pass --break to emulator.")
@@ -107,8 +103,6 @@ def main():
 
     if args.log_dir:
         session_dir = Path(args.log_dir).resolve()
-    elif args.log_file:
-        session_dir = Path(args.log_file).resolve().parent
     else:
         session_dir = default_session_dir(build_dir / "sessions", kernel_source.stem)
     session = DebugSession(session_dir, kernel_source.stem)
