@@ -64,21 +64,28 @@ page_up(text_size)` としてファイルオフセットに直す（`toolchain/M
 
 ### C/C++ 構造体定義 (`toolchain/MyLinker/inc/ObjectFormat.h`)
 
+定数は `const` 変数ではなく列挙子で、C と C++ のどのファイルからでもインクルードできる。
+C のファイルスコープの `const` は外部リンケージを持つ定義なので、二つの C ファイルが
+インクルードするとリンクできない（`ObjectFormat.h` 冒頭のコメント）。
+
 ```cpp
-const uint32_t MBIN_MAGIC = 0x4D42494E; // 'MBIN'
-const uint32_t MBIN_VERSION_1 = 1;
-const uint32_t MBIN_VERSION_2 = 2;   // adds sections_offset
+enum {
+    MBIN_MAGIC = 0x4D42494E, // 'MBIN'
+    MBIN_VERSION_1 = 1,
+    MBIN_VERSION_2 = 2,      // adds sections_offset
+};
 
 #pragma pack(push, 1)
 struct MbinHeader {
-    uint32_t magic;         // 0x00: マジックナンバー ('MBIN' = 0x4D42494E)
-    uint32_t version;       // 0x04: ヘッダバージョン (現在は 1)
-    uint32_t entry_point;   // 0x08: 実行開始仮想アドレス (__START__ のアドレス)
-    uint32_t text_offset;   // 0x0C: ファイル先頭から .text までのオフセット (通常 32)
-    uint32_t text_size;     // 0x10: .text セクションのバイト数
-    uint32_t data_offset;   // 0x14: ファイル先頭から .data までのオフセット (32 + text_size)
-    uint32_t data_size;     // 0x18: .data セクションのバイト数
-    uint32_t bss_size;      // 0x1C: メモリ上でゼロクリアが必要な .bss のバイト数 (現在 0)
+    uint32_t magic;           // 0x00: マジックナンバー ('MBIN' = 0x4D42494E)
+    uint32_t version;         // 0x04: ヘッダバージョン (現在は 2)
+    uint32_t entry_point;     // 0x08: 実行開始仮想アドレス (__START__ のアドレス)
+    uint32_t text_offset;     // 0x0C: ファイル先頭から .text までのオフセット (36 = sizeof(MbinHeader))
+    uint32_t text_size;       // 0x10: .text セクションのバイト数
+    uint32_t data_offset;     // 0x14: ファイル先頭から .data までのオフセット (text_offset + text_size)
+    uint32_t data_size;       // 0x18: .data セクションのバイト数 (集めたセクションとディレクトリを含む)
+    uint32_t bss_size;        // 0x1C: メモリ上でゼロクリアが必要な .bss のバイト数 (現在 0)
+    uint32_t sections_offset; // 0x20: セクションディレクトリ (__sections) のファイル内オフセット、なければ 0
 };
 #pragma pack(pop)
 ```
@@ -89,19 +96,21 @@ struct MbinHeader {
    - ASCII文字列 `"MBIN"`（`0x4D, 0x42, 0x49, 0x4E`）。
    - ローダーは先頭4バイトを読み取り、この値に一致しないバッファを拒否します。
 2. **`version` (0x04, 4 bytes)**:
-   - ヘッダフォーマットのバージョン番号。現在は `1`。
+   - ヘッダフォーマットのバージョン番号。リンカーが書くのは `2`（`MBIN_VERSION_2`）。ローダーは `1` も受け付けます。
 3. **`entry_point` (0x08, 4 bytes)**:
    - プロセスの初期プログラムカウンタ（PC）。リンカーで解決されたエントリシンボル（通常 `__START__`）の仮想アドレス（例: `0x40000000`）。
 4. **`text_offset` (0x0C, 4 bytes)**:
-   - ファイル先頭からの機械語コード領域（`.text`）の開始バイト位置。通常はヘッダの直後である `32`（`0x00000020`）。
+   - ファイル先頭からの機械語コード領域（`.text`）の開始バイト位置。ヘッダの直後である `36`（`0x00000024`、`sizeof(MbinHeader)`）。
 5. **`text_size` (0x10, 4 bytes)**:
    - 機械語コードの有効バイト数。
 6. **`data_offset` (0x14, 4 bytes)**:
    - ファイル先頭からの初期化済みデータ領域（`.data`）の開始バイト位置。ファイル内ではパディングなしで `text_offset + text_size` に連続配置されます。
 7. **`data_size` (0x18, 4 bytes)**:
-   - 初期化済みデータのバイト数。
+   - 初期化済みデータのバイト数。集めたセクションとセクションディレクトリを含みます。
 8. **`bss_size` (0x1C, 4 bytes)**:
    - 未初期化データ（`.bss`）のバイト数。ファイル上にはデータを保持せず、ローダーがメモリ確保時にゼロクリアします。
+9. **`sections_offset` (0x20, 4 bytes)**:
+   - セクションディレクトリ（`__sections`）のファイル内オフセット。集めたセクションがなければ `0`（上記参照）。
 
 ---
 
@@ -160,7 +169,7 @@ Virtual Address Space:
      $$\text{data\_base\_addr} = (\text{text\_base\_addr} + \text{total\_text\_size} + 4095) \ \& \ \sim 4095$$
    - これにより、データシンボル（グローバル変数や文字列定数など）のアドレス解決が、ページ分離後の仮想アドレスと完全に一致します。
 3. **ヘッダ出力**:
-   - ファイルの先頭 32 バイトに `MbinHeader`（Big Endian）を出力します。
+   - ファイルの先頭 36 バイトに `MbinHeader`（version 2、Big Endian）を出力します。
    - 続いて `text_section` の全バイトを出力し、その直後にパディングなしで `data_section` の全バイトを出力します。ファイルサイズは不要に肥大化しません。
 
 ### コマンドライン仕様
