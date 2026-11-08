@@ -1,6 +1,6 @@
 {
  "format": 1,
- "total": 160318298,
+ "total": 266658509,
  "cases": {
   "aliasDrop": 324,
   "aliasPassedOn": 55975,
@@ -11,6 +11,7 @@
   "arrayIndexCheck": 864,
   "arrayIndexCheckTrap": 88,
   "arrayInit": 45,
+  "arrayInitFromValues": 611702,
   "arrayLength": 56001,
   "arrayOfPointers": 465,
   "arraySizeof": 25,
@@ -44,12 +45,16 @@
   "defaultHook": 318,
   "divisionLarge": 3402924,
   "divisionSigned": 6800,
+  "domCaseArmBlock": 56466,
+  "domCaseArmHandler": 174,
+  "domConditionalOperandBlock": 1534,
   "domDefaults": 419,
   "domHandlerNominalId": 984,
   "domHandlerValues": 1402,
   "domNominalId": 234,
   "domNoneDefault": 215,
   "domPartProperty": 5348,
+  "domTernaryBranchBlock": 56287,
   "domViewBindings": 60160,
   "enum_basic": 27,
   "eqOnCaseBinding": 218,
@@ -58,6 +63,7 @@
   "exportedCallInCast": 103,
   "functionAddressArgument": 74,
   "functionLiteral": 44,
+  "functionLiteralNameUses": 50556108,
   "genericConstCapacity": 40,
   "genericFieldReceiver": 646,
   "genericI32ToString": 8540,
@@ -74,6 +80,7 @@
   "genericTextEditing": 1895,
   "genericTextZeroValue": 570,
   "globalConstantExpressions": 94,
+  "globalConstantReference": 55000209,
   "globalInit": 21,
   "globalPointerInit": 5500597,
   "globalUninit": 83,
@@ -186,6 +193,7 @@
   "tryRunsWhereWritten": 1874,
   "uintWidthSmall": 126,
   "unitResult": 274,
+  "variadicNestedCall": 57731,
   "zeroInitLocals": 5502
  }
 }
