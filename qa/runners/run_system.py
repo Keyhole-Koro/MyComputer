@@ -13,10 +13,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from tools.project_paths import MYEMULATOR_DIR, MYKERNEL_DIR, MYOS_DIR, QA_DIR, REPO_ROOT
+from tools.project_paths import MYEMULATOR_DIR, MYOS_DIR, QA_DIR, REPO_ROOT
 from qa.tools.debug_session import (
     DebugSession,
-    copy_artifacts,
     default_session_dir,
     run_logged,
     summarize_failure,
@@ -93,6 +92,7 @@ def main():
 
     fw_source = MYFIRMWARE_DIR / "src" / "fw" / "main.unsafe.mln"
     fw_stub = MYFIRMWARE_DIR / "src" / "boot" / "stub.masm"
+    fw_jump = MYFIRMWARE_DIR / "src" / "fw" / "jump.masm"
     fw_bin = build_dir / "firmware_linked.mbin"
 
     # The entry point is MyOS's: see system/MyOS/src/boot/main.unsafe.mln.
@@ -123,9 +123,7 @@ def main():
     run_step(
         cmd=[
             sys.executable, build_toolchain,
-            repo / "system/MyFirmware/src/boot/stub.masm",
-            repo / "system/MyFirmware/src/fw/main.unsafe.mln",
-            repo / "system/MyFirmware/src/fw/jump.masm",
+            fw_stub, fw_source, fw_jump,
             "-o", fw_bin,
             "--build-dir", build_dir
         ],
