@@ -153,8 +153,8 @@ annotations.count();                               // 全行数
 - 知らない名前の行は `named()` で頼まれなければ見えない。他のフレームワークが自分の
   アノテーションを同じ表に混ぜても互いに干渉しない
 - MyAppFramework の `runtime` は実行中 image の `"app"` / `"timer"` / `"key"` を読む。MyOS の
-  `shell/app.mln` は `in_image()` でディスク上の executable から `"app"` の公開メタデータだけを
-  読む。MyStdLib はどの名前にも意味を与えない。`meta.mln` は無くなった
+  `shell/install.unsafe.mln` は `in_image()` でディスク上の executable から `"app"` の
+  公開メタデータだけを読む。MyStdLib はどの名前にも意味を与えない。`meta.mln` は無くなった
 
 ## 5. 重複定義の検出
 

@@ -77,7 +77,7 @@ lifecycle・capabilities・semantic tokens 符号化が実装済み）。C へ�
   （診断側が `line-1`/`col-1` で LSP 化済み＝整合実証済み）。`tokenkind2str()` で
   種別名を文字列化できる（`parser_token.c` 等で実用済み）。
 - **AST は役割を全て持つが位置を捨てている**: `new_fundef(ret_type,name,..)` /
-  `new_param(type,name)` / `new_var_decl(type,name)` / `new_member_access(lhs,
+  `new_param(type,name,is_move)` / `new_var_decl(type,name)` / `new_member_access(lhs,
   member_name)` / `new_typedef`/`new_struct`/`new_enum` / `new_import_stmt(path,
   symbols)` / `new_identifier(name)` 等、**名前は `char*` で受け取り line/col を保持
   しない**（`MyLangCompiler/inc/mylang/frontend/parser_ast_internal.h`）。これが
