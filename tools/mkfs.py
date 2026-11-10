@@ -38,9 +38,10 @@ NAME_MAX = 16
 FLAG_DIR = 1
 SB_BLOCK, ENTRY_BLOCK, BITMAP_BLOCK, DATA_START = 0, 1, 2, 3
 KERNEL_BLOCK = 16000  # must match system/MyFirmware and qa/runners/run_system.py
-# The firmware loads KERNEL_BLOCKS blocks of the kernel image (see
-# system/MyFirmware/src/fw/main.unsafe.mln); a bigger image boots half-loaded.
-KERNEL_BLOCKS = 16
+# The firmware loads as many blocks as the kernel image says it takes, up to
+# KERNEL_BLOCKS (MAX_KERNEL_BLOCKS in system/MyFirmware/src/fw/main.unsafe.mln):
+# 4 MB.
+KERNEL_BLOCKS = 64
 
 
 def kernel_size_error(size: int) -> str | None:

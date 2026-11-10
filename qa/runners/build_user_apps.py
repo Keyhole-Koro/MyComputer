@@ -27,11 +27,10 @@ USER_DIR = MYOS_DIR / "user"
 # apart from the console programs in /bin.
 GUI_APP_DIR = MYOS_DIR / "src" / "apps"
 GUI_APP_SUFFIX = ".dom.mln"
-# MyLang materializes symbol addresses with a 21-bit immediate, so a
-# compiled program must be linked below 2 MB. 0x20000..0xFFFFF is RAM the
-# kernel never touches (the firmware stub sits at 0, the kernel image at
-# 0x100000); the loader maps a v2 image at the base it was linked at.
-USER_CODE_BASE = "0x00020000"
+# A process's code and data start at 1 GB, above the kernel's identity mapping
+# of RAM (docs/design/user-space-processes-and-syscalls.md); the loader maps a
+# v2 image at the base it was linked at.
+USER_CODE_BASE = "0x40000000"
 
 
 def gui_app_sources() -> list:

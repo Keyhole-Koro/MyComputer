@@ -9,6 +9,7 @@ export enum MmuError {
     AllocFailed,
     InvalidDirectory,
     UnalignedAddress(i32),
+    KernelRange(i32), // a user page where the kernel's own mappings are
 }
 
 export enum LoaderError {
@@ -37,6 +38,7 @@ export impl Describe for MmuError {
             MmuError::AllocFailed -> "out of memory";
             MmuError::InvalidDirectory -> "invalid page directory";
             MmuError::UnalignedAddress(_) -> "misaligned executable segment";
+            MmuError::KernelRange(_) -> "address reserved for the kernel";
         };
     }
 }

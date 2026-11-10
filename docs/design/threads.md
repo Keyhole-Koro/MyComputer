@@ -722,7 +722,10 @@ filesystemやUI routingまで呼ぶため、user stackとは共有しない。
 
 ### 9.1 必須となるMMU cleanup
 
-現在の `mmu.alloc_page()` はalignmentのためheapから8 KiBを確保し、aligned addressだけを返す。
+（2026-11-10 追記）物理ページは今は `mm/frames.mln` が配り、`free_frame` で返る。
+heapからは取らない（`docs/design/memory-layout.md`）。以下は当時の記述。
+
+当時の `mmu.alloc_page()` はalignmentのためheapから8 KiBを確保し、aligned addressだけを返す。
 元のallocation addressを失うため、安全にfreeできない。また `unmap_page` も存在しない。
 
 Thread実装より前に、少なくとも次を追加する。
@@ -1005,5 +1008,6 @@ Phase 1では新しいuser-visible thread syscallをまだ追加しない。内�
 1. `cas` を現行instruction encodingで表現できるか。
 2. syscall/interrupt handlerがどの区間でinterruptを再有効化するか。
 3. TCB内のpayload enumを現在のMyLang ABIで無理なく格納できるか。
-4. frame allocatorをheap alignment bookkeepingで直すか、専用page allocatorへ分離するか。
+4. ~~frame allocatorをheap alignment bookkeepingで直すか、専用page allocatorへ分離するか。~~
+   専用のpage allocatorへ分離した（`system/MyKernel/src/mm/frames.mln`、`docs/design/memory-layout.md`）。
 5. user function pointer型が入るまでstdlib `spawn` のentryを `i32` とするか。

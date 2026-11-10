@@ -163,7 +163,7 @@ Virtual Address Space:
 リンカーに `--header` オプションが指定された場合、リンカーは以下の処理を行います：
 
 1. **Textセクション仮想アドレス**:
-   - `text_base_addr = base_addr` (ユーザープログラムは `0x00020000`、`qa/runners/build_user_apps.py`)
+   - `text_base_addr = base_addr` (ユーザープログラムは `0x40000000`、`qa/runners/build_user_apps.py`)
 2. **Dataセクション仮想アドレス**:
    - Textセクションの終端を 4096 バイト境界に切り上げます：
      $$\text{data\_base\_addr} = (\text{text\_base\_addr} + \text{total\_text\_size} + 4095) \ \& \ \sim 4095$$

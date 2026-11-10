@@ -81,10 +81,16 @@
 | `mov r1, r2`    | `0x01` | `reg, reg`   | Copy r2 into r1                  |
 | `movi r1, imm`  | `0x02` | `reg, imm21` | Load **zero-extended** immediate |
 | `movis r1, imm` | `0x18` | `reg, imm21` | Load **sign-extended** immediate |
+| `lui r1, imm`   | `0x25` | `reg, imm21` | r1 ← imm << 11: bits 31..11 of a word, the low 11 bits zero |
 | `load r1, r2`     | `0x03` | `reg, reg`   | r1 ← mem\[r2]                    |
 | `store r1, r2`     | `0x04` | `reg, reg`   | mem\[r1] ← r2                    |
 | `loadb r1, r2`  | `0x1c` | `reg, reg` | r1 ← byte at mem\[r2] (zero-extend) |
 | `storeb r1, r2` | `0x1d` | `reg, reg` | mem\[r1] ← lower byte of r2         |
+
+A full 32-bit value takes two instructions: `lui r1, value >> 11` and then
+`addis r1, value & 0x7FF`, whose immediate (0 to 2047) is never negative. The
+assembler writes `movi r1, label` this way, so a label's address can be
+anywhere in the address space; the linker fills in the two halves.
 
 ---
 
@@ -155,6 +161,10 @@
 ---
 
 ## 4. 🗘️ Memory Map
+
+The physical map. How the kernel and processes use it (the kernel image, the
+heap, the page-frame pool, each process's address space) is in
+`docs/design/memory-layout.md`.
 
 | Address Range           | Size    | Description            |
 | ----------------------- | ------- | ---------------------- |

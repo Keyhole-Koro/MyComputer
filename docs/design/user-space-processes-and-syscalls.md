@@ -42,15 +42,16 @@ graph TD
 
 ## 2. Virtual Address Space Layout (Per Process)
 
-Each user process is assigned its own **Page Directory (PDBR)**. All user processes share an identical identity mapping for the kernel in lower memory, but maintain isolated, non-overlapping user code, heap, and stack pages.
+Each user process is assigned its own **Page Directory (PDBR)**. All user processes share the kernel's identity-mapping page tables for everything below 1 GB, but maintain isolated, non-overlapping user code, heap, and stack pages above it. `mmu.map_page` refuses a user page in one of the kernel's tables (`MmuError::KernelRange`): it would appear in every process.
 
 | Virtual Address Range | Size | Region | Page Attributes | Description |
 |---|---|---|---|---|
 | `0x0000_0000 .. 0x00FF_FFFF` | 16 MB | **Kernel Image & Heap** | `V \| W \| X` (`U=0`) | Identity-mapped kernel code, heap, data. Inaccessible to User Mode. |
+| `0x0100_0000 .. 0x1EFF_FFFF` | 496 MB | **Physical Frames** | `V \| W` (`U=0`) | Identity-mapped RAM the frame pool hands out from the end of the kernel heap: page tables and every page a process maps (see `docs/design/memory-layout.md`). Inaccessible to User Mode. |
 | `0x1F00_0000 .. 0x1FFF_FFFF` | 16 MB | **Kernel Stack** | `V \| W` (`U=0`) | Kernel interrupt/trap stack space. Inaccessible to User Mode. |
 | `0x2400_0000 .. 0x2400_1FFF` | 8 KB | **Hardware MMIO** | `V \| W` (`U=0`) | UART, SSD, MMU, DMA2D registers. Trapped if accessed in User Mode. |
 | `0x3000_0000 .. 0x302F_FFFF` | 3 MB | **VRAM Framebuffer** | `V \| W` (`U=0`) | Display buffer (User draws via Syscall or shared mapping). |
-| `0x4000_0000 .. 0x40FF_FFFF` | 16 MB | **User Code & Static Data** | text `V \| X \| U`, data `V \| W \| U` | Loaded from `.mbin` executable on MFS (in practice linked at `0x20000`: MyLang materializes addresses with a 21-bit immediate, so an image must sit below 2 MB; its pages replace the kernel identity mapping of that range in the process's own directory). Text is read-only; globals, strings and constant pools are in the data segment (the compiler's `.data`). |
+| `0x4000_0000 .. 0x40FF_FFFF` | 16 MB | **User Code & Static Data** | text `V \| X \| U`, data `V \| W \| U` | Loaded from `.mbin` executable on MFS, linked at `0x40000000` (`qa/runners/build_user_apps.py`). Text is read-only; globals, strings and constant pools are in the data segment (the compiler's `.data`). |
 | `0x4100_0000 .. 0x4FFF_FFFF` | 240 MB | **User Dynamic Heap** | `V \| W \| U` | User dynamic memory, grown upward via `sys_sbrk()`. |
 | `0x7F00_0000 .. 0x7FFF_FFFF` | 16 MB | **User Stack** | `V \| W \| U` | Process stack: 4 pages (`0x7FFF_C000..`), starting at `0x7FFF_FFE0` and growing downward. |
 
@@ -133,6 +134,14 @@ and `PROC_FEED`, which have no `result_out`, answer with a `ProcessControlStatus
 as the routing value. `PROC_EXITED` reports true, and `PROC_REAP` succeeds, only
 once the OS has released everything it holds under the child's pid.
 
+`PROC_STATS` controls nothing, so it answers any process, about every process:
+each one's name (the path it was started from, without directory or
+extension), parent, threads, CPU ticks, mapped pages and what it is doing, and
+where the CPU's time went and how much physical memory is free
+(`ProcStats` in `contracts/myos/process-args.contract.mln`; the Task Manager
+app shows it). The scheduler charges each timer tick to whatever it
+interrupted: a process's thread, a kernel thread, or idle.
+
 `SYS_YIELD` puts the calling task to sleep until the next timer tick
 (`scheduler.yield_until_tick`) rather than merely rescheduling it. The
 application transport uses `SYS_WAIT_NOTIFICATION` for request, reply, and
@@ -177,7 +186,7 @@ pass their records as raw addresses.
    * `mmu.setup_identity_kernel_mapping(pd);` (kernel is protected with `U=0`).
 4. **Load Code Pages:**
    * Reads file size and refuses a file without an MBIN header (`docs/design/mbin-executable-header.md`).
-   * Allocates physical frames `mmu.alloc_page()` for every 4 KB of code/data.
+   * Allocates physical frames `mmu.alloc_page()` (from the frame pool, `mm/frames.mln`) for every 4 KB of code/data.
    * Reads executable contents into allocated physical frames.
    * Maps text at the page of the header's `entry_point` with `PTE_VALID | PTE_EXEC | PTE_USER`, and data and BSS after it with `PTE_VALID | PTE_WRITABLE | PTE_USER`.
 5. **Allocate Stack Pages (`0x7FFF0000 .. 0x7FFFFFFF`):**
