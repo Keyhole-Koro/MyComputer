@@ -4,7 +4,8 @@ A computer built from scratch: an instruction set and its emulator, a kernel
 with isolated user processes, a windowed desktop OS, and MyLang with its own
 compiler, assembler, linker, standard library and language server.
 
-![The MyOS desktop: a Counter app, Notes, and a terminal that has just run a
+![The MyOS desktop: Task Manager graphing CPU use and listing each process's
+threads, CPU and memory, beside a Counter app and a terminal that has just run a
 user-space program](docs/images/desktop.png)
 
 Desktop apps are MyLang code. The Counter window above is this `@app`: the

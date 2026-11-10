@@ -31,6 +31,8 @@ sys.path.insert(0, str(REPO_ROOT / "system" / "MyOS" / "tests"))
 from mydomtester import MyOS, expect  # noqa: E402
 
 README = REPO_ROOT / "readme.md"
+ROW_H = 39            # launcher and list row height at 2x UI scale
+GRAPH_SAMPLES = 30    # Task Manager CPU samples in the shot: half its graph
 IMAGES = REPO_ROOT / "docs" / "images"
 
 SNIPPET_RE = re.compile(
@@ -155,6 +157,22 @@ def drag(os: MyOS, x0: int, y0: int, x1: int, y1: int) -> None:
         pass
 
 
+def click(os: MyOS, x: int, y: int) -> None:
+    """Click at (x, y) and wait for the redraw."""
+    drag(os, x, y, x, y)
+
+
+def launch_app(os: MyOS, name: str) -> None:
+    """Open the taskbar's app menu and click the named item: the menu's rows
+    are its text, one per line, ROW_H framebuffer pixels apart."""
+    click(os, 40, 1516)  # the MyOS launcher at the taskbar's left
+    expect(os.get_by_role("menu")).to_be_visible()
+    menu = os.get_by_role("menu").snapshot()
+    row = menu.text.split("\n").index(name)
+    click(os, menu.bounds.x + 40, menu.bounds.y + 16 + ROW_H * row + ROW_H // 2)
+    expect(os.get_by_role("window", name=name)).to_be_visible()
+
+
 def take_screenshots() -> None:
     firmware = REPO_ROOT / "build" / "firmware_linked.mbin"
     disk = REPO_ROOT / "build" / "disk.img"
@@ -171,6 +189,8 @@ def take_screenshots() -> None:
         terminal = os.get_by_role("window", name="Terminal").snapshot().bounds
         grab_x, grab_y = terminal.x + terminal.width - 120, terminal.y + 30
         drag(os, grab_x, grab_y, grab_x + 460, grab_y + 380)
+        # Boot's windows arrive in any order, each on top: Notes may cover it.
+        os.raise_window("Counter")
         for _ in range(3):
             os.get_by_role("button", name="Click me").click()
         wait_text_contains(os.get_by_test_id("counter"), "clicks: 3")
@@ -179,6 +199,22 @@ def take_screenshots() -> None:
             os._type(command)
             os._press("enter")
             wait_text_contains(term_out, needle)
+
+        # Task Manager at the right, over Notes, with the Counter in view. The
+        # terminal's row is selected, so its share is drawn over the graph.
+        launch_app(os, "Task Manager")
+        tasks = os.get_by_role("window", name="Task Manager").snapshot().bounds
+        grab_x, grab_y = tasks.x + 300, tasks.y + 30
+        drag(os, grab_x, grab_y, grab_x + (2048 - 40 - tasks.x - tasks.width), grab_y + (40 - tasks.y))
+        procs = os.get_by_test_id("process-list").snapshot()
+        names = [row.split("\t")[0] for row in procs.text.split("\n")]
+        click(os, procs.bounds.x + 40, procs.bounds.y + 20 + ROW_H * names.index("terminal"))
+        # A sample a second of guest time, which passes while requests come.
+        graph = os.get_by_test_id("cpu-graph")
+        deadline = time.monotonic() + 120.0
+        while len(graph.snapshot().text.split("\n")[0].split()) < GRAPH_SAMPLES:
+            if time.monotonic() > deadline:
+                raise SystemExit("readme screenshots: the CPU graph did not fill")
         save_shot(os, "desktop.png")
 
 

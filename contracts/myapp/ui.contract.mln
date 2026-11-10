@@ -15,6 +15,7 @@ export enum UiOp {
     AREA_CLEAR,        // (id)
     LIST_SET_ITEMS,    // (id, s0 = "\n"-joined)
     LIST_SELECT,       // (id, a1 = row, or -1 for none)
+    GRAPH_SET,         // (id, a1 = series 0 or 1, s0 = percentages apart by spaces)
     // ui.mln --- focus and windows
     FOCUS,             // (id)
     SEND_KEY,          // (a0 = type, a1 = code, a2 = mods)
@@ -34,5 +35,6 @@ export enum UiOp {
     CREATE_TIMER,      // (a0 = interval) -- ticks are TIMER events
     CREATE_TEXT_AREA,  // (s0 = name, x, y, w, h, capacity, readonly, s1)
     CREATE_LIST,       // (s0 = name, x, y, w, h, capacity, s1)
+    CREATE_GRAPH,      // (x, y, w, h, a4 = samples across, s1)
     APPEND_CHILD,      // (a0 = parent, a1 = child) -> the child
 };

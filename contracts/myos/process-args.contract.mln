@@ -1,5 +1,7 @@
 package myos_process_args;
 
+import { Text } from "@std/text/text.mln";
+
 // OS_CALL argument records for the hosted process API.
 // Output types are supplied by the client as Result<_, ProcessControlError>
 // or Result<Pid, SpawnError>; their pointers address caller memory. A process
@@ -35,4 +37,80 @@ export struct ProcBindArgs {
 
 export struct ProcUnbindArgs {
     i32 pid;
+};
+
+// --- PROC_STATS: what is running and what it costs ---------------------------
+// Unlike the services above it controls nothing, so any process may ask, about
+// every process. Times are timer ticks: each tick is charged to whatever it
+// interrupted, so they are samples, and only their ratios mean anything.
+
+/**
+ * What a process is doing.
+ * @property Starting Its program is still being loaded.
+ * @property Running One of its threads is running or ready to run.
+ * @property Waiting Every thread is blocked: on input, a timer, a reply.
+ * @property Exiting It is being taken down.
+ * @property Ended Only its exit status is left, for its parent to collect.
+ */
+export enum ProcActivity {
+    Starting,
+    Running,
+    Waiting,
+    Exiting,
+    Ended,
+}
+
+/**
+ * One process.
+ * @property pid The process.
+ * @property parent The process that started it; zero when the OS did.
+ * @property activity What it is doing.
+ * @property threads Threads that have not ended.
+ * @property cpu_ticks Ticks charged to its threads since it started.
+ * @property pages 4 KiB pages its program, heap and stacks have mapped.
+ * @property name Its executable's name, without directory or extension.
+ */
+export struct ProcInfo {
+    i32 pid;
+    i32 parent;
+    ProcActivity activity;
+    i32 threads;
+    i32 cpu_ticks;
+    i32 pages;
+    Text<16> name;
+};
+
+/**
+ * Where the CPU's time went since boot.
+ * @property total Every tick.
+ * @property idle Ticks with nothing to run.
+ * @property kernel Ticks in the OS's own threads: the desktop, the filesystem,
+ *           and the work they do for applications.
+ * @property kernel_threads The OS's own threads.
+ */
+export struct CpuTimes {
+    i32 total;
+    i32 idle;
+    i32 kernel;
+    i32 kernel_threads;
+};
+
+/**
+ * Every process, in process-table order, the CPU's time and physical memory.
+ * @property cpu Where the CPU's time went.
+ * @property total_pages 4 KiB pages of RAM for processes and page tables.
+ * @property free_pages Those not in use.
+ * @property count Entries of `procs` in use.
+ * @property procs The processes: 16, one per process slot (MAX_PROCS).
+ */
+export struct ProcStats {
+    CpuTimes cpu;
+    i32 total_pages;
+    i32 free_pages;
+    i32 count;
+    ProcInfo procs[16];
+};
+
+export struct ProcStatsArgs {
+    ProcStats *result_out;
 };

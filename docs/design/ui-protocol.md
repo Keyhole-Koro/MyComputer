@@ -79,6 +79,7 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | AREA_APPEND / AREA_CLEAR | id, (s0) | – | `TextField.append` / `TextLog.append` / `terminal.clear` |
 | LIST_SET_ITEMS | id, s0 | – | `List_items` |
 | LIST_SELECT | id, a1=行（-1 で選択なし） | – | `List_selected` |
+| GRAPH_SET | id, a1=系列（0 か 1）, s0=百分率を空白区切り | – | `Graph_fill` / `Graph_line` |
 | FOCUS | id | – | `TextField.focus` / `focus` 属性 |
 | SEND_KEY | a0=type, a1=code, a2=mods | – | `ui.send_key` |
 | RGB | a0, a1, a2 | 色 | `ui.rgb` |
@@ -95,6 +96,7 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | CREATE_TIMER | a0=interval | id | `<Timer>`、`@timer` |
 | CREATE_TEXT_AREA | s0=name, x, y, w, h, capacity, readonly, s1 | id | `<TextArea>` |
 | CREATE_LIST | s0=name, x, y, w, h, capacity, s1 | id | `<List>` |
+| CREATE_GRAPH | x, y, w, h, a4=横に並ぶ標本の数, s1 | id | `<Graph>` |
 | APPEND_CHILD | a0=parent, a1=child | child | markup の子 |
 `x, y, w, h` は `a0..a3`。`(id)` は `a0`。ハンドラ（`onClick` 等）は**表に無い**：
 アプリの外へ出ない（§4）。

@@ -33,6 +33,7 @@ export enum OsService {
     PROC_EXITED,    // ProcExitedArgs<Out>
     PROC_REAP,      // ProcReapArgs<Out>
     PROC_FEED,      // ProcFeedArgs
+    PROC_STATS,     // ProcStatsArgs: every process and the CPU's time, for anyone
     // Diagnostics.
     LOG,
 };
