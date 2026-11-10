@@ -52,7 +52,7 @@ After editing `.mln` sources, these show what a build or the editor would report
 without either:
 
 ```bash
-make check FILE=path/to/source.mln      # parse and semantic errors, from mlc
+make check FILE=path/to/source.mln      # parse, semantic and codegen errors, from mlc
 make lsp-check FILE=path/to/source.mln  # what the language server shows
 ```
 
