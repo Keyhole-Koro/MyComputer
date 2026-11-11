@@ -392,6 +392,10 @@ TIDとtable slotを同じ値にしてはならない。join後にslotを再利�
 - wrap時は0と現在liveなTIDをskipする。
 - lookupは `tid -> slot` のtable scanでよい。上限256ならcontrol pathのcostとして十分小さい。
 - scheduler hot pathはslotを使い、毎tick TID lookupをしない。
+- sleepとfutex timeoutの期限は、一番早いものだけを `thread.mln` が覚える（`g_next_due`）。
+  `reschedule` はその時刻が来たときだけ全slotを一度ずつ見て（`thread.wake_due`）、残りの
+  期限から次を覚え直す。notifyやfutex wakeで先に起きたThreadの期限は残るが、そのときの
+  走査が何も起こさないだけである。
 
 古いTIDがcounter一周後まで永続する保証はしないが、通常のslot再利用では別Threadを指さない。
 

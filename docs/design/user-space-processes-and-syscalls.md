@@ -137,6 +137,11 @@ program, and to the shell again once the program has ended. The Terminal node
 does the line editing and the echo (`system/MyOS/docs/DOM_SPEC.md`), so a
 program reads whole lines.
 
+A process waiting for input or for a child sleeps: an empty `SYS_READ` arms the
+`ProcessSignal::STDIN` bit and an unfinished `PROC_EXITED` the `CHILD` bit, and
+the line or the child's release raises it (`docs/design/app-transport-blocking.md`).
+`ulib.read_line` and MyStdLib's `process.wait(pid)` wait that way.
+
 A process controls only its children. `PROC_EXITED` and `PROC_REAP` answer any
 other pid with `Err(InvalidPid)` through `result_out`; `PROC_BIND`, `PROC_UNBIND`
 and `PROC_FEED`, which have no `result_out`, answer with a `ProcessControlStatus`

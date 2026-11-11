@@ -70,6 +70,18 @@ syscall dispatcher は保存済み interrupt frame を scheduler へ渡せるた
 `REQUEST_SPACE` は共有リングなので、空きを待つ全タスクへ通知する。最大 16 プロセスの
 単一コア構成では、この単純な broadcast を採用する。
 
+プロセス自身の入出力にも同じ形の通知を使う（`ProcessSignal`、
+`contracts/myos/syscall.contract.mln`）。ビットはスレッドごとに上の 3 つと共有するので、
+8 と 16 にした。
+
+| bit | arm する条件 | 通知元 |
+|---|---|---|
+| `STDIN` | `SYS_READ` で stdin のキューが空 | 行がそのプロセスのキューに入った直後（`proc/console.mln`） |
+| `CHILD` | `PROC_EXITED` で子がまだ終わっていない | 子を release した直後に、その親へ |
+
+`ulib.read_line` と MyStdLib の `process.wait(pid)` は、空・未終了の答えを受けたら
+このビットを待つ。以前は 1 tick ごとに起きて確かめていた。
+
 ## 3. イベント文字列の所有権
 
 以前の `Event.text` はポインタで、次の 2 つの共有バッファに依存していた。

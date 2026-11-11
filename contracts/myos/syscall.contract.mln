@@ -22,6 +22,18 @@ export enum Syscall {
 }
 
 /**
+ * Notification bits the OS raises for a process's own I/O, for
+ * SYS_WAIT_NOTIFICATION. A thread's bits are shared with the app transport's
+ * TransportSignal (1, 2, 4), so these start above them. Like those, a service
+ * that finds nothing ready arms its bit for the calling thread, so a bit raised
+ * between that answer and the wait is not lost.
+ */
+export enum ProcessSignal {
+    STDIN = 8,   // a line reached the process's stdin queue (SYS_READ arms it)
+    CHILD = 16,  // a child ended and can be reaped (PROC_EXITED arms it)
+}
+
+/**
  * Transport status returned by every syscall that resumes its caller.
  *
  * The interrupt ABI writes this enum to r1. Zero is the only success value;

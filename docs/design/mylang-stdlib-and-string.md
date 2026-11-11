@@ -40,7 +40,9 @@ documented, or exposed as a function.
 ### 2.3 There is no multiply or divide instruction
 
 The ISA has `add`, `sub`, `and`, `or`, `xor`, `shl`, `shr` and no `mul` or
-`div`; codegen expands `*` into a repeated-add loop.
+`div`. Codegen expands `*` by a positive literal into shifts and adds, and any
+other `*` into a shift-and-add loop that runs once per bit of the right
+operand (at most 32 rounds); `/` and `%` are a shift-and-subtract loop.
 
 Consequence: index arithmetic uses shifts (`i >> 3`, `i & 7`), ring buffers
 wrap with a compare instead of `%`, and a future hash must be djb2
