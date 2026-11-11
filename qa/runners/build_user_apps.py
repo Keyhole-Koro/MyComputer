@@ -73,6 +73,13 @@ def build_all(out_dir: Path, build_dir: Path, quiet: bool = False) -> list:
         built.append(build_app(source, out_dir, build_dir, quiet))
     for source in gui_app_sources():
         built.append(build_app(source, out_dir, build_dir, quiet, gui=True))
+    # The disk image takes every image here, so one whose source is gone (an
+    # app that was removed) must not stay behind.
+    names = {Path(path).name for path in built}
+    for stale in out_dir.glob("*.mbin"):
+        if stale.name not in names:
+            for leftover in out_dir.glob(stale.name + "*"):
+                leftover.unlink()
     return built
 
 

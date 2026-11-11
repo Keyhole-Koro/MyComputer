@@ -140,6 +140,16 @@ def wait_text_contains(locator, needle: str, timeout: float = 8.0) -> None:
     raise SystemExit(f"readme screenshots: {needle!r} never appeared")
 
 
+def move_window(os: MyOS, name: str, x: int, y: int) -> None:
+    """Drag a window by its title bar until its top-left corner is at (x, y).
+    The bar is grabbed right of centre, clear of the buttons and of a window
+    that may lie over its left end."""
+    os.raise_window(name)
+    box = os.get_by_role("window", name=name).snapshot().bounds
+    grab_x, grab_y = box.x + box.width * 3 // 4, box.y + 30
+    drag(os, grab_x, grab_y, grab_x + x - box.x, grab_y + y - box.y)
+
+
 def drag(os: MyOS, x0: int, y0: int, x1: int, y1: int) -> None:
     """Press at (x0, y0), move to (x1, y1) and release; wait for the redraw.
 
@@ -184,12 +194,11 @@ def take_screenshots() -> None:
         term = os.get_by_test_id("terminal")
         expect(term).to_be_visible()
         wait_text_contains(term, "$ ")
-        # Slide the terminal down and right so the Notes window behind it
-        # shows; coordinates are framebuffer pixels (the UI renders at 2x).
-        terminal = os.get_by_role("window", name="Terminal").snapshot().bounds
-        grab_x, grab_y = terminal.x + terminal.width - 120, terminal.y + 30
-        drag(os, grab_x, grab_y, grab_x + 460, grab_y + 380)
+        # Notes at the top left and the terminal below and right of it, so
+        # both show; coordinates are framebuffer pixels (the UI renders at 2x).
         # Boot's windows arrive in any order, each on top.
+        move_window(os, "Notes", 192, 152)
+        move_window(os, "Terminal", 580, 460)
         os.raise_window("Notes")
         os.get_by_role("textbox", name="Title").fill("Groceries")
         os.raise_window("Terminal")
