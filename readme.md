@@ -5,43 +5,45 @@ with isolated user processes, a windowed desktop OS, and MyLang with its own
 compiler, assembler, linker, standard library and language server.
 
 ![The MyOS desktop: Task Manager graphing CPU use and listing each process's
-threads, CPU and memory, beside a Counter app and a terminal that has just run a
+threads, CPU and memory, beside Notes and a terminal that has just run a
 user-space program](docs/images/desktop.png)
 
-Desktop apps are MyLang code. The Counter window above is this `@app`: the
+Desktop apps are MyLang code. The Notes window above is this `@app`: the
 fields hold its state, and `view` says what the state looks like. The framework
 keeps the window in step with it.
 
-<!-- snippet: system/MyOS/src/apps/counter.dom.mln start="/**" end="}" -->
+<!-- snippet: system/MyOS/src/apps/notes.dom.mln start="/**" end="}" -->
 ```rust
-// system/MyOS/src/apps/counter.dom.mln
+// system/MyOS/src/apps/notes.dom.mln
 /**
- * The click counter's state.
- * @property clicks Current accumulated click count.
- * @property step Amount added by each click, selected by the checkbox.
+ * The Notes form's state.
+ * @property title The title field.
+ * @property body The body field.
+ * @property typed Text of the field that last changed.
  */
 @app
-struct Counter {
-    i32 clicks;
-    i32 step;
+struct Notes {
+    TextField title;
+    TextField body;
+    Text<128> typed;
 };
 
-impl App for Counter {
-    Self start() { return Counter { step: 1 }; }
+impl App for Notes {
+    Self start() { return Notes { title: ui.field(), body: ui.field() }; }
 
-    View (Self c) view() {
-        return <Window title="Counter" w={400} h={272}>
-            <Panel x={20} y={20} w={360} h={140} radius={10}>
-                <Column x={20} y={16} w={320} h={110} gap={10}>
-                    <Label text="A window, a panel, two buttons." color={ui.TEXT_SECONDARY} />
-                    <Label text={"clicks: %d", c.clicks} bold={1} testId="counter" />
-                    <Row w={320} h={36} gap={10}>
-                        <PrimaryButton text="Click me" w={120} h={36} onClick={c.click} />
-                        <Button text="Reset" w={90} h={36} onClick={c.reset} />
-                    </Row>
-                </Column>
-            </Panel>
-            <Checkbox text="Count by two" x={24} y={180} checked={c.step == 2} onChange={c.set_double} />
+    View (Self n) view() {
+        return <Window title="Notes" w={380} h={330}>
+            <Column x={24} y={20} w={332} h={270} gap={12}>
+                <Label text="Click a field and type. Tab moves between fields." color={ui.TEXT_SECONDARY} />
+                <TextInput field={n.title} placeholder="Title" w={332} h={34} capacity={64} onChange={n.changed} />
+                <TextInput field={n.body} placeholder="Write something..." w={332} h={34} capacity={64} onChange={n.changed} />
+                <Separator w={332} />
+                <Checkbox text="Mark as done" checked={true} />
+                <Row w={332} h={34} gap={10}>
+                    <Button text="Clear" w={90} h={34} onClick={n.clear} />
+                </Row>
+                <Label text={"You typed: %s", n.typed} />
+            </Column>
         </Window>;
     }
 }
@@ -156,11 +158,12 @@ The kernel runs isolated user processes (own page tables, W^X, syscalls) — see
 Programs live in `system/MyOS/user/apps/*.mln` (`package app;` exporting
 `i32 main()`); `make build` compiles each into an MBIN v2 executable, and
 `tools/mkfs.py` places them on the disk image alongside a couple of text
-files. Launch them from the desktop's **Terminal** (type `hello`, `echo`,
-`count`, or `ls`/`cat`), or browse the disk with **Files** and edit with
-**Editor**, all reachable from the taskbar's MyOS menu. A process's stdout is
-routed to its terminal window through the kernel's console hooks
-(`system/MyOS/src/proc/console.mln`).
+files. The desktop's **Terminal** runs one of them, the shell `sh`: type
+`hello`, `echo` or `count` to start a program, or `ls`/`cat`, and `help` for the
+rest. You can also browse the disk with **Files** and edit with **Editor**, all
+reachable from the taskbar's MyOS menu. A process's stdout is routed to its
+terminal, and a line typed there to the process started last, through the
+kernel's console hooks (`system/MyOS/src/proc/console.mln`).
 
 ## Debugging
 

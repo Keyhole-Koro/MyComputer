@@ -181,27 +181,26 @@ def take_screenshots() -> None:
     IMAGES.mkdir(parents=True, exist_ok=True)
     with MyOS.launch(firmware, disk=disk,
                      artifacts=REPO_ROOT / "qa" / "outputs" / "readme-media") as os:
-        term_in = os.get_by_test_id("terminal-input")
-        term_out = os.get_by_test_id("terminal-output")
-        expect(term_in).to_be_visible()
-        # Slide the terminal down and right so the Counter window behind it
+        term = os.get_by_test_id("terminal")
+        expect(term).to_be_visible()
+        wait_text_contains(term, "$ ")
+        # Slide the terminal down and right so the Notes window behind it
         # shows; coordinates are framebuffer pixels (the UI renders at 2x).
         terminal = os.get_by_role("window", name="Terminal").snapshot().bounds
         grab_x, grab_y = terminal.x + terminal.width - 120, terminal.y + 30
         drag(os, grab_x, grab_y, grab_x + 460, grab_y + 380)
-        # Boot's windows arrive in any order, each on top: Notes may cover it.
-        os.raise_window("Counter")
-        for _ in range(3):
-            os.get_by_role("button", name="Click me").click()
-        wait_text_contains(os.get_by_test_id("counter"), "clicks: 3")
-        term_in.click()
+        # Boot's windows arrive in any order, each on top.
+        os.raise_window("Notes")
+        os.get_by_role("textbox", name="Title").fill("Groceries")
+        os.raise_window("Terminal")
+        term.click()
         for command, needle in (("hello", "exited with 7"), ("ls", "readme.txt")):
             os._type(command)
             os._press("enter")
-            wait_text_contains(term_out, needle)
+            wait_text_contains(term, needle)
 
-        # Task Manager at the right, over Notes, with the Counter in view. The
-        # terminal's row is selected, so its share is drawn over the graph.
+        # Task Manager at the right, with Notes in view. The terminal's row is
+        # selected, so its share is drawn over the graph.
         launch_app(os, "Task Manager")
         tasks = os.get_by_role("window", name="Task Manager").snapshot().bounds
         grab_x, grab_y = tasks.x + 300, tasks.y + 30

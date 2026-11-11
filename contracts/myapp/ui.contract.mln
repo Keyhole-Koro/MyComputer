@@ -11,8 +11,7 @@ export enum UiOp {
     // ui.mln --- widgets
     SET_CHECKED,       // (id, a1 = on)
     INPUT_SET,         // (id, s0)
-    AREA_APPEND,       // (id, s0)
-    AREA_CLEAR,        // (id)
+    AREA_APPEND,       // (id, s0) -- a TextArea, or a Terminal as if a process wrote it
     LIST_SET_ITEMS,    // (id, s0 = "\n"-joined)
     LIST_SELECT,       // (id, a1 = row, or -1 for none)
     GRAPH_SET,         // (id, a1 = series 0 or 1, s0 = percentages apart by spaces)
@@ -36,5 +35,6 @@ export enum UiOp {
     CREATE_TEXT_AREA,  // (s0 = name, x, y, w, h, capacity, readonly, s1)
     CREATE_LIST,       // (s0 = name, x, y, w, h, capacity, s1)
     CREATE_GRAPH,      // (x, y, w, h, a4 = samples across, s1)
+    CREATE_TERMINAL,   // (s0 = name, x, y, w, h, capacity, s1)
     APPEND_CHILD,      // (a0 = parent, a1 = child) -> the child
 };

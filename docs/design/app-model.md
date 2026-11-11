@@ -76,15 +76,15 @@ void (borrow Editor e) save() { ... }
 
 | 部品 | できること | 例 |
 | --- | --- | --- |
-| `TextField` | 読む、書く、消す | 入力欄、Editor の本文 |
-| `TextLog` | 末尾に足す | Terminal の出力 |
+| `TextField` | 読む、書く、末尾に足す、消す | 入力欄、Editor の本文 |
+| `Screen` | プロセスを載せる、書く | Terminal の画面 |
 
 ```c
 Self start() { return Notes { title: ui.field() }; }
 
 <TextInput field={n.title} placeholder="Title" onChange={n.changed} />
 <TextArea field={e.body} name="Type here..." />
-<TextArea log={t.out} text="MyOS terminal.\n" name="output" readonly={1} />
+<Terminal screen={t.screen} focus={true} />
 ```
 
 部品は `start` で作る。`view` は状態を書けないので、ノードを部品のフィールドへ書き戻せない。部品は
@@ -94,9 +94,9 @@ Self start() { return Notes { title: ui.field() }; }
 
 `TextArea` の `text=` は作った時の中身で、`view` はそれ以上 DOM に書かない。
 
-子プロセスの出力は OS が DOM へ直接流すので、ノードが要る。アプリは `TextLog` のまま
-`terminal.spawn_bound(path, t.out)` に渡し、ノードへの解決は `terminal` の中だけで行う。`TextLog`
-にノードを取り出す操作は無い。Terminal の `clear` コマンドも同じ道を通る（`terminal.clear(t.out)`）。
+子プロセスの出力は OS が DOM へ直接流し、`Terminal` で打った行は OS がプロセスへ渡すので、
+ノードが要る。アプリは `Screen` のまま `terminal.spawn_bound(path, t.screen)` に渡し、ノードへの
+解決は `terminal` の中だけで行う。`Screen` にノードを取り出す操作は無い。
 
 **規則 A7（構造）** 項目数が変わる部分は値として渡す。出すかどうかは `when=` で決める。
 

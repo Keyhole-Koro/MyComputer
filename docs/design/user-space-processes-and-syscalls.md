@@ -128,6 +128,15 @@ Syscalls leverage the standard MyLang register convention.
 search path `/bin`, then `/apps` (`console.open_executable`); a path with a
 `/` is taken as is. The caller becomes the new process's parent.
 
+A process's stdout goes to a Terminal node (or a TextArea), and its stdin is a
+queue of its own (`proc/consoles.model.mln`). A child starts where its parent
+writes: `PROC_SPAWN` with no `stdout_node`, like `SYS_SPAWN`, puts it on the
+caller's terminal. A line typed in a Terminal goes to the process put on it
+last, so while the shell `sh` waits for a program, the lines go to the
+program, and to the shell again once the program has ended. The Terminal node
+does the line editing and the echo (`system/MyOS/docs/DOM_SPEC.md`), so a
+program reads whole lines.
+
 A process controls only its children. `PROC_EXITED` and `PROC_REAP` answer any
 other pid with `Err(InvalidPid)` through `result_out`; `PROC_BIND`, `PROC_UNBIND`
 and `PROC_FEED`, which have no `result_out`, answer with a `ProcessControlStatus`

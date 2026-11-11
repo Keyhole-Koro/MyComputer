@@ -76,7 +76,7 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | TEXT_COPY | id, a1=out, a2=cap, result_out | `Result<i32, UiError>` | `TextField.read`（サーバのポインタは返さない。`text_of` は無い） |
 | SET_CHECKED | id, a1 | – | `<Checkbox checked={...}>` の属性 |
 | INPUT_SET | id, s0 | – | `TextField.write` / `TextField.clear` |
-| AREA_APPEND / AREA_CLEAR | id, (s0) | – | `TextField.append` / `TextLog.append` / `terminal.clear` |
+| AREA_APPEND | id, s0 | – | `TextField.append` / `Screen.write`（Terminal にはプロセスの出力と同じく書く） |
 | LIST_SET_ITEMS | id, s0 | – | `List_items` |
 | LIST_SELECT | id, a1=行（-1 で選択なし） | – | `List_selected` |
 | GRAPH_SET | id, a1=系列（0 か 1）, s0=百分率を空白区切り | – | `Graph_fill` / `Graph_line` |
@@ -97,6 +97,7 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | CREATE_TEXT_AREA | s0=name, x, y, w, h, capacity, readonly, s1 | id | `<TextArea>` |
 | CREATE_LIST | s0=name, x, y, w, h, capacity, s1 | id | `<List>` |
 | CREATE_GRAPH | x, y, w, h, a4=横に並ぶ標本の数, s1 | id | `<Graph>` |
+| CREATE_TERMINAL | s0=name, x, y, w, h, capacity, s1 | id | `<Terminal>` |
 | APPEND_CHILD | a0=parent, a1=child | child | markup の子 |
 `x, y, w, h` は `a0..a3`。`(id)` は `a0`。ハンドラ（`onClick` 等）は**表に無い**：
 アプリの外へ出ない（§4）。

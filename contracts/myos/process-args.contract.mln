@@ -10,7 +10,7 @@ import { Text } from "@std/text/text.mln";
 export struct ProcSpawnArgs<Out> {
     char *path;
     i32 path_length;
-    i32 stdout_node;
+    i32 stdout_node;   // the Terminal or TextArea it writes to; 0: wherever the caller writes
     Out *result_out;
 };
 
