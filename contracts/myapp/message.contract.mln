@@ -58,6 +58,7 @@ export enum EventKind {
     KEY,
     CLOSE,
     OPEN,
+    CARET,    // a TextArea's caret moved: arg = line << 16 | column, both from 1
 }
 
 // All asynchronous notifications delivered to the application runtime.

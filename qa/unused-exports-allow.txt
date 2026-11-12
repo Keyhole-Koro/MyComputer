@@ -4,4 +4,6 @@ system/MyKernel/src/mm/mmu.unsafe.mln mmu_PTE_ACCESSED  # a bit the MMU sets; th
 system/MyKernel/src/mm/mmu.unsafe.mln mmu_PTE_DIRTY  # a bit the MMU sets; the page-table format, not API
 system/MyAppFramework/src/elements.mln elements_dom_Panel  # <Panel>: markup vocabulary for apps; no app uses it since Counter went
 system/MyAppFramework/src/elements.mln elements_Checkbox_checked  # `checked={...}` that follows the state: markup vocabulary
-system/MyAppFramework/src/elements.mln elements_format_int  # `{"%d", n}` in markup: markup vocabulary
+system/MyAppFramework/src/elements.mln elements_dom_Checkbox  # <Checkbox>: markup vocabulary for apps; no app uses it since Notes went
+system/MyAppFramework/src/elements.mln elements_dom_Column  # <Column>: markup vocabulary for apps; no app uses it since Notes went
+system/MyAppFramework/src/elements.mln elements_dom_Separator  # <Separator>: markup vocabulary for apps; no app uses it since Notes went

@@ -177,6 +177,7 @@ SUITES = {
     "dom": mytest_suite(MYKERNEL_DIR / "tests" / "dom" / "dom_lowering.dom.unsafe.test.mln"),
     "dom-hit": mytest_suite(MYOS_DIR / "tests" / "dom" / "dom_hit_dispatch.unsafe.test.mln"),
     "dom-terminal": mytest_suite(MYOS_DIR / "tests" / "dom" / "dom_terminal.unsafe.test.mln"),
+    "dom-text-rows": mytest_suite(MYOS_DIR / "tests" / "dom" / "dom_text_rows.unsafe.test.mln"),
     "input-queues": mytest_suite(MYKERNEL_DIR / "tests" / "io" / "input_queues.unsafe.test.mln"),
     "graphics": mytest_suite(MYOS_DIR / "tests" / "ui" / "graphics.unsafe.test.mln"),
     "readme": (

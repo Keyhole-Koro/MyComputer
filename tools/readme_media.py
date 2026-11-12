@@ -150,6 +150,13 @@ def move_window(os: MyOS, name: str, x: int, y: int) -> None:
     drag(os, grab_x, grab_y, grab_x + x - box.x, grab_y + y - box.y)
 
 
+def resize_window(os: MyOS, name: str, width: int, height: int) -> None:
+    """Drag a window's resize grip, at its bottom right, to make it width x height."""
+    box = os.get_by_role("window", name=name).snapshot().bounds
+    grab_x, grab_y = box.x + box.width - 6, box.y + box.height - 6
+    drag(os, grab_x, grab_y, grab_x + width - box.width, grab_y + height - box.height)
+
+
 def drag(os: MyOS, x0: int, y0: int, x1: int, y1: int) -> None:
     """Press at (x0, y0), move to (x1, y1) and release; wait for the redraw.
 
@@ -194,13 +201,17 @@ def take_screenshots() -> None:
         term = os.get_by_test_id("terminal")
         expect(term).to_be_visible()
         wait_text_contains(term, "$ ")
-        # Notes at the top left and the terminal below and right of it, so
-        # both show; coordinates are framebuffer pixels (the UI renders at 2x).
-        # Boot's windows arrive in any order, each on top.
-        move_window(os, "Notes", 192, 152)
-        move_window(os, "Terminal", 580, 460)
-        os.raise_window("Notes")
-        os.get_by_role("textbox", name="Title").fill("Groceries")
+        # The editor at the top left, made smaller, and the terminal below and
+        # right of it, so both show; coordinates are framebuffer pixels (the
+        # UI renders at 2x). Boot's windows arrive in any order, each on top.
+        move_window(os, "Editor", 60, 60)
+        resize_window(os, "Editor", 1000, 760)
+        move_window(os, "Terminal", 300, 620)
+        os.raise_window("Editor")
+        os.get_by_test_id("editor-text").click()
+        for line in ("Groceries", "- milk and eggs", "- bread from the bakery on the corner, the dark rye one", "- apples"):
+            os._type(line)
+            os._press("enter")
         os.raise_window("Terminal")
         term.click()
         for command, needle in (("hello", "exited with 7"), ("ls", "readme.txt")):
@@ -208,7 +219,7 @@ def take_screenshots() -> None:
             os._press("enter")
             wait_text_contains(term, needle)
 
-        # Task Manager at the right, with Notes in view. The terminal's row is
+        # Task Manager at the right, with the editor in view. The terminal's row is
         # selected, so its share is drawn over the graph.
         launch_app(os, "Task Manager")
         tasks = os.get_by_role("window", name="Task Manager").snapshot().bounds

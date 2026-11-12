@@ -31,6 +31,7 @@ export trait App {
     Self start();
     View (Self self) view();
     void (borrow Self self) open(str path) { }
+    bool (borrow Self self) can_close() { return true; }
     void (borrow Self self) close() { }
 }
 ```
@@ -42,7 +43,9 @@ i32 main() { return app.run<Counter>(); }
 ```
 
 `@key` と `@timer` は、キーや周期というデータなので注釈でメソッドに付ける。他アプリからのパスと
-閉じる時の後始末は `App` の `open` と `close` で受ける。
+閉じる時の後始末は `App` の `open` と `close` で受ける。ユーザーがウィンドウを閉じようとすると
+`can_close` が呼ばれ、false を返せばウィンドウは残る（保存していない変更を先に尋ねる、など）。
+その後でアプリが終わるときは `app.quit()` を呼ぶ。
 
 ```c
 @app(name = "Editor", single, opens)
@@ -80,10 +83,10 @@ void (borrow Editor e) save() { ... }
 | `Screen` | プロセスを載せる、書く | Terminal の画面 |
 
 ```c
-Self start() { return Notes { title: ui.field() }; }
+Self start() { return Editor { body: ui.field(), name: ui.field() }; }
 
-<TextInput field={n.title} placeholder="Title" onChange={n.changed} />
-<TextArea field={e.body} name="Type here..." />
+<TextInput field={e.name} placeholder="file name" />
+<TextArea field={e.body} name="" wrap={true} onEdit={e.edited} onCaret={e.moved} />
 <Terminal screen={t.screen} focus={true} />
 ```
 
@@ -107,14 +110,19 @@ Self start() { return Notes { title: ui.field() }; }
 
 `when=` は出し入れだけをする。ノードは `view` で一度作るだけで、隠している間も残る。だから再び出た時、
 中の部品は値を持ったままで、ノード数も増えない。`Dialog` は `<Window>` の子に書くが別のウィンドウになり、
-シェルがアプリのウィンドウの上に置く。`Dialog` のウィンドウを閉じるのは `onCancel` と同じで、消えるのは
-`when` の値が変わった時である。
+シェルがアプリのウィンドウの上に置く。`Dialog` のウィンドウを閉じる（× か Esc）のは `onCancel` と
+同じで、消えるのは `when` の値が変わった時である。`Dialog` の中に書いた要素はそのウィンドウに入り、
+出た時に最初の入力欄かリストがキーボードを受ける。閉じると、キーボードはアプリのウィンドウで
+持っていた部品へ戻る。
+
+ウィンドウの大きさが変わった時に部品がどう付いていくかは `anchor=` で決める（`ui.GROW_W`、
+`ui.GROW_H`、`ui.PIN_BOTTOM`）。決めない部品は置いた位置と大きさのまま。
 
 **規則 A8（イベントは値を運ぶ）** ハンドラは必要な値だけを受け取る。ノードの ID は渡らない。
 
 ```c
 void (borrow Counter c) click() { ... }
-void (borrow Notes n) changed(str text) { ... }
+void (borrow Editor e) moved(i32 line, i32 column) { ... }
 void (borrow Counter c) set_double(bool on) { ... }
 void (borrow Files f) select(i32 row) { ... }
 ```

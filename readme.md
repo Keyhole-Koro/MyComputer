@@ -4,47 +4,49 @@ A computer built from scratch: an instruction set and its emulator, a kernel
 with isolated user processes, a windowed desktop OS, and MyLang with its own
 compiler, assembler, linker, standard library and language server.
 
-![The MyOS desktop: Task Manager graphing CPU use and listing each process's
-threads, CPU and memory, beside Notes and a terminal that has just run a
-user-space program](docs/images/desktop.png)
+![The MyOS desktop: the Editor with a shopping list, a terminal that has just
+run a user-space program, and Task Manager graphing CPU use and listing each
+process's threads, CPU and memory](docs/images/desktop.png)
 
-Desktop apps are MyLang code. The Notes window above is this `@app`: the
-fields hold its state, and `view` says what the state looks like. The framework
-keeps the window in step with it.
+Desktop apps are MyLang code. The Terminal window above is this `@app`: its
+fields hold its state, `view` says what the state looks like, and `open` starts
+the shell on the screen once the window is up. The framework keeps the window
+in step with the state.
 
-<!-- snippet: system/MyOS/src/apps/notes.dom.mln start="/**" end="}" -->
+<!-- snippet: system/MyOS/src/apps/terminal.dom.mln start="/**" end="}" -->
 ```rust
-// system/MyOS/src/apps/notes.dom.mln
+// system/MyOS/src/apps/terminal.dom.mln
 /**
- * The Notes form's state.
- * @property title The title field.
- * @property body The body field.
- * @property typed Text of the field that last changed.
+ * The state of a terminal.
+ * @property screen What the shell runs on.
+ * @property shell The shell, while it runs.
  */
 @app
-struct Notes {
-    TextField title;
-    TextField body;
-    Text<128> typed;
+struct Terminal {
+    Screen screen;
+    Option<Pid> shell;
 };
 
-impl App for Notes {
-    Self start() { return Notes { title: ui.field(), body: ui.field() }; }
+impl App for Terminal {
+    Self start() { return Terminal { screen: ui.screen() }; }
 
-    View (Self n) view() {
-        return <Window title="Notes" w={380} h={330}>
-            <Column x={24} y={20} w={332} h={270} gap={12}>
-                <Label text="Click a field and type. Tab moves between fields." color={ui.TEXT_SECONDARY} />
-                <TextInput field={n.title} placeholder="Title" w={332} h={34} capacity={64} onChange={n.changed} />
-                <TextInput field={n.body} placeholder="Write something..." w={332} h={34} capacity={64} onChange={n.changed} />
-                <Separator w={332} />
-                <Checkbox text="Mark as done" checked={true} />
-                <Row w={332} h={34} gap={10}>
-                    <Button text="Clear" w={90} h={34} onClick={n.clear} />
-                </Row>
-                <Label text={"You typed: %s", n.typed} />
-            </Column>
+    View (Self t) view() {
+        return <Window title="Terminal" w={600} h={400}>
+            <Terminal screen={t.screen} w={600} h={368} focus={true} anchor={ui.GROW_W | ui.GROW_H} testId="terminal" />
         </Window>;
+    }
+
+    /** The shell starts on the launch, the first open. */
+    void (borrow Self t) open(str path) {
+        if (t.shell.is_some()) { return; }
+        case terminal.spawn_bound("sh", t.screen) of {
+            Ok(pid) -> ({ t.shell = Some(pid); });
+            Err(e) -> ({
+                t.screen.write("sh: ");
+                t.screen.write(e.describe());
+                t.screen.write("\n");
+            });
+        };
     }
 }
 ```

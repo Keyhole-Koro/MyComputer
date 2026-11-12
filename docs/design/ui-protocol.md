@@ -77,9 +77,10 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | SET_CHECKED | id, a1 | – | `<Checkbox checked={...}>` の属性 |
 | INPUT_SET | id, s0 | – | `TextField.write` / `TextField.clear` |
 | AREA_APPEND | id, s0 | – | `TextField.append` / `Screen.write`（Terminal にはプロセスの出力と同じく書く） |
-| LIST_SET_ITEMS | id, s0 | – | `List_items` |
+| LIST_SET_ITEMS | id, s0 | – | `List_items`、`<Menu items=...>`（MenuButton の項目） |
 | LIST_SELECT | id, a1=行（-1 で選択なし） | – | `List_selected` |
 | GRAPH_SET | id, a1=系列（0 か 1）, s0=百分率を空白区切り | – | `Graph_fill` / `Graph_line` |
+| ADD_STYLE | id, a1=NodeStyle のビット | – | `anchor=`（GROW_W, GROW_H, PIN_BOTTOM）、TextArea の `wrap=` と `onCaret=`（WRAP, REPORT_CARET）。他のビットは無視 |
 | FOCUS | id | – | `TextField.focus` / `focus` 属性 |
 | SEND_KEY | a0=type, a1=code, a2=mods | – | `ui.send_key` |
 | RGB | a0, a1, a2 | 色 | `ui.rgb` |
@@ -98,6 +99,7 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | CREATE_LIST | s0=name, x, y, w, h, capacity, s1 | id | `<List>` |
 | CREATE_GRAPH | x, y, w, h, a4=横に並ぶ標本の数, s1 | id | `<Graph>` |
 | CREATE_TERMINAL | s0=name, x, y, w, h, capacity, s1 | id | `<Terminal>` |
+| CREATE_MENU_BUTTON | s0=title, x, y, w, h, s1 | id | `<Menu>`。項目は続けて LIST_SET_ITEMS で送る |
 | APPEND_CHILD | a0=parent, a1=child | child | markup の子 |
 `x, y, w, h` は `a0..a3`。`(id)` は `a0`。ハンドラ（`onClick` 等）は**表に無い**：
 アプリの外へ出ない（§4）。
@@ -118,12 +120,13 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | kind | id | arg | token / text | 発生源 |
 | --- | --- | --- | --- | --- |
 | CLICK | ノード | 0 | – | `dom.dispatch_click`（Button, Checkbox） |
-| CHANGE | ノード | Checkbox の状態、List の行、ほかは 0 | – | `dom.fire_change`（TextInput 編集、Checkbox、List 選択） |
+| CHANGE | ノード | Checkbox の状態、List の行、Menu で選んだ項目、ほかは 0 | – | `dom.fire_change`（TextInput 編集、Checkbox、List 選択）、`dom.fire_menu_choice` |
 | ACTIVATE | List | 行 | – | 選択行のクリック / Enter |
 | TIMER | タイマ | 0 | – | `dom_widgets.tick` |
 | KEY | ウィンドウ | code \| mods << 16 | token = 一致した claim | シェル `dispatch_key` |
 | CLOSE | ウィンドウかダイアログ | 0 | – | シェル `window_closed`（× ボタン）。ダイアログなら `onCancel` へ |
 | OPEN | ウィンドウ | 0 | text = path | シェル `open` |
+| CARET | TextArea | 行 << 16 \| 列（どちらも 1 から） | – | `dom.fire_caret`（REPORT_CARET の TextArea で、キーかクリックでキャレットが動いた時） |
 
 - 所有ノード（`owner` が `Some`）に起きたことは `dom.emit` → UI domain event sink →
   `ipc/events` の順でチャネルに積む。UI domain coreはtransportをimportしない。サーバ自身の

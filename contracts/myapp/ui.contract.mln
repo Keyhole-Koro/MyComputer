@@ -12,9 +12,10 @@ export enum UiOp {
     SET_CHECKED,       // (id, a1 = on)
     INPUT_SET,         // (id, s0)
     AREA_APPEND,       // (id, s0) -- a TextArea, or a Terminal as if a process wrote it
-    LIST_SET_ITEMS,    // (id, s0 = "\n"-joined)
+    LIST_SET_ITEMS,    // (id, s0 = "\n"-joined) -- a List's rows, or a MenuButton's items
     LIST_SELECT,       // (id, a1 = row, or -1 for none)
     GRAPH_SET,         // (id, a1 = series 0 or 1, s0 = percentages apart by spaces)
+    ADD_STYLE,         // (id, a1 = NodeStyle bits: GROW_W, GROW_H, PIN_BOTTOM, WRAP, REPORT_CARET)
     // ui.mln --- focus and windows
     FOCUS,             // (id)
     SEND_KEY,          // (a0 = type, a1 = code, a2 = mods)
@@ -36,5 +37,6 @@ export enum UiOp {
     CREATE_LIST,       // (s0 = name, x, y, w, h, capacity, s1)
     CREATE_GRAPH,      // (x, y, w, h, a4 = samples across, s1)
     CREATE_TERMINAL,   // (s0 = name, x, y, w, h, capacity, s1)
+    CREATE_MENU_BUTTON, // (s0 = title, x, y, w, h, s1) -- its items come with LIST_SET_ITEMS
     APPEND_CHILD,      // (a0 = parent, a1 = child) -> the child
 };
