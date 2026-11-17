@@ -43,7 +43,7 @@ index Node.owner;
 | `ordered` | 順序を保つ。どの鎖も追加の順を保つので、意図を書くための語 |
 | `index T.列`、`unique T.列` | `i32` か、その newtype の列で引くハッシュ表 |
 
-宣言ではない行は、そのまま展開先に残る。`package` と `import` はここに書く。
+宣言ではない行は、そのまま展開先に残る。`namespace`(旧称 `package`)と `import` はここに書く。
 
 ## 2. 生成するもの
 

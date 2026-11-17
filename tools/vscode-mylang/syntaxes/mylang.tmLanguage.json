@@ -86,7 +86,7 @@
         },
         {
           "name": "keyword.declaration.mylang",
-          "match": "\\b(package|import|from|export|extern|typedef|struct|union|enum)\\b"
+          "match": "\\b(namespace|package|import|from|export|extern|typedef|struct|union|enum)\\b"
         },
         {
           "name": "storage.modifier.mylang",
