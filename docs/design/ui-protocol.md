@@ -81,6 +81,7 @@ newtype）で、無いことがある所は `Option<NodeId>`。語との変換�
 | LIST_SELECT | id, a1=行（-1 で選択なし） | – | `List_selected` |
 | GRAPH_SET | id, a1=系列（0 か 1）, s0=百分率を空白区切り | – | `Graph_fill` / `Graph_line` |
 | ADD_STYLE | id, a1=NodeStyle のビット | – | `anchor=`（GROW_W, GROW_H, PIN_BOTTOM）、TextArea の `wrap=` と `onCaret=`（WRAP, REPORT_CARET）。他のビットは無視 |
+| TEXT_EDIT | id, a1=`TextEdit`（CUT, COPY, PASTE, SELECT_ALL） | – | `TextField.cut` / `copy` / `paste` / `select_all`。その部品の Ctrl+X・C・V・A と同じ。クリップボードは OS にあり、アプリがその中身を受け取るのは貼り付けた欄の CHANGE だけ |
 | FOCUS | id | – | `TextField.focus` / `focus` 属性 |
 | SEND_KEY | a0=type, a1=code, a2=mods | – | `ui.send_key` |
 | RGB | a0, a1, a2 | 色 | `ui.rgb` |

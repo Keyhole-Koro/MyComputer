@@ -34,6 +34,7 @@ export enum OsService {
     PROC_REAP,      // ProcReapArgs<Out>
     PROC_FEED,      // ProcFeedArgs
     PROC_STATS,     // ProcStatsArgs: every process and the CPU's time, for anyone
+    PROC_ARGS,      // ProcArgsArgs: what the caller was started with
     // Diagnostics.
     LOG,
 };

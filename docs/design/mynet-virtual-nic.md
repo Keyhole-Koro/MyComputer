@@ -225,10 +225,11 @@ Kernel IRQ handlerはprotocol parseを行わず、MyKernel側の固定長ringへ
 
 ## 9. Interrupt semantics
 
-既存の共有cause registerへ次を追加する。
+既存の共有cause registerへ次を追加する。bit 8 は不正命令のトラップ、bit 9 は
+自動操作の要求（2026-11-17）がすでに使っているため、その次を使う。
 
 ```text
-IRQ_CAUSE_NET = 1 << 8
+IRQ_CAUSE_NET = 1 << 10
 ```
 
 MyNetはRX FIFOがnon-emptyになった時にNET causeと`pending_irq`を立てる。Kernelの共有

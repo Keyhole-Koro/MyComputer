@@ -82,6 +82,25 @@ syscall dispatcher は保存済み interrupt frame を scheduler へ渡せるた
 `ulib.read_line` と MyStdLib の `process.wait(pid)` は、空・未終了の答えを受けたら
 このビットを待つ。以前は 1 tick ごとに起きて確かめていた。
 
+カーネルのスレッド（compositor、シリアルのシェル、自動操作の受け口）も同じ通知で眠る
+（`KernelSignal`、`system/MyKernel/src/kernel/thread.unsafe.mln`）。ビットは上の 5 つの上に置く。
+カーネルのスレッドは自分のスタックの上で `scheduler.await_notification(mask, deadline)` を呼び、
+通知が来るか tick `deadline` になるまで眠る（期限は `wake_due` が扱う。0 なら期限なし）。
+ループの頭で `arm_notification` してから自分のキューを見るので、見ている間に来た通知も残る。
+
+| bit | 通知元 |
+|---|---|
+| `INPUT` (32) | キーボードとマウスの割り込み |
+| `PROCESS_ENDED` (64) | プロセスが Zombie になった時（`thread.finish_process_exit`） |
+| `SERIAL` (128) | シリアル受信の割り込み |
+| `SERVICE` (256) | OS がカーネルのスレッドに仕事を積んだ時。UI の要求の到着と、プロセスの端末への出力 |
+| `AUTOMATION` (512) | ホストが自動操作の要求を置いた時（エミュレータの IRQ cause bit 9） |
+
+ブロックするシステムコール（`THREAD_JOIN`、`FUTEX_WAIT`、`WAIT_NOTIFICATION`）は、眠る前に
+自分のフレームへ既定の戻り値を書き、ディスパッチの出口では書かない（`DispatchOutcome.parked`）。
+起こす側が書いた値は、同じ reschedule の中で起きた場合も含めて、そのまま残る。reschedule は
+起こす処理（終わったスレッドの片付け、期限）の前に、離れるスレッドのフレームを保存する。
+
 ## 3. イベント文字列の所有権
 
 以前の `Event.text` はポインタで、次の 2 つの共有バッファに依存していた。

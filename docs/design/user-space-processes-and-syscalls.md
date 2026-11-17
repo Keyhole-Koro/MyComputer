@@ -148,6 +148,17 @@ and `PROC_FEED`, which have no `result_out`, answer with a `ProcessControlStatus
 as the routing value. `PROC_EXITED` reports true, and `PROC_REAP` succeeds, only
 once the OS has released everything it holds under the child's pid.
 
+`PROC_SPAWN` takes, besides the path, the arguments the program is started
+with: the rest of a command line, up to `ARGS_MAX` (127) bytes. The OS keeps
+them per process (`system/MyOS/src/proc/args.mln`), and the program reads its
+own with `PROC_ARGS` -- MyStdLib's `process.args()`; `process.spawn_with(path,
+args)` passes them. `sh` hands a program what follows its name, so `echo
+hello` and `cat readme.txt` are programs in `/bin`.
+
+Ctrl+C in a terminal ends the newest program started there whose parent
+writes there too -- not the shell the terminal started -- as if it exited with
+130 (`console.interrupt`), and `sh` reports `[pid N exited with 130]`.
+
 `PROC_STATS` controls nothing, so it answers any process, about every process:
 each one's name (the path it was started from, without directory or
 extension), parent, threads, CPU ticks, mapped pages and what it is doing, and

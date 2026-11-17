@@ -1,0 +1,18 @@
+namespace icon_contract;
+
+/**
+ * The OS's built-in icons (system/MyOS/src/ui/icons.unsafe.mln, made from
+ * tools/icons.txt). An app picks its own with @app(icon = "terminal"), by the
+ * lower-case name. A List or Menu row that starts with one of these bytes
+ * shows that icon before its text; the snapshot leaves the byte out.
+ */
+export enum Icon {
+    NONE = 0,
+    APP = 1,       // a window: an app that names none
+    TERMINAL = 2,
+    EDITOR = 3,
+    FILES = 4,
+    TASKS = 5,
+    FOLDER = 6,
+    FILE = 7,
+}

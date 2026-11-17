@@ -22,6 +22,7 @@ in step with the state.
  * @property shell The shell, while it runs.
  */
 @app
+@icon("terminal")
 struct Terminal {
     Screen screen;
     Option<Pid> shell;
@@ -160,12 +161,15 @@ The kernel runs isolated user processes (own page tables, W^X, syscalls) — see
 Programs live in `system/MyOS/user/apps/*.mln` (`package app;` exporting
 `i32 main()`); `make build` compiles each into an MBIN v2 executable, and
 `tools/mkfs.py` places them on the disk image alongside a couple of text
-files. The desktop's **Terminal** runs one of them, the shell `sh`: type
-`hello`, `echo` or `count` to start a program, or `ls`/`cat`, and `help` for the
-rest. You can also browse the disk with **Files** and edit with **Editor**, all
-reachable from the taskbar's MyOS menu. A process's stdout is routed to its
-terminal, and a line typed there to the process started last, through the
-kernel's console hooks (`system/MyOS/src/proc/console.mln`).
+files. The desktop's **Terminal** runs one of them, the shell `sh`: type a
+program's name and what it takes, such as `echo hello` or `cat readme.txt`
+(it reads them with `process.args()`), or `ls`, and `help` for the rest. Up and
+Down bring back earlier lines, Left and Right move in the line, and Ctrl+C ends
+the program running. You can also browse the disk with **Files** and edit with
+**Editor**, all reachable from the taskbar's MyOS menu; text fields share one
+clipboard (Ctrl+X, C, V, A, and Ctrl+Shift+C, V in the terminal). A process's
+stdout is routed to its terminal, and a line typed there to the process started
+last, through the kernel's console hooks (`system/MyOS/src/proc/console.mln`).
 
 ## Debugging
 

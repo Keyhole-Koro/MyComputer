@@ -16,6 +16,7 @@ export enum UiOp {
     LIST_SELECT,       // (id, a1 = row, or -1 for none)
     GRAPH_SET,         // (id, a1 = series 0 or 1, s0 = percentages apart by spaces)
     ADD_STYLE,         // (id, a1 = NodeStyle bits: GROW_W, GROW_H, PIN_BOTTOM, WRAP, REPORT_CARET)
+    TEXT_EDIT,         // (id, a1 = TextEdit) -- what Ctrl+X, C, V and A do, for an Edit menu
     // ui.mln --- focus and windows
     FOCUS,             // (id)
     SEND_KEY,          // (a0 = type, a1 = code, a2 = mods)
@@ -40,3 +41,14 @@ export enum UiOp {
     CREATE_MENU_BUTTON, // (s0 = title, x, y, w, h, s1) -- its items come with LIST_SET_ITEMS
     APPEND_CHILD,      // (a0 = parent, a1 = child) -> the child
 };
+
+/**
+ * What TEXT_EDIT does to a TextInput or TextArea: the same as its keys. The
+ * clipboard stays in the OS; a paste is the only way its text reaches an app.
+ */
+export enum TextEdit {
+    CUT = 1,         // Ctrl+X: the selection goes to the clipboard and out of the text
+    COPY = 2,        // Ctrl+C: the selection goes to the clipboard
+    PASTE = 3,       // Ctrl+V: the clipboard's text replaces the selection
+    SELECT_ALL = 4,  // Ctrl+A
+}

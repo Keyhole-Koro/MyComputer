@@ -1,0 +1,141 @@
+# The built-in icons, 16 x 16 logical pixels each. tools/gen_icons.py turns
+# them into system/MyOS/src/ui/icons.unsafe.mln. The icons come in the order of
+# contracts/ui/icon.contract.mln's Icon enum, from 1; '.' is transparent and
+# every other character a colour from the palette.
+
+palette
+K 1F2937  outline
+W FFFFFF  paper, window
+S 9CA3AF  lines of text
+B 3B82F6  title bar, accent
+L BFDBFE  light accent
+D 1E2128  terminal screen
+G 4ADE80  terminal text
+Y F59E0B  folder edge
+y FCD34D  folder
+
+icon app
+................
+.KKKKKKKKKKKKKK.
+.KBBBBBBBBBBBBK.
+.KBBBBBBBBBBBBK.
+.KWWWWWWWWWWWWK.
+.KWWWWWWWWWWWWK.
+.KWWWWWWWWWWWWK.
+.KWWWWWWWWWWWWK.
+.KWWWWWWWWWWWWK.
+.KWWWWWWWWWWWWK.
+.KWWWWWWWWWWWWK.
+.KWWWWWWWWWWWWK.
+.KWWWWWWWWWWWWK.
+.KKKKKKKKKKKKKK.
+................
+................
+
+icon terminal
+................
+.KKKKKKKKKKKKKK.
+.KBBBBBBBBBBBBK.
+.KDDDDDDDDDDDDK.
+.KDGDDDDDDDDDDK.
+.KDGGDDDDDDDDDK.
+.KDDGGDDDDDDDDK.
+.KDDDGGDDDDDDDK.
+.KDDGGDDDDDDDDK.
+.KDGGDDDDDDDDDK.
+.KDGDDDGGGGGDDK.
+.KDDDDDDDDDDDDK.
+.KDDDDDDDDDDDDK.
+.KKKKKKKKKKKKKK.
+................
+................
+
+icon editor
+................
+..KKKKKKKKK.....
+..KWWWWWWWKK....
+..KWWWWWWWKWK...
+..KWSSSSSWKKKK..
+..KWWWWWWWWWWK..
+..KWSSSSSSSSWK..
+..KWWWWWWWWWWK..
+..KWSSSSSSSSWK..
+..KWWWWWWWWWWK..
+..KWSSSSSSWWWK..
+..KWWWWWWWWWWK..
+..KWSSSSSSSSWK..
+..KWWWWWWWWWWK..
+..KKKKKKKKKKKK..
+................
+
+icon files
+................
+................
+.KKKKKK.........
+.KyyyyyK........
+.KyyyyyyKKKKKKK.
+.KYYYYYYYYYYYYK.
+.KyyyyyyyyyyyyK.
+.KyyyyyyyyyyyyK.
+.KyyyyyyyyyyyyK.
+.KyyyyyyyyyyyyK.
+.KyyyyyyyyyyyyK.
+.KyyyyyyyyyyyyK.
+.KyyyyyyyyyyyyK.
+.KKKKKKKKKKKKKK.
+................
+................
+
+icon tasks
+................
+.KKKKKKKKKKKKKK.
+.KBBBBBBBBBBBBK.
+.KWWWWWWWWWWWWK.
+.KWWWWWWWWWWBWK.
+.KWWWWWWWWWBLWK.
+.KWWWWBWWWBLLWK.
+.KWWWBLBWBLLLWK.
+.KWWBLLLBLLLLWK.
+.KWBLLLLLLLLLWK.
+.KWLLLLLLLLLLWK.
+.KWLLLLLLLLLLWK.
+.KWWWWWWWWWWWWK.
+.KKKKKKKKKKKKKK.
+................
+................
+
+icon folder
+................
+................
+.KKKKKK.........
+.KyyyyyK........
+.KyyyyyyKKKKKKK.
+.KYYYYYYYYYYYYK.
+.KyyyyyyyyyyyyK.
+.KyyyyyyyyyyyyK.
+.KyyyyyyyyyyyyK.
+.KyyyyyyyyyyyyK.
+.KyyyyyyyyyyyyK.
+.KyyyyyyyyyyyyK.
+.KyyyyyyyyyyyyK.
+.KKKKKKKKKKKKKK.
+................
+................
+
+icon file
+................
+..KKKKKKKKK.....
+..KWWWWWWWKK....
+..KWWWWWWWKWK...
+..KWWWWWWWKKKK..
+..KWWWWWWWWWWK..
+..KWWWWWWWWWWK..
+..KWWWWWWWWWWK..
+..KWWWWWWWWWWK..
+..KWWWWWWWWWWK..
+..KWWWWWWWWWWK..
+..KWWWWWWWWWWK..
+..KWWWWWWWWWWK..
+..KWWWWWWWWWWK..
+..KKKKKKKKKKKK..
+................
