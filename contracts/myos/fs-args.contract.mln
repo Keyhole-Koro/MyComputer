@@ -1,4 +1,4 @@
-package myos_fs_args;
+namespace myos_fs_args;
 
 import { Result } from "@std/core/result.mln";
 import { Option } from "@std/core/option.mln";

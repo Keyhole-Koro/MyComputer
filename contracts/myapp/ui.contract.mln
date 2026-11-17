@@ -1,4 +1,4 @@
-package ui_protocol;
+namespace ui_protocol;
 
 // Operations owned by the UI service. The request/event envelope is
 // message.contract.mln; app lifecycle operations are lifecycle.contract.mln.

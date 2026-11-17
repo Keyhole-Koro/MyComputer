@@ -64,7 +64,7 @@ repo growing the shared library for its siblings was backwards):
 | `ringbuf` | fixed-capacity i32 FIFO |
 | `Text<N>` | inline owned text; atomic mutation, NUL-terminated for `char *` boundaries |
 
-`bytes` rather than `mem` because `package mem` is already the kernel's
+`bytes` rather than `mem` because `namespace mem` is already the kernel's
 word-level absolute-address accessor for RAM and MMIO.
 
 Callers moved onto them: `serial.mln`'s keystroke queue (ringbuf),

@@ -515,7 +515,7 @@ export enum Syscall {
 新規file `contracts/process/thread.contract.mln` にdata-only contractを置く。
 
 ```mln
-package process_types;
+namespace process_types;
 
 /** Raw kernel ABI for THREAD_SPAWN. */
 export struct ThreadSpawnArgs {

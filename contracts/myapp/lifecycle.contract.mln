@@ -1,4 +1,4 @@
-package app_protocol;
+namespace app_protocol;
 
 // Operations owned by the application host/shell rather than the UI server.
 export enum AppOp {

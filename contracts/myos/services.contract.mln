@@ -1,4 +1,4 @@
-package os_services;
+namespace os_services;
 
 // MyOS's hosted-program ABI. Client libraries send these service numbers
 // through OS_CALL; MyOS implements them. This file defines wire constants

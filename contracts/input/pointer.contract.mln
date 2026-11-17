@@ -1,4 +1,4 @@
-package pointer_contract;
+namespace pointer_contract;
 
 /** Button bits carried by pointer state and pointer events. */
 export enum PointerButton {

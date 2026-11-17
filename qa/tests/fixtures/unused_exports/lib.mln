@@ -1,6 +1,6 @@
 // What each export here is expected to be is checked by
 // qa/tests/unused_exports_test.py.
-package lib;
+namespace lib;
 
 import { Eq } from "@std/core/cmp.mln";
 

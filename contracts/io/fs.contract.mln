@@ -1,4 +1,4 @@
-package fs_types;
+namespace fs_types;
 import { Describe } from "@std/core/describe.mln";
 
 // Filesystem errors shared by implementations and clients. This is a semantic

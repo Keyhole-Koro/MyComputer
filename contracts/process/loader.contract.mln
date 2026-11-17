@@ -1,4 +1,4 @@
-package loader_types;
+namespace loader_types;
 
 import { From } from "@std/core/convert.mln";
 import { Describe } from "@std/core/describe.mln";

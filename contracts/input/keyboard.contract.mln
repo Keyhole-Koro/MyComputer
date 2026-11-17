@@ -1,4 +1,4 @@
-package keyboard_contract;
+namespace keyboard_contract;
 
 /** Keyboard event kinds carried by the input and UI protocols. */
 export enum KeyEventType {

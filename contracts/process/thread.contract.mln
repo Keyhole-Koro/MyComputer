@@ -1,4 +1,4 @@
-package process_types;
+namespace process_types;
 
 import { From } from "@std/core/convert.mln";
 import { SyscallStatus, SyscallFailure } from "@contracts/myos/syscall.contract.mln";

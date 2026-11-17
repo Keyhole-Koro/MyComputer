@@ -1,4 +1,4 @@
-package futex_types;
+namespace futex_types;
 
 /**
  * Stable integer states stored in a futex-backed Mutex word.

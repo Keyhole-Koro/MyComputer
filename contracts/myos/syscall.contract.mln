@@ -1,4 +1,4 @@
-package myos_syscall;
+namespace myos_syscall;
 
 // User-visible syscall numbers shared by process stubs and the kernel.
 export enum Syscall {

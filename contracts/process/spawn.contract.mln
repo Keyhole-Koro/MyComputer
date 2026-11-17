@@ -1,4 +1,4 @@
-package process_types;
+namespace process_types;
 
 import { FsError } from "@contracts/io/fs.contract.mln";
 import { LoaderError } from "loader.contract.mln";

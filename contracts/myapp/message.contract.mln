@@ -1,4 +1,4 @@
-package app_transport;
+namespace app_transport;
 
 // Shared request/event envelope. Domain-specific operations live in
 // ui.contract.mln and lifecycle.contract.mln. Transport implementation is

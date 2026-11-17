@@ -1,4 +1,4 @@
-package ui_types;
+namespace ui_types;
 import { Describe } from "@std/core/describe.mln";
 import { Pid } from "@contracts/process/control.contract.mln";
 

@@ -158,7 +158,7 @@ windows in `.dom.mln` markup (see `src/apps/`); colours and metrics live in
 
 The kernel runs isolated user processes (own page tables, W^X, syscalls) — see
 [`docs/design/user-space-processes-and-syscalls.md`](docs/design/user-space-processes-and-syscalls.md).
-Programs live in `system/MyOS/user/apps/*.mln` (`package app;` exporting
+Programs live in `system/MyOS/user/apps/*.mln` (`namespace app;` exporting
 `i32 main()`); `make build` compiles each into an MBIN v2 executable, and
 `tools/mkfs.py` places them on the disk image alongside a couple of text
 files. The desktop's **Terminal** runs one of them, the shell `sh`: type a

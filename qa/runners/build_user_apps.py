@@ -3,7 +3,7 @@
 (build/user/<name>.mbin), linked at the user code base with the executable
 header the kernel loader expects (MYOS-015):
 
-- system/MyOS/user/apps/*.mln -- console programs, each `package app;`
+- system/MyOS/user/apps/*.mln -- console programs, each `namespace app;`
   exporting `i32 main()`; user/lib/start.masm calls it and exits with its
   return value.
 - system/MyOS/src/apps/*.dom.mln -- desktop apps (MYOS-022), each with an

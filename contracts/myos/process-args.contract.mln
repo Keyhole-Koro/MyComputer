@@ -1,4 +1,4 @@
-package myos_process_args;
+namespace myos_process_args;
 
 import { Text } from "@std/text/text.mln";
 
