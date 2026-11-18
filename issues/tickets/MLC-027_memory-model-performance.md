@@ -73,5 +73,5 @@ make bench
 ## 関連
 
 - `docs/design/mylang-values.md`
-- `docs/implemented/profiler.md`
+- `tools/MyProfiler/README.md`
 - MLC-025 値だけのメモリモデル

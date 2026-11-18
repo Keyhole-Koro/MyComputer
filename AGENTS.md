@@ -66,9 +66,9 @@ those rather than the source.
 
 - `AGENTS.md`: instructions for coding agents and repository workflow.
 - `docs/design/`: normative project design, ABI, and boundary decisions.
-- `docs/implemented/`: implemented feature records and migration history.
 - `docs/learn/`: explanatory material and tutorials.
-- `issues/`: proposals, tickets, and completed work history.
+- `issues/`: proposals and open tickets. A finished ticket is deleted; its
+  outcome lives in the code and `docs/`, its history in git.
 - A submodule's `docs/` contains technical details specific to that repository.
 
 When a document mixes agent instructions with technical design, split the

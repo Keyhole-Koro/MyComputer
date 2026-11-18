@@ -365,5 +365,3 @@ MyLangCompilerがmanifestを出力し、MyLangTesterがbuild / runへ使用す�
 ## Related
 
 - [MLT-002](MLT-002_mylang-test-framework.md)
-- [MLT-001](MLT-001_mylang-test-diagnostics-strategy.md)
-- [MLC-014](../completed/MLC-014_mylang-function-signature-type-checking.md)

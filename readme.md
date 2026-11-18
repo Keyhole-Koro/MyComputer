@@ -196,10 +196,10 @@ make profile ARGS="system/MyKernel/build/sessions/<session>/profile.json"
 For syntax diagnostics and semantic highlighting in VS Code, install the
 extension in [`tools/vscode-mylang`](tools/vscode-mylang/README.md). The
 extension launches the repository's MyLang LSP and supports `.mln` and `.mlx`
-files. See the design notes for the LR(1) engine and frontend integration:
-
-- [Generic syntax engine](docs/implemented/syntax-engine-generic.md)
-- [Shared frontend and LSP](docs/implemented/shared-frontend.md)
+files. The LR(1) engine that parses for both the compiler's syntax checker and
+the server is [`toolchain/MySyntaxEngine`](toolchain/MySyntaxEngine/README.md),
+and the server's design is
+[`docs/design/mylang-lsp-architecture.md`](docs/design/mylang-lsp-architecture.md).
 
 ## Directory Structure
 

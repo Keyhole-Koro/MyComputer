@@ -124,8 +124,7 @@ package 名はフラットなままで、`std.` prefix という当初案まで�
 
 API 設計は compiler の3つの制約に強く縛られている（struct が package 境界を
 越えない、export した定数がリンクされない、乗除算命令がない）。詳細と実測の
-根拠は `docs/design/mylang-stdlib-and-string.md`。制約自体の解消は
-`MLC-016_cross-package-types-and-constants.md`。
+根拠は `docs/design/mylang-stdlib-and-string.md`。
 
 ### フェーズ4: Compiler fixtures
 

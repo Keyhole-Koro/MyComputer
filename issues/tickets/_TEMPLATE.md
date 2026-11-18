@@ -17,7 +17,7 @@
 - Updated: このファイルを最後に実質更新した日付（YYYY-MM-DD、相対表現禁止）。
 - 着手する agent は、着手時に Branch / Agent / Updated / Status(In Progress) を
   必ず更新すること。放置された "In Progress" は次に見た人が信用できなくなる。
-- Done になったら tickets/README.md の運用ルールに従い completed/ へ git mv。
+- Done になったら tickets/README.md の運用ルールに従い削除する。
 -->
 
 ## Summary
