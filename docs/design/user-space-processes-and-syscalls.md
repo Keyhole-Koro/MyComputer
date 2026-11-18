@@ -165,7 +165,9 @@ extension), parent, threads, CPU ticks, mapped pages and what it is doing, and
 where the CPU's time went and how much physical memory is free
 (`ProcStats` in `contracts/myos/process-args.contract.mln`; the Task Manager
 app shows it). The scheduler charges each timer tick to whatever it
-interrupted: a process's thread, a kernel thread, or idle.
+interrupted: a process's thread, a kernel thread, or idle. While nothing can
+run, idle holds the timer's interrupts back until the next deadline; the ticks
+that pass meanwhile are idle's (docs/design/app-transport-blocking.md).
 
 `SYS_YIELD` puts the calling task to sleep until the next timer tick
 (`scheduler.yield_until_tick`) rather than merely rescheduling it. The

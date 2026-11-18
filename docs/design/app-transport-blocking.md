@@ -101,6 +101,21 @@ syscall dispatcher は保存済み interrupt frame を scheduler へ渡せるた
 起こす側が書いた値は、同じ reschedule の中で起きた場合も含めて、そのまま残る。reschedule は
 起こす処理（終わったスレッドの片付け、期限）の前に、離れるスレッドのフレームを保存する。
 
+### idle とタイマー
+
+走らせるスレッドが無い間、idle はタイマーの割り込みを次の期限まで止めてから WFI で待つ
+（`scheduler.hold_until_due`）。期限は sleep、futex の timeout、通知待ちの deadline のうち
+一番早いもの（`thread.next_due()`）で、無ければ止めたままにする。タイマーは
+`TIMER_ADDR`（`0x24000088`）で、読むとそれまでの tick 数、書くとその tick まで割り込まない
+（`runtime/MyEmulator/docs/execution-contracts.md`）。止めている間も数えるので、時計は狂わない。
+
+- 期限の tick の割り込みで止めるのをやめ、その間の tick を idle の時間として数える（`tick`）。
+- 他の割り込み（入力、シリアル、自動操作、ディスク）がスレッドを起こしたら、次の tick を
+  待たずにその場で切り替える（`resume_after_interrupt`）。切り替えでタイマーは毎 tick に戻る。
+- 終わったスレッドの片付けが残っている時は、次の reschedule が要るので止めない。
+
+何もしていない間の 1 秒あたり約 1000 回の割り込み（1 回約 800 命令）が無くなる。
+
 ## 3. イベント文字列の所有権
 
 以前の `Event.text` はポインタで、次の 2 つの共有バッファに依存していた。
