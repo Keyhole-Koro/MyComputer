@@ -43,11 +43,18 @@ help:
 		'' \
 		'Pass script options with ARGS="...".'
 
-run system:
+# `system` and `system-build` are other names for `run` and `build`. They
+# depend on them rather than share their recipe, so that `make run system`
+# builds and runs once, not twice.
+run:
 	$(PYTHON) $(QA_DIR)/runners/run_system.py $(ARGS)
 
-build system-build:
+system: run
+
+build:
 	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run $(ARGS)
+
+system-build: build
 
 OUT ?= build/screenshot.png
 screenshot:
