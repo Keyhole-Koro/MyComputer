@@ -129,6 +129,15 @@ SUITES = {
         [sys.executable, str(REPO_ROOT / "tools" / "MyProfiler" / "tests" / "test_profiler.py")],
         [],
     ),
+    "atlas": (
+        [sys.executable, str(REPO_ROOT / "tools" / "MyAtlas" / "tests" / "test_atlas.py")],
+        [],
+    ),
+    # docs/atlas against the code it describes.
+    "atlas-check": (
+        [sys.executable, str(REPO_ROOT / "tools" / "MyAtlas" / "myatlas.py"), "--root", str(REPO_ROOT), "check"],
+        [],
+    ),
     "compiler-e2e": (
         ["make", "-C", str(MYLANGCOMPILER_DIR), "test-e2e"],
         ["mlc", "myas", "mllinker", "myemu"],

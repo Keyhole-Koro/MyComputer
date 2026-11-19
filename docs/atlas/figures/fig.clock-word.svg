@@ -1,0 +1,5 @@
+<svg viewBox="0 0 640 150" role="img" aria-label="32 ビットの時計。上位 24 ビットが tick 数、下位 8 ビットが今の tick の進み">
+    <rect class="z-acc" x="20" y="20" width="450" height="52" rx="6"/><rect class="z-cell" x="470" y="20" width="150" height="52" rx="6"/>
+    <text class="z-t" x="245" y="52" text-anchor="middle">tick 数（上位 24 ビット）</text><text class="z-t" x="545" y="52" text-anchor="middle">進み（下位 8 ビット）</text>
+    <text class="z-s" x="22" y="92">31</text><text class="z-s" x="466" y="92" text-anchor="end">8</text><text class="z-s" x="474" y="92">7</text><text class="z-s" x="618" y="92" text-anchor="end">0</text>
+    <text class="z-s" x="20" y="130">例: 1,234 tick と 128/256 → 1,234 × 256 + 128 = 316,032</text></svg>

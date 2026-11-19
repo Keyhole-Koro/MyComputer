@@ -67,6 +67,9 @@ those rather than the source.
 - `AGENTS.md`: instructions for coding agents and repository workflow.
 - `docs/design/`: normative project design, ABI, and boundary decisions.
 - `docs/learn/`: explanatory material and tutorials.
+- `docs/atlas/`: the document map, its nodes by layer and its flows step by step.
+  `make atlas-check` (part of `make qa`) fails when code a node names has moved;
+  update the node with the code. `tools/MyAtlas/docs/FORMAT.md` is the format.
 - `issues/`: proposals and open tickets. A finished ticket is deleted; its
   outcome lives in the code and `docs/`, its history in git.
 - A submodule's `docs/` contains technical details specific to that repository.

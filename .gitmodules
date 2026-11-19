@@ -52,3 +52,7 @@
 [submodule "tools/MyProfiler"]
 	path = tools/MyProfiler
 	url = https://github.com/Keyhole-Koro/MyProfiler.git
+[submodule "tools/MyAtlas"]
+	path = tools/MyAtlas
+	url = git@github.com:Keyhole-Koro/MyAtlas.git
+	branch = main

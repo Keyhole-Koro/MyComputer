@@ -8,7 +8,7 @@ $(shell mkdir -p $(TMPDIR))
 .PHONY: help run system build system-build screenshot readme readme-check kernel kernel-build emulator qa test qa-no-build \
 	qa-compiler qa-assembler qa-linker qa-heap qa-serial-rx qa-scheduler qa-dom qa-graphics \
 	mlc-test as-test linker-test serial-rx-test dom-test dom-tester-test apps-test framework-test dom-inspect font profile profile-tools profile-diff bench bench-save clean-qa \
-	unused-exports check lsp-check
+	unused-exports check lsp-check atlas atlas-check atlas-trace
 
 help:
 	@printf '%s\n' \
@@ -40,6 +40,9 @@ help:
 		'  make unused-exports   Report exports nothing references (ARGS="--write-allow" to rewrite the allowlist)' \
 		'  make check            Report parse and semantic errors in every .mln (FILE=path for one file or directory)' \
 		'  make lsp-check        Report what the language server shows, checked against the compiler (FILE=path to narrow)' \
+		'  make atlas            Build the document map from docs/atlas into build/atlas/index.html' \
+		'  make atlas-check      Report where docs/atlas no longer matches the code' \
+		'  make atlas-trace      Record one UI request in the emulator for the map (docs/atlas/traces)' \
 		'' \
 		'Pass script options with ARGS="...".'
 
@@ -183,6 +186,21 @@ bench: profile-tools
 
 bench-save: profile-tools
 	$(MYPROFILER) bench qa/baselines/e2e-instructions.json
+
+# The document map (tools/MyAtlas). docs/atlas holds the text; MyAtlas checks it
+# against the code and builds one page from it. The trace is a recorded run the
+# page can play back; MyProfiler records it.
+MYATLAS := $(PYTHON) tools/MyAtlas/myatlas.py --root .
+
+atlas:
+	$(MYATLAS) build build/atlas/index.html
+
+atlas-check:
+	$(MYATLAS) check
+
+atlas-trace: profile-tools
+	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run --headless
+	$(MYPROFILER) trace --out docs/atlas/traces/ui-request.json --title 'Editor で「x」を打った 1 回' --quiet
 
 unused-exports:
 	$(MAKE) -C toolchain/MyLangCompiler mlc
