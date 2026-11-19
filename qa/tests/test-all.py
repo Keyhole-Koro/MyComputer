@@ -138,6 +138,14 @@ SUITES = {
         [sys.executable, str(REPO_ROOT / "tools" / "MyAtlas" / "myatlas.py"), "--root", str(REPO_ROOT), "check"],
         [],
     ),
+    # The root repository's own Python tools, without the toolchain. The other
+    # *_test.py files here are scripts that run on import, so discovery only
+    # picks up *_unit_test.py.
+    "unit": (
+        [sys.executable, "-m", "unittest", "discover", "-s", str(REPO_ROOT / "qa" / "tests"),
+         "-p", "*_unit_test.py"],
+        [],
+    ),
     "compiler-e2e": (
         ["make", "-C", str(MYLANGCOMPILER_DIR), "test-e2e"],
         ["mlc", "myas", "mllinker", "myemu"],
