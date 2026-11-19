@@ -85,7 +85,7 @@
           "match": "\\b(if|else|while|do|for|switch|case|default|break|continue|return|yield)\\b"
         },
         {
-          "comment": "of, from, namespace, package and rest are keywords only where a case, an import, the namespace line or a variadic parameter puts them, and names elsewhere",
+          "comment": "of, from, namespace and rest are keywords only where a case, an import, the namespace line or a variadic parameter puts them, and names elsewhere",
           "name": "keyword.control.mylang",
           "match": "\\bof\\b(?=\\s*\\{)"
         },
@@ -99,7 +99,7 @@
         },
         {
           "name": "keyword.declaration.mylang",
-          "match": "^\\s*(namespace|package)\\b(?=\\s+[A-Za-z_][A-Za-z0-9_]*\\s*;)"
+          "match": "^\\s*namespace\\b(?=\\s+[A-Za-z_][A-Za-z0-9_]*\\s*;)"
         },
         {
           "name": "storage.modifier.mylang",
