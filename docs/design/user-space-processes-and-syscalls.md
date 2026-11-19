@@ -166,10 +166,13 @@ where the CPU's time went and how much physical memory is free
 (`ProcStats` in `contracts/myos/process-args.contract.mln`; the Task Manager
 app shows it). The times are in the timer's clock units, 256 a tick: at every
 switch the scheduler reads the clock and charges the time since the last
-switch to what was running, a process's thread, a kernel thread or idle. A
-kernel thread waiting in WFI on its own stack hands the wait to idle, and while
-nothing can run idle holds the timer's interrupts back until the next deadline
-(docs/design/app-transport-blocking.md).
+switch to what was running, a process's thread, a kernel thread or idle
+(`scheduler.charge_elapsed`), so a thread that runs less than a tick before it
+sleeps is charged too. A kernel thread waiting in WFI on its own stack (`sleep`,
+`await_notification`) keeps the time up to the wait and hands the wait to idle,
+and while nothing can run idle holds the timer's interrupts back until the next
+deadline (docs/design/app-transport-blocking.md). `PROC_STATS` charges the time
+up to now before it reads, so the total and its parts meet.
 
 `SYS_YIELD` puts the calling task to sleep until the next timer tick
 (`scheduler.yield_until_tick`) rather than merely rescheduling it. The

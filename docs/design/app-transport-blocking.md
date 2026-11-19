@@ -113,21 +113,13 @@ tick まで割り込まない（`runtime/MyEmulator/docs/execution-contracts.md`
 （`scheduler.catch_up_ticks`）。
 
 - 期限の tick の割り込みで止めるのをやめ、その間の tick を数える（`tick`）。その間の時間は
-  idle のものになる（下の CPU 時間）。
+  idle のものになる（CPU 時間の数え方は `user-space-processes-and-syscalls.md` の
+  `PROC_STATS`）。
 - 他の割り込み（入力、シリアル、自動操作、ディスク）がスレッドを起こしたら、次の tick を
   待たずにその場で切り替える（`resume_after_interrupt`）。切り替えでタイマーは毎 tick に戻る。
 - 終わったスレッドの片付けが残っている時は、次の reschedule が要るので止めない。
 
 何もしていない間の 1 秒あたり約 1000 回の割り込み（1 回約 800 命令）が無くなる。
-
-### CPU 時間
-
-スケジューラは切り替えのたびに時計を読み、前回からの時間を、それまで走っていたものに足す
-（`scheduler.charge_elapsed`）。ユーザスレッドならそのプロセス、カーネルスレッドならカーネル、
-何も無ければ idle である。カーネルスレッドが自分のスタックで WFI に入る待ち（`sleep`、
-`await_notification`）は、入る時点までを自分の時間とし、待っている間を idle にする。単位は
-時計の 1/256 tick なので、1 tick より短く動いて眠るスレッドの分も数えられる。`PROC_STATS` は
-集める前に今までの分を足すので、合計と内訳が合う。
 
 ## 3. イベント文字列の所有権
 
