@@ -82,15 +82,32 @@
       "patterns": [
         {
           "name": "keyword.control.mylang",
-          "match": "\\b(if|else|while|do|for|switch|case|default|break|continue|return|yield|of)\\b"
+          "match": "\\b(if|else|while|do|for|switch|case|default|break|continue|return|yield)\\b"
+        },
+        {
+          "comment": "of, from, namespace, package and rest are keywords only where a case, an import, the namespace line or a variadic parameter puts them, and names elsewhere",
+          "name": "keyword.control.mylang",
+          "match": "\\bof\\b(?=\\s*\\{)"
         },
         {
           "name": "keyword.declaration.mylang",
-          "match": "\\b(namespace|package|import|from|export|extern|typedef|struct|union|enum)\\b"
+          "match": "\\b(import|export|extern|typedef|struct|union|enum)\\b"
+        },
+        {
+          "name": "keyword.declaration.mylang",
+          "match": "\\bfrom\\b(?=\\s*\")"
+        },
+        {
+          "name": "keyword.declaration.mylang",
+          "match": "^\\s*(namespace|package)\\b(?=\\s+[A-Za-z_][A-Za-z0-9_]*\\s*;)"
         },
         {
           "name": "storage.modifier.mylang",
-          "match": "\\b(const|static|auto|register|borrow|move|rest)\\b"
+          "match": "\\b(const|static|auto|register|borrow|move)\\b"
+        },
+        {
+          "name": "storage.modifier.mylang",
+          "match": "\\brest\\b(?=\\s+[A-Za-z_])"
         }
       ]
     },
