@@ -29,10 +29,12 @@
    カーネルが pid を付けて os_call_router に渡し、REQUEST は request_gateway.request へ
 5. gateway → ring  列を通す「並べる」 渡す Request{owner, *s0, *s1, result_out}
    owner を pid で上書きし、文字列と出力先を OS 側にコピーして、列に並べる
+   操作：[[os.request-ring]] 入れる
 6. ring → serve  通知「SERVICE で起こす」
    並べたら、SERVICE の通知で service task を起こす
 7. serve → handle  呼び出し 渡す Request{domain, op}
    列から取り出し、domain が UI なので ui_protocol.handle へ
+   操作：[[os.request-ring]] 出す
    分かれる：domain が UI → [[os.ui-protocol]] の handle ／ domain が APP → shell_protocol.handle ／ ほか → INVALID_DOMAIN を返す
 8. handle → dom  読み書き「書き換える」
    op が SET_TEXT なので、a0 のノードの文字を s0 に書き換える

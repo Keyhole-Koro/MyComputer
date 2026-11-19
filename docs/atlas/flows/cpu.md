@@ -14,7 +14,7 @@ CPU 時間が数えられ、タスクマネージャに届くまで
 箱 resched [[kernel.reschedule]] reschedule(sp) ｜名前空間 scheduler ｜説明 次を選ぶ
 箱 charge [[kernel.cpu-time]] charge_elapsed() ｜略 charge_elapsed ｜名前空間 scheduler ｜説明 前回からを足す
 箱 counters [[kernel.cpu-counters]] CPU 時間の置き場 ｜中身 cpu_time, kernel, idle
-箱 timer [[emulator.timer.clock]] タイマーの時計 ｜ビット
+箱 timer [[emulator.timer.clock]] タイマーの時計 ｜ビット tick 数 24、進み 8
 
 1. timer → dispatch  通知「tick の割り込み」
    タイマーが tick の割り込みを上げる

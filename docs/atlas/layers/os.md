@@ -21,6 +21,7 @@ owner を呼んだプロセスの pid で上書きし、文字列と出力先を
 
 ## os.request-ring  要求の列
 置き場・system/MyOS/src/ipc/channel.unsafe.mln の g_requests
+形：[[kernel.channel]]
 
 全部のアプリの要求が並ぶ 1 本の列（IPC の channel）。1 通は 24 語。[[os.submit]] が入れ、[[os.serve]] が取り出す。
 
@@ -37,7 +38,10 @@ owner を呼んだプロセスの pid で上書きし、文字列と出力先を
 op（[[schema.uiop]]）を見て [[os.dom]] を変える。作ったノードは owner のプロセスのものになる。
 
 ## os.dom  DOM
-置き場・system/MyOS/src/ui/dom/dom.mln
+置き場・system/MyOS/src/ui/dom/dom_model.model.mln
+形：木（子 children、親 parent、節 Node、兄弟の順 描く順）
+操作 [[os.dom-render]] 深さ優先：親を描いてから、子を兄弟の順に描く。後の兄弟ほど上に重なる｜O(節の数)
+操作 [[os.dom-hit]] 最後に当たったもの：子を兄弟の順に全部たどり、点を含むもののうち最後に当たったもの（いちばん上に描いたもの）を残す｜O(節の数)
 
 ブラウザと同じ形の DOM が、OS 側に 1 つだけある。触るのは [[ctx.service]] だけ。タイマーのノードは、時間が来ると [[os.events]] で TIMER を送る。
 
@@ -94,6 +98,7 @@ s0（1,024 B まで）と s1（128 B まで）を [[gateway.slots]] に写し、
 
 ## gateway.slots  gateway_slots[i]
 置き場・system/MyOS/src/ipc/gateway.unsafe.mln の GatewaySlot
+形：表（枠 gateway_slots、鍵 slot_index）
 フィールド reply_ch：返事を入れる channel
 フィールド event_ch：イベントを入れる channel
 フィールド events_bound：イベントの channel を結んだか
@@ -125,3 +130,18 @@ s0（1,024 B まで）と s1（128 B まで）を [[gateway.slots]] に写し、
 フィールド words[14..23]（i32）：使わない
 
 IPC の 1 通は 24 語。submit の中だけで使う、その場の配列。
+
+## os.dom-render  dom_render.render
+関数・system/MyOS/src/ui/dom/dom_render.mln の render
+引数 n：描く節
+
+見えない節はその下ごと飛ばす。描き直す範囲（damage）に入る節だけ描き、子は範囲の外でも訪ねる。子を切り抜く節は、外ならそこで止める。
+
+## os.dom-hit  dom_hit_test.hit_row
+関数・system/MyOS/src/ui/dom/dom_hit_test.mln の hit_row
+引数 n：調べる節
+引数 px：点の x
+引数 py：点の y
+返す：いちばん上の、当たる節。無ければ None
+
+入力をどの節に届けるかを決める。見えない節と、子を切り抜く節の外は飛ばす。

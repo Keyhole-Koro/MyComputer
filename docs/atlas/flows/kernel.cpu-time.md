@@ -11,7 +11,7 @@
   箱 counters [[kernel.cpu-counters]] CPU 時間の置き場 ｜中身 cpu_time, kernel, idle
   箱 last [[kernel.clock-charged]] g_clock_charged ｜中身 前回の時刻
 帯 hw エミュレータ／タイマー（emu）
-  箱 clock [[emulator.timer.clock]] タイマーの時計 ｜ビット
+  箱 clock [[emulator.timer.clock]] タイマーの時計 ｜ビット tick 数 24、進み 8
 
 1. clock → read  読み書き「読む」 渡す clock=[[emulator.timer.clock]]{tick 数, 進み} [[charge.read]]
    時計を 1 語読む。tick 数 × 256 ＋ 進みが今の時刻
