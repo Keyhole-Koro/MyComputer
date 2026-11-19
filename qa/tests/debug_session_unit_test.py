@@ -5,12 +5,14 @@ Run with `python3 -m unittest discover -s qa/tests -p '*_unit_test.py'`.
 """
 
 import contextlib
+import gc
 import io
 import json
 import subprocess
 import sys
 import tempfile
 import unittest
+import warnings
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -113,6 +115,16 @@ class SessionTest(unittest.TestCase):
             output = debug_session.run_logged(cmd, self.root, "echo", session, "03-echo.log", echo_output=True)
         self.assertEqual(output, "one\ntwo\n")
         self.assertEqual(echoed.getvalue(), "one\ntwo\n")
+
+    def test_run_logged_echo_closes_the_pipe(self):
+        session = debug_session.DebugSession(self.root / "s", "demo")
+        cmd = [sys.executable, "-c", "print('x')"]
+        with warnings.catch_warnings(record=True) as caught:
+            warnings.simplefilter("always", ResourceWarning)
+            with contextlib.redirect_stdout(io.StringIO()):
+                debug_session.run_logged(cmd, self.root, "echo", session, "04-echo.log", echo_output=True)
+            gc.collect()
+        self.assertEqual([str(w.message) for w in caught if issubclass(w.category, ResourceWarning)], [])
 
     def test_copy_artifacts_skips_sessions_and_other_files(self):
         build = self.root / "build"
