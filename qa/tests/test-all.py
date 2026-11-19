@@ -25,6 +25,7 @@ Usage:
 """
 
 import argparse
+import os
 import subprocess
 import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -219,11 +220,16 @@ SUITES = {
 SERIAL_SUITES = {"compiler-e2e", "assembler-e2e", "testkit", "lsp", "lsp-check", "lsp-check-tool"}
 
 
-def run_suite(name):
-    """Run one suite in a child process. Returns (name, ok, output)."""
+def run_suite(name, build_jobs=None):
+    """Run one suite in a child process. Returns (name, ok, output).
+    build_jobs caps how many sources each build_toolchain.py build in it
+    compiles at once (MYBUILD_JOBS)."""
     argv, _ = SUITES[name]
+    env = None
+    if build_jobs is not None:
+        env = {**os.environ, "MYBUILD_JOBS": str(build_jobs)}
     proc = subprocess.run(
-        argv, cwd=REPO_ROOT,
+        argv, cwd=REPO_ROOT, env=env,
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
     )
     return name, proc.returncode == 0, proc.stdout
@@ -291,8 +297,12 @@ def main():
 
     if parallel_runnable:
         status_line("TEST", f"running {len(parallel_runnable)} component/system suite(s) in parallel")
+        # The suites already fill the CPUs, so the builds inside them share
+        # what is left rather than each starting a job per CPU.
+        workers = args.jobs or os.cpu_count() or 1
+        build_jobs = max(1, (os.cpu_count() or 1) // min(workers, len(parallel_runnable)))
         with ProcessPoolExecutor(max_workers=args.jobs) as pool:
-            futures = {pool.submit(run_suite, s): s for s in parallel_runnable}
+            futures = {pool.submit(run_suite, s, build_jobs): s for s in parallel_runnable}
             for fut in as_completed(futures):
                 name, ok, output = fut.result()
                 record_result(results, name, ok, output, args.verbose)

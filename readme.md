@@ -76,6 +76,15 @@ Build the system images without running them:
 make build
 ```
 
+Both rebuild only what changed. Each source's objects keep a stamp of the
+tools, the options and every source the compile read, and a source whose stamp
+still matches is not compiled again; the rest compile one job per CPU
+(`MYBUILD_JOBS=n` to change it), each job through one `mlc --serve` that keeps
+the modules it has loaded for its next source. The build uses the toolchain as
+it is built: after changing the compiler or the assembler, rebuild it (for
+example `make -C toolchain/MyLangCompiler mlc`) and the next build compiles
+everything again. `MYBUILD_MLC_SERVER=0` runs an mlc per source instead.
+
 Boot headless and save the desktop as a PNG (`OUT=path` to change the name):
 
 ```bash
