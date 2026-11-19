@@ -161,13 +161,15 @@ writes there too -- not the shell the terminal started -- as if it exited with
 
 `PROC_STATS` controls nothing, so it answers any process, about every process:
 each one's name (the path it was started from, without directory or
-extension), parent, threads, CPU ticks, mapped pages and what it is doing, and
+extension), parent, threads, CPU time, mapped pages and what it is doing, and
 where the CPU's time went and how much physical memory is free
 (`ProcStats` in `contracts/myos/process-args.contract.mln`; the Task Manager
-app shows it). The scheduler charges each timer tick to whatever it
-interrupted: a process's thread, a kernel thread, or idle. While nothing can
-run, idle holds the timer's interrupts back until the next deadline; the ticks
-that pass meanwhile are idle's (docs/design/app-transport-blocking.md).
+app shows it). The times are in the timer's clock units, 256 a tick: at every
+switch the scheduler reads the clock and charges the time since the last
+switch to what was running, a process's thread, a kernel thread or idle. A
+kernel thread waiting in WFI on its own stack hands the wait to idle, and while
+nothing can run idle holds the timer's interrupts back until the next deadline
+(docs/design/app-transport-blocking.md).
 
 `SYS_YIELD` puts the calling task to sleep until the next timer tick
 (`scheduler.yield_until_tick`) rather than merely rescheduling it. The

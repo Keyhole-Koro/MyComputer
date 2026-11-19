@@ -105,16 +105,29 @@ syscall dispatcher は保存済み interrupt frame を scheduler へ渡せるた
 
 走らせるスレッドが無い間、idle はタイマーの割り込みを次の期限まで止めてから WFI で待つ
 （`scheduler.hold_until_due`）。期限は sleep、futex の timeout、通知待ちの deadline のうち
-一番早いもの（`thread.next_due()`）で、無ければ止めたままにする。タイマーは
-`TIMER_ADDR`（`0x24000088`）で、読むとそれまでの tick 数、書くとその tick まで割り込まない
-（`runtime/MyEmulator/docs/execution-contracts.md`）。止めている間も数えるので、時計は狂わない。
+一番早いもの（`thread.next_due()`）で、無ければ 2^22 tick（既定の 1 ms tick で約 70 分）止める。
+タイマーは `TIMER_ADDR`（`0x24000088`）にある、1 tick を 256 に刻んだ時計である。読むと
+上位 24 ビットにそれまでの tick 数、下位 8 ビットに今の tick の進み具合が返り、書くとその時刻の
+tick まで割り込まない（`runtime/MyEmulator/docs/execution-contracts.md`）。止めている間も
+数えるので、時計は狂わない。tick 数は 2^24 で一周するので、カーネルは前回からの差で数える
+（`scheduler.catch_up_ticks`）。
 
-- 期限の tick の割り込みで止めるのをやめ、その間の tick を idle の時間として数える（`tick`）。
+- 期限の tick の割り込みで止めるのをやめ、その間の tick を数える（`tick`）。その間の時間は
+  idle のものになる（下の CPU 時間）。
 - 他の割り込み（入力、シリアル、自動操作、ディスク）がスレッドを起こしたら、次の tick を
   待たずにその場で切り替える（`resume_after_interrupt`）。切り替えでタイマーは毎 tick に戻る。
 - 終わったスレッドの片付けが残っている時は、次の reschedule が要るので止めない。
 
 何もしていない間の 1 秒あたり約 1000 回の割り込み（1 回約 800 命令）が無くなる。
+
+### CPU 時間
+
+スケジューラは切り替えのたびに時計を読み、前回からの時間を、それまで走っていたものに足す
+（`scheduler.charge_elapsed`）。ユーザスレッドならそのプロセス、カーネルスレッドならカーネル、
+何も無ければ idle である。カーネルスレッドが自分のスタックで WFI に入る待ち（`sleep`、
+`await_notification`）は、入る時点までを自分の時間とし、待っている間を idle にする。単位は
+時計の 1/256 tick なので、1 tick より短く動いて眠るスレッドの分も数えられる。`PROC_STATS` は
+集める前に今までの分を足すので、合計と内訳が合う。
 
 ## 3. イベント文字列の所有権
 

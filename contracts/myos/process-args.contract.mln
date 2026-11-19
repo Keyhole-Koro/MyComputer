@@ -77,7 +77,8 @@ export enum ProcActivity {
  * @property parent The process that started it; zero when the OS did.
  * @property activity What it is doing.
  * @property threads Threads that have not ended.
- * @property cpu_ticks Ticks charged to its threads since it started.
+ * @property cpu_time Time its threads have run since it started, in timer
+ *           clock units (256 a tick; it wraps, so read differences).
  * @property pages 4 KiB pages its program, heap and stacks have mapped.
  * @property name Its executable's name, without directory or extension.
  */
@@ -86,16 +87,17 @@ export struct ProcInfo {
     i32 parent;
     ProcActivity activity;
     i32 threads;
-    i32 cpu_ticks;
+    i32 cpu_time;
     i32 pages;
     Text<16> name;
 };
 
 /**
- * Where the CPU's time went since boot.
- * @property total Every tick.
- * @property idle Ticks with nothing to run.
- * @property kernel Ticks in the OS's own threads: the desktop, the filesystem,
+ * Where the CPU's time went since boot, in timer clock units: 256 a tick, read
+ * as the scheduler switches threads. The counts wrap, so read differences.
+ * @property total All of it.
+ * @property idle Time with nothing to run, or only an OS thread waiting.
+ * @property kernel Time in the OS's own threads: the desktop, the filesystem,
  *           and the work they do for applications.
  * @property kernel_threads The OS's own threads.
  */
