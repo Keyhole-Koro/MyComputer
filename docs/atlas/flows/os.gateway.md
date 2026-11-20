@@ -31,8 +31,8 @@
    次に、結果の書き込み先を用意する
 7. stage → slot  読み書き「差し替え」 渡す Request{result_out, result_size}
    result_out を受け皿の場所に差し替え、アプリ側の元の場所を覚える
-   分かれる：result_out が 0 でなく result_size が 1 以上 → 差し替える ／ それ以外 → 差し替えない（result_out はアプリの番地のまま）
+   分かれる：result_out が 0 でなく result_size が 1 以上 → 差し替える ／ それ以外 → 0 にする（結果を返す op は MISSING_RESULT）
 8. stage → submit  呼び出し「並べる」 渡す Request [[os.submit]]
-   OS 側の値に差し替えた Request を、要求の列に並べる（submit の中にも紙がある）
+   OS 側の値だけになった Request を、要求の列に並べる（submit の中にも紙がある）
 もし 満杯（8 の代わり）. submit → full  戻り「false」 [[gateway.full]]
    列が満杯なら submit は false を返す。request は REQUEST_SPACE の印を付けて、自分も false を返す

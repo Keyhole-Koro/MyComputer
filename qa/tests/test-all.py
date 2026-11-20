@@ -174,6 +174,7 @@ SUITES = {
     ),
     "disk-fixture": mytest_suite(MYOS_DIR / "tests" / "fs" / "disk_fixture.unsafe.test.mln"),
     "minode-fd": mytest_suite(MYOS_DIR / "tests" / "fs" / "minode_fd.unsafe.test.mln"),
+    "gateway": mytest_suite(MYOS_DIR / "tests" / "ipc" / "gateway.unsafe.test.mln"),
     "scheduler": mytest_suite(
         MYKERNEL_DIR / "tests" / "scheduler" / "scheduler.unsafe.test.mln",
         MYKERNEL_DIR / "tests" / "scheduler" / "mock_context.unsafe.test.mln",

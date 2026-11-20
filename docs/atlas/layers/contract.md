@@ -8,7 +8,7 @@
 フィールド a0 … a5：op ごとの引数（6 語）。SET_TEXT は a0 = ノード
 フィールド *s0：文字列。gateway が OS 側にコピーする（1,024 B まで）
 フィールド *s1：2 つ目の文字列。同じくコピーする（128 B まで）
-フィールド result_out：結果の書き込み先。0 でなく result_size が 1 以上なら、gateway が OS 側の buffer に差し替え、返事で書き戻す
+フィールド result_out：結果の書き込み先。0 でなく result_size が 1 以上なら、gateway が OS 側の buffer に差し替え、返事で書き戻す。そうでなければ 0 にする
 フィールド result_size：書き戻す長さ（64 B まで）
 フィールド s0_len：s0 の長さ。文字列は NUL で終わらない
 フィールド s1_len：s1 の長さ
@@ -84,7 +84,7 @@ PROC_STATS が返す、全部のプロセスと CPU の時間とメモリ。
 値 OK：
 値 INVALID_DOMAIN：
 値 INVALID_OPERATION：
-値 MISSING_RESULT：
+値 MISSING_RESULT：結果を返す op に、結果の書き込み先が無い
 
 1 つの要求の結果。
 
