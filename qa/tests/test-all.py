@@ -138,12 +138,20 @@ SUITES = {
         [sys.executable, str(REPO_ROOT / "tools" / "MyAtlas" / "myatlas.py"), "--root", str(REPO_ROOT), "check"],
         [],
     ),
+    # The root repository's own Python tools, without the toolchain. The other
+    # *_test.py files here are scripts that run on import, so discovery only
+    # picks up *_unit_test.py.
+    "unit": (
+        [sys.executable, "-m", "unittest", "discover", "-s", str(REPO_ROOT / "qa" / "tests"),
+         "-p", "*_unit_test.py"],
+        [],
+    ),
     "compiler-e2e": (
         ["make", "-C", str(MYLANGCOMPILER_DIR), "test-e2e"],
         ["mlc", "myas", "mllinker", "myemu"],
     ),
     "testkit": (
-        ["python3", str(REPO_ROOT / "toolchain" / "MyLangTestKit" / "tests" / "run_integration_tests.py")],
+        [sys.executable, str(REPO_ROOT / "toolchain" / "MyLangTestKit" / "tests" / "run_integration_tests.py")],
         list(MYTEST_DEPS),
     ),
     # MyLangTester's own fixtures (pragma layouts and the like), run through mytest.
@@ -192,35 +200,35 @@ SUITES = {
     "input-queues": mytest_suite(MYKERNEL_DIR / "tests" / "io" / "input_queues.unsafe.test.mln"),
     "graphics": mytest_suite(MYOS_DIR / "tests" / "ui" / "graphics.unsafe.test.mln"),
     "readme": (
-        ["python3", str(REPO_ROOT / "tools" / "readme_media.py"), "--check"],
+        [sys.executable, str(REPO_ROOT / "tools" / "readme_media.py"), "--check"],
         [],
     ),
     "unused-exports": (
-        ["python3", str(REPO_ROOT / "qa" / "tools" / "unused_exports.py")],
+        [sys.executable, str(REPO_ROOT / "qa" / "tools" / "unused_exports.py")],
         ["mlc"],
     ),
     "unused-exports-tool": (
-        ["python3", str(REPO_ROOT / "qa" / "tests" / "unused_exports_test.py")],
+        [sys.executable, str(REPO_ROOT / "qa" / "tests" / "unused_exports_test.py")],
         ["mlc"],
     ),
     "mln-check": (
-        ["python3", str(REPO_ROOT / "qa" / "tools" / "mln_check.py")],
+        [sys.executable, str(REPO_ROOT / "qa" / "tools" / "mln_check.py")],
         ["mlc"],
     ),
     "mln-check-tool": (
-        ["python3", str(REPO_ROOT / "qa" / "tests" / "mln_check_test.py")],
+        [sys.executable, str(REPO_ROOT / "qa" / "tests" / "mln_check_test.py")],
         ["mlc"],
     ),
     "lsp": (
-        ["python3", str(REPO_ROOT / "tools" / "MyLangServerProtocol" / "tests" / "run.py")],
+        [sys.executable, str(REPO_ROOT / "tools" / "MyLangServerProtocol" / "tests" / "run.py")],
         ["mlc", "syntax-check"],
     ),
     "lsp-check": (
-        ["python3", str(REPO_ROOT / "qa" / "tools" / "lsp_check.py")],
+        [sys.executable, str(REPO_ROOT / "qa" / "tools" / "lsp_check.py")],
         ["mlc", "syntax-check"],
     ),
     "lsp-check-tool": (
-        ["python3", str(REPO_ROOT / "qa" / "tests" / "lsp_check_test.py")],
+        [sys.executable, str(REPO_ROOT / "qa" / "tests" / "lsp_check_test.py")],
         ["mlc", "syntax-check"],
     ),
 }

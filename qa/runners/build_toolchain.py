@@ -667,6 +667,24 @@ class Builder:
             self.link(target, roots)
 
 
+def check_clean_target(build_dir: Path, sources, cwd: Path | None = None) -> None:
+    """Refuse a --clean that would delete more than build output: a build
+    directory holding a source, the repository or the current directory."""
+    build_dir = Path(build_dir).resolve()
+    cwd = Path(cwd if cwd is not None else os.getcwd()).resolve()
+
+    def encloses(path: Path) -> bool:
+        return path == build_dir or build_dir in path.parents
+
+    protected = [Path(source).resolve() for source in sources] + [REPO_ROOT, cwd]
+    for path in protected:
+        if encloses(path):
+            raise BuildError(
+                f"--clean would delete {build_dir}, which contains {path}; "
+                "pass a separate --build-dir"
+            )
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Build .mln + .masm sources into a linked .mbin via mlc/myas/mllinker.")
@@ -695,6 +713,7 @@ def main():
     out_path = Path(args.out).resolve()
     build_dir = Path(args.build_dir).resolve() if args.build_dir else out_path.parent.resolve()
     if args.clean and build_dir.exists():
+        check_clean_target(build_dir, args.sources)
         shutil.rmtree(build_dir)
 
     builder = Builder(

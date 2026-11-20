@@ -99,9 +99,10 @@ def run_logged(
         )
         output_parts = []
         assert proc.stdout is not None
-        for line in proc.stdout:
-            output_parts.append(line)
-            print(line, end="", flush=True)
+        with proc.stdout:
+            for line in proc.stdout:
+                output_parts.append(line)
+                print(line, end="", flush=True)
         proc.wait()
         output = "".join(output_parts)
     else:
