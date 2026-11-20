@@ -17,7 +17,7 @@ MyOS がカーネルに登録した、OS_CALL の受け口。service で振り�
 引数 user_request：ユーザメモリの要求
 返す：列に入ったら true。満杯なら false（アプリがやり直す）
 
-owner を呼んだプロセスの pid で上書きし、文字列と出力先をプロセスごとの buffer にコピーしてから [[os.request-ring]] に並べる。service task が見るのは、OS 側にコピーした値だけ。返事は reply が、イベントは poll が、同じようにコピーして返す。
+owner を呼んだプロセスの pid で上書きし、文字列と出力先をプロセスごとの buffer にコピーしてから [[os.request-ring]] に並べる。service task が見るのは、OS 側にコピーした値だけ。例外は result_size が 0 以下の時の result_out で、アプリの番地のまま渡る（[[gateway.stage]]）。返事は reply が、イベントは poll が、同じようにコピーして返す。
 
 ## os.request-ring  要求の列
 置き場・system/MyOS/src/ipc/channel.unsafe.mln の g_requests
@@ -63,7 +63,7 @@ op（[[schema.uiop]]）を見て [[os.dom]] を変える。作ったノードは
 ## os.submit  request_channel.submit
 関数・system/MyOS/src/ipc/channel.unsafe.mln の submit
 中の紙：os.submit
-引数 request：OS 側の値だけになった要求
+引数 request：OS 側の値に差し替えた要求
 引数 reply_channel：返事を入れる、プロセスごとの channel
 返す：列に入ったら true。満杯なら false
 
@@ -74,7 +74,7 @@ op（[[schema.uiop]]）を見て [[os.dom]] を変える。作ったノードは
 引数 user_request：アプリのメモリの Request
 引数 request：書き込む、OS 側の Request
 
-ユーザメモリから 13 語を 1 語ずつ読み、[[schema.request]] に戻す。
+ユーザメモリから 15 語を 1 語ずつ読み、[[schema.request]] に戻す。
 
 ## gateway.owner  owner = pid
 関数・system/MyOS/src/ipc/gateway.unsafe.mln の request
@@ -94,7 +94,7 @@ s0（1,024 B まで）と s1（128 B まで）を [[gateway.slots]] に写し、
 引数 slot_index：呼んだプロセスの枠
 引数 request：書き込み先を差し替える Request
 
-結果の書き込み先（result_out と、TEXT_COPY の出力先）を [[gateway.slots]] の受け皿に差し替え、アプリ側の元の場所を覚えておく。返事の時に、そこへ書き戻す。
+結果の書き込み先を [[gateway.slots]] の受け皿に差し替え、アプリ側の元の場所を覚えておく。返事の時に、そこへ書き戻す。差し替えるのは TEXT_COPY の出力先と、0 でなく result_size が 1 以上の result_out（書き戻すのは 64 B まで）。result_size が 0 以下だと result_out はアプリの番地のまま渡り、結果を返す op では service task がそこへ書く。
 
 ## gateway.slots  gateway_slots[i]
 置き場・system/MyOS/src/ipc/gateway.unsafe.mln の GatewaySlot
@@ -109,9 +109,9 @@ s0（1,024 B まで）と s1（128 B まで）を [[gateway.slots]] に写し、
 フィールド out_cap：出力の上限
 フィールド result：result_out の代わりの受け皿（64 B）
 フィールド result_user：結果を書き戻す、アプリ側の場所
-フィールド result_size：書き戻す長さ
+フィールド result_size：書き戻す長さ（64 B まで）
 
-プロセスごとに 1 つ（16 個まで）ある、OS 側の受け皿。service task は、アプリのメモリではなくここだけを見る。
+プロセスごとに 1 つ（16 個まで）ある、OS 側の受け皿。service task は、アプリのメモリではなくここを見る。
 
 ## gateway.full  満杯なら印を付けて false
 関数・system/MyOS/src/ipc/gateway.unsafe.mln の request
@@ -121,13 +121,13 @@ s0（1,024 B まで）と s1（128 B まで）を [[gateway.slots]] に写し、
 ## channel.encode  encode_request_words
 関数・system/MyOS/src/ipc/channel.unsafe.mln の encode_request_words
 
-[[schema.request]] を 0〜12 語目に、返事の channel を 13 語目に書く。
+[[schema.request]] を 0〜14 語目に、返事の channel を 15 語目に書く。
 
 ## channel.words  words[24]
 置き場・system/MyOS/src/ipc/channel.unsafe.mln の submit
-フィールド words[0..12]（i32）：Request の 13 語
-フィールド words[13]（i32）：返事を入れる channel
-フィールド words[14..23]（i32）：使わない
+フィールド words[0..14]（i32）：Request の 15 語
+フィールド words[15]（i32）：返事を入れる channel
+フィールド words[16..23]（i32）：使わない
 
 IPC の 1 通は 24 語。submit の中だけで使う、その場の配列。
 

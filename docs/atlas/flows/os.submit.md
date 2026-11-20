@@ -12,7 +12,7 @@
   箱 notify [[kernel.notify-armed]] notify_armed(SERVICE) ｜説明 service task を起こす
 
 1. encode → words  読み書き「書く」 渡す Request
-   Request を 0〜12 語目に、返事の channel を 13 語目に書く
+   Request を 0〜14 語目に、返事の channel を 15 語目に書く
 2. words → send  読み書き 渡す 24 語「i32 words[24]」 札なし
    24 語をまとめて ipc.send に渡す
 3. send → ring  列を通す「入れる」 渡す 24 語「24 語の 1 通」 札なし
