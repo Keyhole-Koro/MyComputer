@@ -32,6 +32,7 @@ export enum SpawnError {
     ShortRead(SpawnReadMismatch),
     BufferAllocationFailed(i32),
     Loader(LoaderError),
+    ArgumentsTooLong, // more than ARGS_MAX bytes of arguments: refused, not cut
 }
 
 // A loader failure is a launch failure that keeps its cause.
@@ -51,6 +52,7 @@ export impl Describe for SpawnError {
             SpawnError::ShortRead(_) -> "incomplete executable";
             SpawnError::BufferAllocationFailed(_) -> "out of memory";
             SpawnError::Loader(cause) -> cause.describe();
+            SpawnError::ArgumentsTooLong -> "argument list too long";
         };
     }
 }
