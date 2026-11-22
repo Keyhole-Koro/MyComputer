@@ -41,7 +41,10 @@ from tools.project_paths import (
     MYLANGTESTER_DIR,
     MYLINKER_DIR,
     MYOS_DIR,
+    MYSTDLIB_DIR,
     REPO_ROOT,
+    SYSTEM_DIR,
+    TOOLCHAIN_DIR,
 )
 from qa.runners.runner_common import CYAN, GREEN, MYEMU, RED, YELLOW, colored, status_line
 
@@ -170,7 +173,10 @@ SUITES = {
     "app-sdk": mytest_suite(
         REPO_ROOT / "system" / "MyAppFramework" / "tests" / "ui_requests.dom.unsafe.test.mln",
     ),
-    "stdlib": mytest_suite(MYKERNEL_DIR / "tests" / "libs" / "std.unsafe.test.mln"),
+    "stdlib": mytest_suite(
+        MYKERNEL_DIR / "tests" / "libs" / "std.unsafe.test.mln",
+        *sorted((MYSTDLIB_DIR / "tests").glob("*.test.mln")),
+    ),
     "mmu": mytest_suite(MYKERNEL_DIR / "tests" / "mmu" / "mmu.unsafe.test.mln"),
     "fs-directories": mytest_suite(MYOS_DIR / "tests" / "fs" / "directories.unsafe.test.mln"),
     "fs-smoke": mytest_suite(MYOS_DIR / "tests" / "fs" / "fs_smoke.unsafe.test.mln"),
@@ -183,6 +189,14 @@ SUITES = {
     "disk-fixture": mytest_suite(MYOS_DIR / "tests" / "fs" / "disk_fixture.unsafe.test.mln"),
     "minode-fd": mytest_suite(MYOS_DIR / "tests" / "fs" / "minode_fd.unsafe.test.mln"),
     "gateway": mytest_suite(MYOS_DIR / "tests" / "ipc" / "gateway.unsafe.test.mln"),
+    "ipc": mytest_suite(MYKERNEL_DIR / "tests" / "ipc" / "ipc.unsafe.test.mln"),
+    # Addresses a process passes: the OS reads and writes only the caller's own memory.
+    "user-memory": mytest_suite(
+        MYOS_DIR / "tests" / "syscall" / "user_memory.unsafe.test.mln",
+        MYOS_DIR / "tests" / "syscall" / "kernel_addresses.unsafe.test.mln",
+        MYOS_DIR / "tests" / "fs" / "syscall_boundary.unsafe.test.mln",
+    ),
+    "ui-protocol": mytest_suite(MYOS_DIR / "tests" / "ui" / "protocol.unsafe.test.mln"),
     "scheduler": mytest_suite(
         MYKERNEL_DIR / "tests" / "scheduler" / "scheduler.unsafe.test.mln",
         MYKERNEL_DIR / "tests" / "scheduler" / "mock_context.unsafe.test.mln",
@@ -190,6 +204,7 @@ SUITES = {
     "process": mytest_suite(
         MYKERNEL_DIR / "tests" / "process" / "process.unsafe.test.mln",
         MYOS_DIR / "tests" / "proc" / "pid_reuse.unsafe.test.mln",
+        MYOS_DIR / "tests" / "proc" / "args.unsafe.test.mln",
     ),
     "thread": mytest_suite(MYKERNEL_DIR / "tests" / "thread" / "thread.unsafe.test.mln"),
     "serial-rx": mytest_suite(MYKERNEL_DIR / "tests" / "serial" / "serial_rx.unsafe.test.mln"),
@@ -199,6 +214,20 @@ SUITES = {
     "dom-text-rows": mytest_suite(MYOS_DIR / "tests" / "dom" / "dom_text_rows.unsafe.test.mln"),
     "input-queues": mytest_suite(MYKERNEL_DIR / "tests" / "io" / "input_queues.unsafe.test.mln"),
     "graphics": mytest_suite(MYOS_DIR / "tests" / "ui" / "graphics.unsafe.test.mln"),
+    # The firmware built from this checkout, booted in the emulator.
+    "firmware": (
+        [sys.executable, str(SYSTEM_DIR / "MyFirmware" / "tests" / "boot_test.py")],
+        ["mlc", "myas", "mllinker", "myemu"],
+    ),
+    "syntax-engine": (
+        ["make", "-C", str(TOOLCHAIN_DIR / "MySyntaxEngine"), "test"],
+        [],
+    ),
+    # cpu.v instruction by instruction. Needs verilator.
+    "verilator": (
+        ["make", "-C", str(REPO_ROOT / "hardware" / "verilator"), "test"],
+        [],
+    ),
     "readme": (
         [sys.executable, str(REPO_ROOT / "tools" / "readme_media.py"), "--check"],
         [],
