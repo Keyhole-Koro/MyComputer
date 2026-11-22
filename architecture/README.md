@@ -23,11 +23,14 @@
 | SP    | 32-bit            | Stack Pointer                             |
 | BP    | 32-bit            | Base Pointer (newly introduced)           |
 | SR    | 8-bit             | Status Register (flags)                   |
+| LR    | 32-bit            | Link Register: `call` puts the return address here |
 | IR    | 32-bit (optional) | Instruction Register (used for debugging) |
 
 * **Stack direction:** ☑ Down
 * **Stack base address:** `0x7FFFFFFF`
-* **Calling convention:** Manual (no CALL/RET); caller must manage PC and stack explicitly.
+* **Calls:** `call addr` puts the address of the next instruction in LR and jumps; a
+  function returns with `mov pc, lr` (there is no `ret`). A function that calls
+  others saves LR on the stack first (`push lr` ... `pop lr`).
 
 ---
 
@@ -55,8 +58,8 @@
 | ------------- | -------------------------------- |
 | Data Movement | `mov`, `movi`, `load`, `store`   |
 | Arithmetic    | `add`, `sub`, `mcp`              |
-| Logic         | `and`, `or`, `xor`, `shl`, `shr`, `call`, `ret` |
-| Control Flow  | `jmp`, `jz`, `jnz`               |
+| Logic         | `and`, `or`, `xor`, `shl`, `shr` |
+| Control Flow  | `jmp`, `jz`, `jnz`, `call`       |
 | Stack         | `push`, `pop`                    |
 | I/O           | `in`, `out`                      |
 | Special       | `nop`, `halt`, `iret`            |
@@ -122,7 +125,7 @@ anywhere in the address space; the linker fills in the two halves.
 | `jl addr`   | `0x11` | `imm26` | Jump if less (signed)             |
 | `ja addr`   | `0x12` | `imm26` | Jump if above (unsigned greater)  |
 | `jb addr`   | `0x13` | `imm26` | Jump if below (unsigned less)     |
-| `call addr` | `0x1b` | `imm26` | Push return address, jump to addr |
+| `call addr` | `0x1b` | `imm26` | LR = the next instruction's address, jump to addr |
 
 ---
 
@@ -197,7 +200,9 @@ IRET restore SR separately from guest register writes.
 ## 6. ↺ Control Flow
 
 * **Jump types:** `JMP`, `JZ`, `JNZ`
-* **No CALL/RET**: Subroutine support must be implemented via manual stack and PC management.
+* **Calls:** `CALL` sets LR to the next instruction's address; `mov pc, lr` returns. There is no `RET`.
+* **PC as a register:** an instruction that names PC as an operand reads the address of the
+  instruction after it, and one that writes PC (`mov pc, lr`, `pop pc`) jumps there.
 * **Interrupt return:** `IRET` (restores PC and flags)
 
 ---

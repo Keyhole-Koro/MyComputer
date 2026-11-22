@@ -130,8 +130,8 @@ search path `/bin`, then `/apps` (`console.open_executable`); a path with a
 
 A path is at most 63 bytes, and each name in it at most 15. A longer one is
 refused, not cut, since what fits would name another file: `PROC_SPAWN`
-answers `NotFound`, and the `FS_*` calls `InvalidName` (or `NotFound` for a
-name too long to exist).
+answers `NotFound`, `SYS_SPAWN` `SpawnFailed`, and the `FS_*` calls
+`InvalidName` (or `NotFound` for a name too long to exist).
 
 A process's stdout goes to a Terminal node (or a TextArea), and its stdin is a
 queue of its own (`proc/consoles.model.mln`). A child starts where its parent
@@ -154,7 +154,8 @@ as the routing value. `PROC_EXITED` reports true, and `PROC_REAP` succeeds, only
 once the OS has released everything it holds under the child's pid.
 
 `PROC_SPAWN` takes, besides the path, the arguments the program is started
-with: the rest of a command line, up to `ARGS_MAX` (127) bytes. The OS keeps
+with: the rest of a command line, up to `ARGS_MAX` (127) bytes. Longer
+arguments are refused with `SpawnError::ArgumentsTooLong`, not cut. The OS keeps
 them per process (`system/MyOS/src/proc/args.mln`), and the program reads its
 own with `PROC_ARGS` -- MyStdLib's `process.args()`; `process.spawn_with(path,
 args)` passes them. `sh` hands a program what follows its name, so `echo

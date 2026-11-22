@@ -11,7 +11,7 @@
 | MLC-020 | [ABI透過な不透明newtype](tickets/MLC-020_opaque-newtypes.md) | Proposed | Pid、Fd、NodeId等を基底scalarと同じABIのnominal typeにする。 |
 | MLC-025 | [値だけのメモリモデル（共有値、Box、プール）](tickets/MLC-025_values-and-shared-values.md) | Proposed | 段階2。採用した値だけのモデル（`docs/design/mylang-values.md`）の共有値、Box、プール。 |
 | MLC-026 | [既存コードを値だけのモデルへ移す](tickets/MLC-026_memory-model-migration.md) | In Progress | アプリ、AppSDK、DOM を移した。OS とカーネルの unsafe はファイル単位のまま。 |
-| MLC-027 | [メモリモデルの性能（計測と最適化）](tickets/MLC-027_memory-model-performance.md) | Proposed | rc の前の基準、参照数の最適化、レジスタ割り当て、命令の追加。段階4。 |
+| MLC-027 | [メモリモデルの性能（計測と最適化）](tickets/MLC-027_memory-model-performance.md) | In Progress | rc の前の基準は済み。参照数の最適化、レジスタ割り当て、命令の追加。段階4。 |
 | MLC-028 | [構文の整理](tickets/MLC-028_syntax-cleanup.md) | Proposed | `case` の腕のブロック、使われていない予約語、DOM のハンドラ。段階5。 |
 | MLT-002 | [MyLang Test Framework（mytest + test declaration）](tickets/MLT-002_mylang-test-framework.md) | Proposed | `*.test.mln`、Jest 風 test declaration、mytest runner、emulator test options を設計・実装する。 |
 | MLT-003 | [MyLang Function Mocking Framework](tickets/MLT-003_mylang-di-and-mocking.md) | Proposed | MyLangTestKitを基盤に、production DIを要求しない型付きMock/Spyとtest-build dispatchを設計する。 |

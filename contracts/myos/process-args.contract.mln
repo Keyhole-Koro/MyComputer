@@ -11,12 +11,15 @@ export struct ProcSpawnArgs<Out> {
     char *path;
     i32 path_length;
     char *args;        // what it is started with after its name: the rest of a command line
-    i32 args_length;   // at most ARGS_MAX bytes are kept
+    i32 args_length;   // at most ARGS_MAX bytes; more is refused with ArgumentsTooLong
     i32 stdout_node;   // the Terminal or TextArea it writes to; 0: wherever the caller writes
     Out *result_out;
 };
 
-/** The longest arguments a process is started with, in bytes; more are cut. */
+/**
+ * The longest arguments a process is started with, in bytes. PROC_SPAWN
+ * refuses longer ones with SpawnError::ArgumentsTooLong rather than cut them.
+ */
 export const i32 ARGS_MAX = 127;
 
 /** PROC_ARGS: the caller's own arguments, copied to `out`; r2 is their length. */
