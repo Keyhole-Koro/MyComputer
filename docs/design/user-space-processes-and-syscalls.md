@@ -128,6 +128,11 @@ Syscalls leverage the standard MyLang register convention.
 search path `/bin`, then `/apps` (`console.open_executable`); a path with a
 `/` is taken as is. The caller becomes the new process's parent.
 
+A path is at most 63 bytes, and each name in it at most 15. A longer one is
+refused, not cut, since what fits would name another file: `PROC_SPAWN`
+answers `NotFound`, and the `FS_*` calls `InvalidName` (or `NotFound` for a
+name too long to exist).
+
 A process's stdout goes to a Terminal node (or a TextArea), and its stdin is a
 queue of its own (`proc/consoles.model.mln`). A child starts where its parent
 writes: `PROC_SPAWN` with no `stdout_node`, like `SYS_SPAWN`, puts it on the

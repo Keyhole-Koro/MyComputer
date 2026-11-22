@@ -15,7 +15,7 @@ MyOS がカーネルに登録した、OS_CALL の受け口。service で振り�
 中の紙：os.gateway
 引数 pid：呼んだプロセス
 引数 user_request：ユーザメモリの要求
-返す：列に入ったら true。満杯なら false（アプリがやり直す）
+返す：列に入ったら true。列が満杯のときと、前の要求の返事をまだ受け取っていないときは false（アプリがやり直す）
 
 owner を呼んだプロセスの pid で上書きし、文字列と出力先をプロセスごとの buffer にコピーしてから [[os.request-ring]] に並べる。service task が見るのは、OS 側にコピーした値だけ。返事は reply が、イベントは poll が、同じようにコピーして返す。
 
@@ -110,13 +110,19 @@ s0（1,024 B まで）と s1（128 B まで）を [[gateway.slots]] に写し、
 フィールド result：result_out の代わりの受け皿（64 B）
 フィールド result_user：結果を書き戻す、アプリ側の場所
 フィールド result_size：書き戻す長さ（64 B まで）
+フィールド pending：返事をまだ受け取っていない要求があるか
 
-プロセスごとに 1 つ（16 個まで）ある、OS 側の受け皿。service task は、アプリのメモリではなくここだけを見る。
+プロセスごとに 1 つ（16 個まで）ある、OS 側の受け皿。service task は、アプリのメモリではなくここだけを見る。受け皿が 1 組なので、プロセスが一度に出せる要求は 1 つ（[[gateway.busy]]）。
 
 ## gateway.full  満杯なら印を付けて false
 関数・system/MyOS/src/ipc/gateway.unsafe.mln の request
 
 [[os.submit]] が false を返したら（要求の列が満杯）、scheduler.arm_notification(REQUEST_SPACE) で印を付けて false を返す。OS_CALL は 0 を返し、アプリの [[lib.transport]] は REQUEST_SPACE を待って出し直す。[[os.serve]] は列から 1 つ取り出すたびに REQUEST_SPACE を通知する。
+
+## gateway.busy  返事待ちなら断る
+関数・system/MyOS/src/ipc/gateway.unsafe.mln の request
+
+前の要求の返事をまだ REPLY で受け取っていなければ（[[gateway.slots]] の pending）、何も読まずに REQUEST_SPACE の印を付けて false を返す。アプリの [[lib.transport]] は [[gateway.full]] のときと同じく待って出し直す。reply は返事を渡すと pending を下ろし、そのプロセスに REQUEST_SPACE を通知する。これで 2 つ目の要求が 1 つ目の文字列や書き込み先を上書きすることも、受け取られない返事で返事の channel が溢れて [[os.serve]] が止まることもない。
 
 ## channel.encode  encode_request_words
 関数・system/MyOS/src/ipc/channel.unsafe.mln の encode_request_words

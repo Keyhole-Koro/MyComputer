@@ -205,6 +205,7 @@ SUITES = {
         MYKERNEL_DIR / "tests" / "process" / "process.unsafe.test.mln",
         MYOS_DIR / "tests" / "proc" / "pid_reuse.unsafe.test.mln",
         MYOS_DIR / "tests" / "proc" / "args.unsafe.test.mln",
+        MYOS_DIR / "tests" / "proc" / "spawn_path.unsafe.test.mln",
     ),
     "thread": mytest_suite(MYKERNEL_DIR / "tests" / "thread" / "thread.unsafe.test.mln"),
     "serial-rx": mytest_suite(MYKERNEL_DIR / "tests" / "serial" / "serial_rx.unsafe.test.mln"),

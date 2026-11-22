@@ -13,6 +13,7 @@
   箱 copy [[gateway.copy]] copy_request_strings ｜説明 s0・s1 を写す
   箱 stage [[gateway.stage]] stage_request_outputs ｜説明 出力先を差し替え
   箱 full [[gateway.full]] 満杯なら印を付ける ｜説明 REQUEST_SPACE・false を返す
+  箱 busy [[gateway.busy]] 返事待ちなら断る ｜説明 REQUEST_SPACE・false を返す
 帯 kbuf OS 側／受け皿と列（os）
   箱 slot [[gateway.slots]] gateway_slots[i] ｜中身 s0, s1, out, result
   箱 submit [[os.submit]] submit(req, ch) ｜名前空間 request_channel ｜説明 列に並べる
@@ -36,3 +37,5 @@
    OS 側の値だけになった Request を、要求の列に並べる（submit の中にも紙がある）
 もし 満杯（8 の代わり）. submit → full  戻り「false」 [[gateway.full]]
    列が満杯なら submit は false を返す。request は REQUEST_SPACE の印を付けて、自分も false を返す
+もし 返事待ち（1 の代わり）. slot → busy  読み書き「pending を見る」 [[gateway.busy]]
+   前の要求の返事をまだ受け取っていなければ、何も読まずに REQUEST_SPACE の印を付けて false を返す

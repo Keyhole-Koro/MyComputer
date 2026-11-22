@@ -63,7 +63,7 @@ syscall dispatcher は保存済み interrupt frame を scheduler へ渡せるた
 
 | bit | arm する条件 | 通知元 |
 |---|---|---|
-| `REQUEST_SPACE` | 共有 request ring が full | server が request を dequeue した直後 |
+| `REQUEST_SPACE` | 共有 request ring が full、またはそのプロセスの前の要求の返事がまだ受け取られていない | server が request を dequeue した直後、またはプロセスが `REPLY` で返事を受け取った直後（そのプロセスのタスクへ） |
 | `REPLY` | プロセスの reply channel が empty | server が reply を enqueue した直後 |
 | `EVENT` | プロセスの event channel が empty | event を enqueue した直後 |
 
@@ -165,6 +165,12 @@ compositor を request、input、次の timer deadline のいずれかで起こ�
 現在は transport を 1 タスクだけが使う。これは `docs/design/threads.md` の現行方針と一致する。
 スレッドごとに reply channel だけを作っても十分ではない。gateway にはプロセスごとに 1 組の
 `s0`、`s1`、`out`、`result` staging buffer と copy-out metadata があるためである。
+
+gateway はこれを強制する。プロセスが前の要求の返事を `REPLY` で受け取るまで、次の `REQUEST`
+は ring が full のときと同じく 0 を返し、`REQUEST_SPACE` を arm する。返事を受け取ると、その
+プロセスのタスクへ `REQUEST_SPACE` を通知する。したがって 2 つ目の要求が 1 つ目の staging を
+上書きすることはなく、受け取られない返事で reply channel が溢れて server が止まることもない。
+別のスレッドの要求は、前の要求の返事が受け取られるまで待つ。
 
 複数スレッドからの同期要求を許可するときは、次をまとめて変更する。
 

@@ -30,6 +30,11 @@ i32 request(Request *m);        // OS_CALL(REQUEST) → OS_CALL(REPLY) を待つ
 - `owner`：アプリは自分のインスタンスを書くが、MyOS gatewayが **pid** に書き換える。
   要求が作るノードはすべて pid に所有される（サーバは `handle()` の間だけ `dom.current_owner`
   をこれにする）。イベントの `owner` も pid
+- アプリが読み書きできるのは、自分が所有するノードだけ。ほかのアプリやシステムのノードを
+  名指す操作は、無いノードと同じに扱う（TEXT_COPY と APPEND_CHILD は `NodeNotFound`、ほかは
+  何も変えない）。SEND_KEY は、前にあるウィンドウとキーボードのあるノードがどちらも送り主の
+  ものでなければ何もしない。APP domain の MAIN_WINDOW・SHOW_DIALOG・HIDE_DIALOG も、自分の
+  ウィンドウにしか効かない
 - 文字列（`s0` ≤ 1024、`s1` ≤ 128）はカーネルがプロセスごとのバッファにコピーし、サーバは
   さらに自分のコピー（`dom.set_text_copy`、node の name）を持つ。出力バッファ（TEXT_COPY の
   `out`、≤ 4096）はカーネル側のバッファに書かせ、返事のときにユーザメモリへコピーバックする。
