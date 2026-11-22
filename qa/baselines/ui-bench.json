@@ -1,0 +1,21 @@
+{
+ "drag": {
+  "instructions": 4723375,
+  "motion_per_event": 12368,
+  "motion_per_event_calls": 30,
+  "paint_per_frame": 499456,
+  "paint_per_frame_calls": 5
+ },
+ "hover": {
+  "hit_test_per_call": 15208,
+  "hit_test_per_call_calls": 29,
+  "instructions": 3094397
+ },
+ "type": {
+  "instructions": 2000000,
+  "key_per_event": 38028,
+  "key_per_event_calls": 30,
+  "paint_per_frame": 562865,
+  "paint_per_frame_calls": 1
+ }
+}

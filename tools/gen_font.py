@@ -223,7 +223,8 @@ def module_source(variant: Variant, font_path: Path, data: FontData) -> str:
         f"i32 GLYPH_COUNT = {GLYPH_COUNT};\n\n",
         int_array("face_line_h", data.line_heights),
         int_array("face_ascent", data.ascents),
-        "\n// Per glyph, indexed face * GLYPH_COUNT + (ch - 0x20).\n",
+        int_array("face_base", [face * GLYPH_COUNT for face in range(len(data.line_heights))]),
+        "\n// Per glyph, indexed face_base[face] + (ch - 0x20).\n",
         int_array("g_adv", data.advances),
         int_array("g_bx", data.bearing_x),
         int_array("g_by", data.bearing_y),
@@ -243,14 +244,16 @@ export i32 line_height(i32 face) { return face_line_h[face]; }
 /**
  * Computes the glyph array index for a character in the specified face.
  *
- * Characters outside the printable ASCII range 0x20..0x7E map to '?'.
+ * Characters outside the printable ASCII range 0x20..0x7E map to '?'. The
+ * face's first index comes from face_base: the CPU has no multiply, and a
+ * multiplication here cost ~150 instructions on every metric of every glyph.
  * @param face Font face index.
  * @param ch ASCII character code.
  * @return Index into the glyph metric and offset tables.
  */
 i32 glyph_index(i32 face, i32 ch) {
     if (ch < ' ' || ch > '~') { ch = '?'; }
-    return face * GLYPH_COUNT + (ch - ' ');
+    return face_base[face] + (ch - ' ');
 }
 
 /**
