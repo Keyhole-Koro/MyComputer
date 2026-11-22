@@ -37,6 +37,8 @@ help:
 		'  make profile-diff     Compare the last two profiles by function (TOP=n for more rows)' \
 		'  make bench            Measure the e2e programs and compare with qa/baselines (TOP=n for more rows)' \
 		'  make bench-save       Measure the e2e programs and make that the baseline' \
+		'  make ui-bench         Measure the desktop (drag, type, hover) and compare with qa/baselines' \
+		'  make ui-bench-save    Measure the desktop and make that the baseline' \
 		'  make unused-exports   Report exports nothing references (ARGS="--write-allow" to rewrite the allowlist)' \
 		'  make check            Report parse and semantic errors in every .mln (FILE=path for one file or directory)' \
 		'  make lsp-check        Report what the language server shows, checked against the compiler (FILE=path to narrow)' \
@@ -186,6 +188,17 @@ bench: profile-tools
 
 bench-save: profile-tools
 	$(MYPROFILER) bench qa/baselines/e2e-instructions.json
+
+# What the desktop's interactions cost (drag, type, hover), against the
+# baseline: guest instructions per frame painted and per event handled.
+ui-bench: profile-tools
+	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run --headless
+	$(MYPROFILER) ui-bench
+	$(MYPROFILER) ui-bench-diff
+
+ui-bench-save: profile-tools
+	$(PYTHON) $(QA_DIR)/runners/run_system.py --no-run --headless
+	$(MYPROFILER) ui-bench qa/baselines/ui-bench.json
 
 # The document map (tools/MyAtlas). docs/atlas holds the text; MyAtlas checks it
 # against the code and builds one page from it. The trace is a recorded run the

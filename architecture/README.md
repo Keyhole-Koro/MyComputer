@@ -242,7 +242,8 @@ IRET restore SR separately from guest register writes.
 | SSD           | `0x24000010–0x2400001C` | CMD=`0x10` (W: 1=read, 2=write), BLOCK=`0x14`, ADDR=`0x18`, STATUS=`0x1C` (R: 0=idle, 1=busy, 2=done, 0xFF=error). Asynchronous DMA: STATUS reads busy until the transfer completes, then IRQ cause bit 3 |
 | 2D DMA        | `0x24000020–0x24000034` | DEST=`0x20`, COLOR=`0x24`, WIDTH=`0x28`, HEIGHT=`0x2C`, STRIDE=`0x30`, CMD=`0x34` (W: 1=fill rect) |
 | Display       | `0x24000038`            | SWAP: write 1 to present the back buffer (double buffering) |
-| Cursor        | `0x24000060–0x24000068` | X, Y, CTRL (bit0=visible) |
+| Cursor        | `0x24000060–0x24000068` | X, Y, CTRL (bit0=visible). MyOS moves it from the mouse IRQ (`mouse.set_cursor_follower`), so it follows the pointer while a frame paints |
+| Timeline      | `0x240001C0–0x240001CC` | LENGTH=`0x1C0`, then a name's address to BEGIN=`0x1C4`, END=`0x1C8` or MARK=`0x1CC`: spans and instants on the emulator's frame timeline (`myemu --timeline`). Ignored while no timeline is recorded |
 | Display geometry | `0x240000D0–0x240000D4` | Read-only word WIDTH, HEIGHT in pixels; configured by `runtime/MyEmulator/config/hardware.conf` |
 | Mouse         | `0x24000040–0x2400005C` | Live state: X=`0x40`, Y=`0x44`, BUTTONS=`0x48` (bit0=left). Event FIFO (64 deep, oldest dropped on overflow): COUNT=`0x4C`, EVT_X=`0x50`, EVT_Y=`0x54`, EVT_BTN=`0x58`, POP=`0x5C` (W). Each change raises IRQ cause bit 1 |
 | IRQ control   | `0x24000080–0x24000084` | VECTOR=`0x80` (single shared handler address), CAUSE=`0x84` (R to dispatch, write 1s to acknowledge) |

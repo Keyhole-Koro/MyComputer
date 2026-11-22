@@ -27,6 +27,11 @@ def main():
     parser.add_argument("--headless", action="store_true", help="Run emulator without display.")
     parser.add_argument("--verbose", action="store_true", help="Show full command output in the terminal.")
     parser.add_argument(
+        "--timeline", metavar="PATH",
+        help="Record the frame timeline and write it at exit as a Chrome trace (open it at "
+             "https://ui.perfetto.dev, or summarize it with myprofiler.py frames).",
+    )
+    parser.add_argument(
         "--screenshot", metavar="PATH",
         help="Run headless until the first idle (the desktop has painted), save the frame "
              "as PNG/PPM at PATH, and exit.",
@@ -136,6 +141,8 @@ def main():
     emu_cmd = [str(MYEMU), "-i", str(fw_bin), "--disk", str(disk_img), "-o", str(report_path), "--log-dir", str(session.session_dir), "--timer-interval", "1000"]
     if args.headless or args.screenshot:
         emu_cmd.append("--headless")
+    if args.timeline:
+        emu_cmd += ["--timeline", str(Path(args.timeline).resolve())]
     if args.screenshot:
         # --step makes the emulator stop at the first WFI, which is right
         # after the compositor painted the desktop and went idle; the
